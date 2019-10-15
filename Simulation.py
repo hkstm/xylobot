@@ -14,14 +14,14 @@ args = parser.parse_args()
 class Window(Frame):
 	def init_window(self):  
 		direction = 0
-		lower_joint_angle = 120
-		upper_joint_angle = 180
+		lower_joint_angle = 160
+		upper_joint_angle = 210
 		base_length = 20
 		lower_arm_length = 16
 		upper_arm_length = 14.5
-		distance = 10
+		distance = 20
 		multiplier = 20
-		sleep_time = 0.05
+		sleep_time = 0.01
 		width = self.winfo_screenwidth()
 		height = self.winfo_screenheight()/2 
 		xylophone_height = 10 #check this
@@ -32,8 +32,8 @@ class Window(Frame):
 		side_view.grid(row = 0, column = 0)
 		self.pack(fill=BOTH, expand=1)
 		division = multiplier*1 
-		top = height/2-multiplier*4.15
-		bottom = height/2+multiplier*4.15
+		top = height/2-multiplier*5.53
+		bottom = height/2+multiplier*5.53
 		left = width/2-multiplier*11-division/2
 		c = 0.4714
 		birds_eye_view.create_rectangle(left+0*(keywidth+division), top+0*c, left+0*(keywidth+division)+keywidth, bottom-0*c, fill = "blue")
@@ -44,26 +44,29 @@ class Window(Frame):
 		birds_eye_view.create_rectangle(left+5*(keywidth+division), top+5*c, left+5*(keywidth+division)+keywidth, bottom-5*c, fill = "purple")
 		birds_eye_view.create_rectangle(left+6*(keywidth+division), top+6*c, left+6*(keywidth+division)+keywidth, bottom-6*c, fill = "white")
 		birds_eye_view.create_rectangle(left+7*(keywidth+division), top+7*c, left+7*(keywidth+division)+keywidth, bottom-7*c, fill = "darkblue")
-		side_view.create_rectangle(width/2-multiplier*5.3, height-multiplier*xylophone_height, width/2+multiplier*5.3, height, fill="blue") 
-		base = bottom+multiplier*distance
-		b_line = birds_eye_view.create_line(width/2, base, 
+		side_view.create_rectangle(width/2-multiplier*5.53, height+100-multiplier*xylophone_height, width/2+multiplier*5.53, height+100, fill="blue") 
+		base = bottom+multiplier*distance-110.6 #correction term at the end
+		b_line = birds_eye_view.create_line(width/2, base, # check base because something does not add up (print stuff)
        	                                            width/2, base,
-       	                                            width/2+multiplier*lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction)), 
-				                    base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction))),
-       	                                            width/2+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
-				                                        upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
-       	                                            base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction))+
-       	                                                             upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.sin(math.radians(direction))),
+       	                                            width/2+multiplier*lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction)), 
+				        	    base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+       	                                            width/2+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction))+
+					                                upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.sin(math.radians(direction))),
+       	                                            base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+       	                                                             upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
        	                                            fill = "grey", width = 5, joinstyle = ROUND)
-		s_line = side_view.create_line(width/2+multiplier*(distance), height, 
-       	                                       width/2+multiplier*(distance), height-multiplier*base_length,
+		s_line = side_view.create_line(width/2+multiplier*(distance), height+100,
+       	                                       width/2+multiplier*(distance), height+100-multiplier*base_length,
        	                                       width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))), 
-       	                                       height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))),
+       	                                       height+100-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))),
        	                                       width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
        	                                                                    upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
-                                               height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
+       	                                       height+100-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
        	                                                                      upper_arm_length*math.sin(math.radians(upper_joint_angle))),
        	                                       fill = "grey", width = 5, joinstyle = ROUND)
+		print(top)
+		print(base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+       	                                                             upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))))
 		if(args.type == "forwards"):
 			goal_direction = int(args.direction)
 			goal_lower_joint_angle = int(args.lower_joint_angle)
@@ -115,7 +118,7 @@ class Window(Frame):
 					done = True
 				side_view.update_idletasks()
 				birds_eye_view.update_idletasks()
-		else:
+		elif(args.type == "backwards"):
 			note = args.colour
 			xGoal = 0.0
 			yGoal = top+11.6/2
@@ -168,19 +171,18 @@ class Window(Frame):
 				time.sleep(sleep_time)
 			fabrik = side_view.create_line(xGoal, yGoal, xGoal, yGoal, fill = "grey", width = 5, joinstyle = ROUND)
 			done = False
+			xLeg = xGoal-(width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+       	                                                                 upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))))
+			yLeg = yGoal-(height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
+       	                                                             upper_arm_length*math.sin(math.radians(upper_joint_angle))))
+			goal_upper_joint_angle = int(math.degrees(math.atan2(yLeg,xLeg)))
 			while(not done):
-				print("2")
 				done = True
-				xLeg = xGoal-(width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
-       	                                                                       upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))))
-				yLeg = yGoal-(height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
-       	                                                                         upper_arm_length*math.sin(math.radians(upper_joint_angle))))
-				goal_lower_joint_angle = int(math.degrees(math.atan2(yLeg,xLeg)))
-				if(lower_joint_angle < goal_lower_joint_angle):
-					lower_joint_angle += 1
+				if(upper_joint_angle < goal_upper_joint_angle):
+					upper_joint_angle += 1
 					done = False
-				elif(lower_joint_angle > goal_lower_joint_angle):
-					lower_joint_angle -= 1
+				elif(upper_joint_angle > goal_upper_joint_angle):
+					upper_joint_angle -= 1
 					done = False
 				birds_eye_view.coords(b_line, width/2, base, # check base because something does not add up (print stuff)
        	                                                      width/2, base,
@@ -194,7 +196,7 @@ class Window(Frame):
        	                                                 width/2+multiplier*(distance), height-multiplier*base_length,
        	                                                 width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))), 
        	                                                 height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))))
-				side_view.coords(fabrik, xGoal, yGoal, lower_arm_length*math.sin(lower_joint_angle), lower_arm_length*math.cos(lower_joint_angle)) 
+				side_view.coords(fabrik, xGoal, yGoal, upper_arm_length*math.sin(upper_joint_angle), upper_arm_length*math.cos(upper_joint_angle)) 
 				time.sleep(sleep_time)
 	def __init__(self, master = None):
 			Frame.__init__(self, master)                  
