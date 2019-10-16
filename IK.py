@@ -28,6 +28,7 @@ dist2Target = 0
 # Angles
 cos_a1 = cos_b = 0
 a = a1 = a2 = b = c = 0
+actualPosition = Point(0, 27, SHOULDER)
 
 
 def getAngles(t):
@@ -63,6 +64,7 @@ def getAngles(t):
         if angleToMotorAngle(a)*-1 > 0:
             raise Exception("ELBOW ANGLE IS NEGATIVE")
 
+        setActualPos(t)
         print('Original angles - origin angle: ', c, ' elbow angle: ', a, ' wrist angle: ', b)
         print('Arduino angles - origin angle: ', c, ' elbow angle: ', angleToMotorAngle(a)*-1,
               ' wrist angle: ', angleToMotorAngle(b), '\n')
@@ -76,5 +78,12 @@ def angleToMotorAngle(a):
     #dif = math.fabs(90 - a)
     #return -90 + dif
     return 180 - a
+
+def setActualPos(pos):
+    print('Setting new position ', pos.x, ' ', pos.y, ' ', pos.z)
+    actualPosition = pos
+
+def getActualPos():
+    return actualPosition
 
 getAngles(Point(0, 20, 10))
