@@ -4,14 +4,14 @@
 
 # this is designed to work with ... ArduinoPC2.ino ...
 
-# the purpose of this program and the associated Arduino program is to demonstrate a system for sending 
+# the purpose of this program and the associated Arduino program is to demonstrate a system for sending
 #   and receiving data between a PC and an Arduino.
 
 # The key functions are:
-#    sendToArduino(str) which sends the given string to the Arduino. The string may 
+#    sendToArduino(str) which sends the given string to the Arduino. The string may
 #                       contain characters with any of the values 0 to 255
 #
-#    recvFromArduino()  which returns an array. 
+#    recvFromArduino()  which returns an array.
 #                         The first element contains the number of bytes that the Arduino said it included in
 #                             message. This can be used to check that the full message was received.
 #                         The second element contains the message as a string
@@ -42,7 +42,7 @@
 #
 #       for simplicity the program does NOT search for the comm port - the user must modify the
 #         code to include the correct reference.
-#         search for the lines 
+#         search for the lines
 #               serPort = "/dev/ttyS80"
 #               baudRate = 9600
 #               ser = serial.Serial(serPort, baudRate)
@@ -56,29 +56,56 @@
 # =====================================
 
 key0 = [-33, -25, -20, -13, -7, 0, 6, 12]
-key1 = [-80, -80, -80, -75, -75, -75, -80, -90]
-key2 = [30, 30, 32, 40, 40, 40, 32, 14]
-curpos = [0, -50, 0]
+key1 = [-85, -82, -82, -75, -76, -75, -80, -90]
+key2 = [24, 33, 33, 44, 42, 44, 35, 18]
 
 import serial
 import time
 import numpy as np
-#0 = connected to arduino
-#2 = print statements
-DEBUG = 0
 
+# 0 = connected to arduino
+# 2 = print statements
+# 3 = manual playing
+DEBUG = 3
 print
 print
 # ser = serial.Serial()
 # NOTE the user must ensure that the serial port and baudrate are correct
-if DEBUG == 0:
+if DEBUG == 0 or DEBUG == 3:
     baudRate = 9600
     serPort = "COM3"
     ser = serial.Serial(serPort, baudRate)
-    print("Serial port " + serPort + " opened  Baudrate " + str(baudRate))
+    print("Serial port " + serPort + " opened,  Baudrate " + str(baudRate))
     startMarker = 60
     endMarker = 62
 
+def singlehit (cur, key, speed):
+    goalPos = [key1[key], key2[key]]
+    mid1 = key1[key]
+    mid2 = key2[key] - 50
+
+    oneincrement = (mid1 - cur[1]) / speed/2
+    twoincrement = (mid2 - cur[2]) / speed/2
+
+
+    for i in range(1, speed):
+
+        one = i*oneincrement + cur[1]
+        two = i*twoincrement + cur[2]
+
+
+        string = str(cur[0]) + "," + str(one) + "," + str(two) + "\n"
+        sendToArduino(string)
+
+    string = str(cur[0]) + "," + str(goalPos[0]) + "," + str(goalPos[1]) + "\n"
+    sendToArduino(string)
+
+
+def playft(curkey, key, speed):
+
+    hit([key0[curkey], key1[curkey], key2[curkey]], [key0[key], key1[key]+10, key2[key]-50], speed)
+    singlehit([key0[key], key1[key]+10, key2[key]-50], key, speed)
+    time.sleep(0.2)
 
 
 
@@ -102,14 +129,17 @@ def hit(curpos, pos, speed):
             print('y' + str(i) + ' = ' + str(y))
             print('z' + str(i) + ' = ' + str(z))
             print()
-        move(x,y,z)
+        move(x, y, z)
     # Loop through path & sendToArduino(point in path), delay
 
 
-def move(x,y,z):
+
+def move(x, y, z):
     string = str(x) + ', ' + str(z) + ', ' + str(y) + '\n'
-    if DEBUG == 0:
+    if DEBUG == 0 or DEBUG == 3:
         sendToArduino(string)
+
+
 def getPath(curpos, pos, speed):
     # TO_DO
 
@@ -124,16 +154,16 @@ def getPath(curpos, pos, speed):
     ypath = []
     zpath = []
     path = []
-    if x1>x0:
-        zmid = z0 + 0.6*(x1-x0)
+    if x1 > x0:
+        zmid = z0 + 0.6 * (x1 - x0)
     else:
-        zmid = z0 + 0.6*-(x1-x0)
+        zmid = z0 + 0.6 * -(x1 - x0)
 
     if x1 - x0 == 0:
-        zmid = z0+20
+        zmid = z0 + 20
         for i in range(0, speed):
-            x = x0 + (i+1)*((x1-x0)/speed)
-            y = y0 + (i+1)*((y1-y0)/speed)
+            x = x0 + (i + 1) * ((x1 - x0) / speed)
+            y = y0 + (i + 1) * ((y1 - y0) / speed)
 
             if i < speed / 2:
                 z = z0 + (i + 1) * (zmid - z0) / speed
@@ -154,17 +184,16 @@ def getPath(curpos, pos, speed):
             print('z0 = ' + str(z0))
             print('z1 = ' + str(z1))
 
-
         for i in range(0, speed):
-            x = x0 + (i+1)*((x1-x0)/speed)
-            y = a*x+b
+            x = x0 + (i + 1) * ((x1 - x0) / speed)
+            y = a * x + b
             xpath.append(x)
             ypath.append(y)
 
-            if i<speed/2:
-                z = z0 + (i+1)*(zmid-z0)/speed
+            if i < speed / 2:
+                z = z0 + (i + 1) * (zmid - z0) / speed
             else:
-                z = zmid + (i+1)*(z1-zmid)/speed
+                z = zmid + (i + 1) * (z1 - zmid) / speed
             zpath.append(z)
             if DEBUG == 2:
                 print(x)
@@ -177,6 +206,7 @@ def getPath(curpos, pos, speed):
     path.append(zpath)
 
     return path
+
 
 def sendToArduino(sendStr):
     print("inside send to Arduino")
@@ -191,32 +221,34 @@ def recvFromArduino():
     global startMarker, endMarker
 
     ck = ""
-    x = "z" # any value that is not an end- or startMarker
-    byteCount = -1 # to allow for the fact that the last increment will be one too many
+    x = "z"  # any value that is not an end- or startMarker
+    byteCount = -1  # to allow for the fact that the last increment will be one too many
     print("in receive from arduino ")
     # wait for the start character
-    while  ord(x) != startMarker:
-      x = ser.read()
+    while ord(x) != startMarker:
+        x = ser.read()
     print("in receive from arduino 3")
     # save data until the end marker is found
     while ord(x) != endMarker:
-      if ord(x) != startMarker:
-        ck = ck + x
-        byteCount += 1
-      x = ser.read()
+        if ord(x) != startMarker:
+            ck = ck + x
+            byteCount += 1
+        x = ser.read()
     print("in receive from arduino 4")
-    return(ck)
+    return (ck)
 
 
 # ============================
 def hitnote(a, b, speed):
     hit([key0[a], key1[a], key2[a]], [key0[b], key1[b], key2[b]], speed)
 
+
 def hitsinglenote(a):
     string = str(key0[a]) + ', ' + str(key1[a]) + ', ' + str(key2[a]) + '\n'
     sendToArduino(string)
-def waitForArduino():
 
+
+def waitForArduino():
     # wait until the Arduino sends 'Arduino Ready' - allows time for Arduino reset
     # it also ensures that any bytes left over from a previous message are discarded
 
@@ -225,13 +257,13 @@ def waitForArduino():
     msg = ""
     while msg.find("Arduino is ready") == -1:
 
-      while ser.inWaiting() == 0:
-        print("<Arduino is ready>")
-        pass
+        while ser.inWaiting() == 0:
+            print("<Arduino is ready>")
+            pass
 
-      msg = recvFromArduino()
+        msg = recvFromArduino()
 
-      print(msg)
+        print(msg)
 
 
 # ======================================
@@ -255,7 +287,7 @@ def runTest(td):
         if waitingForReply == True:
             print("waitingForReply  = True ")
             while ser.inWaiting() == 0:
-                  pass
+                pass
             dataRecvd = recvFromArduino()
 
             print("Reply Received  " + dataRecvd)
@@ -266,13 +298,91 @@ def runTest(td):
 
         time.sleep(0)
 
+
+
 # ======================================
 
 # THE DEMO PROGRAM STARTS HERE
 
-hitsinglenote(5)
-time.sleep(2)
-hitnote(5, 0, 500)
+if DEBUG == 3:
+
+    import pynput
+    from pynput import keyboard
+
+    class List:
+        lastkey = 0
+        speedr = 80
+
+    def on_press(key):
+        lastkey = List.lastkey
+        speedr = List.speedr
+        try:
+            print('alphanumeric key {0} pressed'.format(
+                key.char))
+        except AttributeError:
+            print('special key {0} pressed'.format(
+                key))
+
+        if str(key.char) == 'z':
+            playft(lastkey, 0, speedr)
+            List.lastkey = 0
+        if str(key.char) == 'x':
+            playft(lastkey, 1, speedr)
+            List.lastkey = 1
+        if str(key.char) == 'c':
+            playft(lastkey, 2, speedr)
+            List.lastkey = 2
+        if str(key.char) == 'v':
+            playft(lastkey, 3, speedr)
+            List.lastkey = 3
+        if str(key.char) == 'b':
+            playft(lastkey, 4, speedr)
+            List.lastkey = 4
+        if str(key.char) == 'n':
+            playft(lastkey, 5, speedr)
+            List.lastkey = 5
+        if str(key.char) == 'm':
+            playft(lastkey, 6, speedr)
+            List.lastkey = 6
+        if str(key.char) == ',':
+            playft(lastkey, 7, speedr)
+            List.lastkey = 7
+
+
+    def on_release(key):
+        print('{0} released'.format(
+            key))
+        if key == keyboard.Key.esc:
+            # Stop listener
+            return False
+
+    # Collect events until released
+    with keyboard.Listener(
+            on_press=on_press,
+            on_release=on_release) as listener:
+        listener.join()
+
+    # ...or, in a non-blocking fashion:
+    listener = keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release)
+    listener.start()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -287,8 +397,8 @@ hitnote(5, 0, 500)
 # ======================================
 
 
-if DEBUG == 0:
+if DEBUG == 0 or DEBUG == 3:
     print("//////////////////// Serial Communication started//////////////////////////")
-    ser.close #closes serial port
+    ser.close  # closes serial port
 
 
