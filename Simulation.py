@@ -8,9 +8,9 @@ class Window(Frame):
         type = "backwards"
         lower_joint_angle = 160
         upper_joint_angle = 210
-        base_length = 20
-        lower_arm_length = 16
-        upper_arm_length = 14.5
+        base_length = 18.5
+        lower_arm_length = 10
+        upper_arm_length = 15
         distance = 20
         multiplier = 20
         sleep_time = 0.01
@@ -142,7 +142,7 @@ class Window(Frame):
                 done = True
                 if(direction < goal_direction):
                     direction += 1
-		    done = False
+                    done = False
                 elif(direction > goal_direction):
                     direction -= 1
                     done = False
@@ -213,7 +213,7 @@ class Window(Frame):
                     	lower_joint_angle += 1
                     	done = False
                     elif(lower_joint_angle > goal_lower_joint_angle):
-                    	lower_joint_angle -= 1
+                        lower_joint_angle -= 1
                         done = False
                     side_view.coords(s_line, width/2+multiplier*(distance), height,
                                              width/2+multiplier*(distance), height-multiplier*base_length)
@@ -240,7 +240,7 @@ class Window(Frame):
                     	lower_joint_angle += 1
                     	done = False
                     elif(lower_joint_angle > goal_lower_joint_angle):
-                    	lower_joint_angle -= 1
+                        lower_joint_angle -= 1
                         done = False
                     side_view.coords(s_line, width/2+multiplier*(distance), height,
                                              width/2+multiplier*(distance), height-multiplier*base_length,
@@ -259,10 +259,10 @@ class Window(Frame):
                 while(not done):
                     done = True
                     if(upper_joint_angle < goal_upper_joint_angle):
-                    	upper_joint_angle += 1
+                        upper_joint_angle += 1
                         done = False
                     elif(upper_joint_angle > goal_upper_joint_angle):
-                    	upper_joint_angle -= 1
+                        upper_joint_angle -= 1
                         done = False
                     side_view.coords(s_line, width/2+multiplier*(distance), height,
                                              width/2+multiplier*(distance), height-multiplier*base_length,
