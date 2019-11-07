@@ -1,7 +1,6 @@
 from tkinter import *
 import math
 import time
-#import argparse
 
 class Window(Frame):
     def init_window(self):
@@ -17,7 +16,7 @@ class Window(Frame):
         sleep_time = 0.01
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()/2
-        xylophone_height = 10 #check this
+        xylophone_height = 10 
         keywidth = multiplier*2
         birds_eye_view = Canvas(self, width = width, height = height, background = "black")
         side_view = Canvas(self, width = width, height = height, background = "black")
@@ -29,9 +28,6 @@ class Window(Frame):
         bottom = height/2+multiplier*5.53
         left = width/2-multiplier*11-division/2
         c = 0.4714
-        fabrik = side_view.create_line(width / 2, height + 100 - multiplier * xylophone_height, width / 2,
-                                       height + 100 - multiplier * xylophone_height, fill="grey", width=5,
-                                       joinstyle=ROUND)
         birds_eye_view.create_rectangle(left+0*(keywidth+division), top+0*c, left+0*(keywidth+division)+keywidth, bottom-0*c, fill = "blue")
         birds_eye_view.create_rectangle(left+1*(keywidth+division), top+1*c, left+1*(keywidth+division)+keywidth, bottom-1*c, fill = "green")
         birds_eye_view.create_rectangle(left+2*(keywidth+division), top+2*c, left+2*(keywidth+division)+keywidth, bottom-2*c, fill = "yellow")
@@ -41,13 +37,13 @@ class Window(Frame):
         birds_eye_view.create_rectangle(left+6*(keywidth+division), top+6*c, left+6*(keywidth+division)+keywidth, bottom-6*c, fill = "white")
         birds_eye_view.create_rectangle(left+7*(keywidth+division), top+7*c, left+7*(keywidth+division)+keywidth, bottom-7*c, fill = "darkblue")
         side_view.create_rectangle(width/2-multiplier*5.53, height+100-multiplier*xylophone_height, width/2+multiplier*5.53, height+100, fill="blue")
-        base = bottom+multiplier*distance -110.6 #correction term at the end
-        b_line = birds_eye_view.create_line(width/2, base, # check base because something does not add up (print stuff)
+        base = bottom+multiplier*distance -110.6 
+        b_line = birds_eye_view.create_line(width/2, base, 
                                                     width/2, base,
                                                     width/2+multiplier*lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction)),
-                                base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+                                                    base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
                                                     width/2+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction))+
-                                                    upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.sin(math.radians(direction))),
+                                                                        upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.sin(math.radians(direction))),
                                                     base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
                                                                      upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
                                                     fill = "grey", width = 10, joinstyle = ROUND)
@@ -58,7 +54,7 @@ class Window(Frame):
                                                width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
                                                                             upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
                                                height+100-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
-                                                                              upper_arm_length*math.sin(math.radians(upper_joint_angle))),
+                                                                                  upper_arm_length*math.sin(math.radians(upper_joint_angle))),
                                                fill = "grey", width = 10, joinstyle = ROUND)
         if(type == "forwards"):
             directions = [-30, -15, 0, 15, 30, 0]
@@ -70,114 +66,87 @@ class Window(Frame):
                 goal_lower_joint_angle = lower_angles[i]
                 goal_upper_joint_angle = upper_angles[i]
                 done = False
-                while (not done):
+                while(not done):
                     done = True
-                    if (direction < goal_direction):
+                    if(direction < goal_direction):
                         direction += 1
                         done = False
-                    elif (direction > goal_direction):
+                    elif(direction > goal_direction):
                         direction -= 1
                         done = False
-                    if (lower_joint_angle < goal_lower_joint_angle):
+                    if(lower_joint_angle < goal_lower_joint_angle):
                         lower_joint_angle += 1
                         done = False
-                    elif (lower_joint_angle > goal_lower_joint_angle):
+                    elif(lower_joint_angle > goal_lower_joint_angle):
                         lower_joint_angle -= 1
                         done = False
-                    if (upper_joint_angle < goal_upper_joint_angle):
-                        upper_joint_angle += 1
-                        done = False
-                    elif (upper_joint_angle > goal_upper_joint_angle):
+                    if(upper_joint_angle < goal_upper_joint_angle):
+                    	upper_joint_angle += 1
+                    	done = False
+                    elif(upper_joint_angle > goal_upper_joint_angle):
                         upper_joint_angle -= 1
                         done = False
-                    birds_eye_view.coords(b_line, width / 2, base,
-                                          # check base because something does not add up (print stuff)
-                                          width / 2, base,
-                                          width / 2 + multiplier * lower_arm_length * math.cos(
-                                              math.radians(lower_joint_angle)) * math.sin(math.radians(direction)),
-                                          base + multiplier * (lower_arm_length * math.cos(
-                                              math.radians(lower_joint_angle)) * math.cos(math.radians(direction))),
-                                          width / 2 + multiplier * (lower_arm_length * math.cos(
-                                              math.radians(lower_joint_angle)) * math.sin(math.radians(direction)) +
-                                                                    upper_arm_length * math.cos(
-                                                      math.radians(upper_joint_angle)) * math.sin(
-                                                      math.radians(direction))),
-                                          base + multiplier * (lower_arm_length * math.cos(
-                                              math.radians(lower_joint_angle)) * math.cos(math.radians(direction)) +
-                                                               upper_arm_length * math.cos(
-                                                      math.radians(upper_joint_angle)) * math.cos(
-                                                      math.radians(direction))))
-                    side_view.coords(s_line, width / 2 + multiplier * (distance), height,
-                                     width / 2 + multiplier * (distance), height - multiplier * base_length,
-                                     width / 2 + multiplier * (distance + lower_arm_length * math.cos(
-                                         math.radians(lower_joint_angle)) * math.cos(math.radians(direction))),
-                                     height - multiplier * (base_length + lower_arm_length * math.sin(
-                                         math.radians(lower_joint_angle))),
-                                     width / 2 + multiplier * (distance + lower_arm_length * math.cos(
-                                         math.radians(lower_joint_angle)) * math.cos(math.radians(direction)) +
-                                                               upper_arm_length * math.cos(
-                                                 math.radians(upper_joint_angle)) * math.cos(math.radians(direction))),
-                                     height - multiplier * (base_length + lower_arm_length * math.sin(
-                                         math.radians(lower_joint_angle)) +
-                                                            upper_arm_length * math.sin(
-                                                 math.radians(upper_joint_angle))))
+                    birds_eye_view.coords(b_line, width/2, base,     
+                                                  width/2, base,
+                                                  width/2+multiplier*lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction)),
+                                                  base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+                                                  width/2+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction))+
+                                                                      upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.sin(math.radians(direction))),
+                                                  base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+                                                                   upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))))
+                    side_view.coords(s_line, width/2+multiplier*(distance), height,
+                                             width/2+multiplier*(distance), height-multiplier*base_length,
+                                             width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+                                             height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))),
+                                             width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+                                                                          upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
+                                             height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
+                                                                            upper_arm_length*math.sin(math.radians(upper_joint_angle))))
                     time.sleep(sleep_time)
-                    if ((width / 2 + multiplier * (
-                            distance + lower_arm_length * math.cos(math.radians(lower_joint_angle)) * math.cos(
-                            math.radians(direction)) +
-                            upper_arm_length * math.cos(math.radians(upper_joint_angle)) * math.cos(
-                        math.radians(direction))) >= width / 2 - multiplier * 5.3) &
-                            (width / 2 + multiplier * (
-                                    distance + lower_arm_length * math.cos(math.radians(lower_joint_angle)) * math.cos(
-                                math.radians(direction)) +
-                                    upper_arm_length * math.cos(math.radians(upper_joint_angle)) * math.cos(
-                                math.radians(direction))) <= width / 2 + multiplier * 5.3) &
-                            (height - multiplier * (
-                                    base_length + lower_arm_length * math.sin(math.radians(lower_joint_angle)) +
-                                    upper_arm_length * math.sin(
-                                math.radians(upper_joint_angle))) >= height+100-multiplier*xylophone_height)):
+                    if((width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+                                                     upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))) >= width/2-multiplier*5.3) &
+                       (width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+                                                     upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))) <= width/2+multiplier*5.3) &
+                       (height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
+                                                       upper_arm_length*math.sin(math.radians(upper_joint_angle))) >= height+100-multiplier*xylophone_height)):
                         done = True
                     side_view.update_idletasks()
                     birds_eye_view.update_idletasks()
                 time.sleep(1)
                 i+=1
-
-
-
-
         elif(type == "backwards"):
             note = "blue"
             xGoal = 0.0
             yGoal = top+multiplier*11.6/2
-            if note == "blue":
+            if(note == "blue"):
                 xGoal = left+0*(keywidth+division)+keywidth/2
-            if note == "green":
-                xGoal = left+1*(keywidth+division)+keywidth/2
-            if note == "yellow":
+            elif(note == "green"):
+            	xGoal = left+1*(keywidth+division)+keywidth/2
+            elif(note == "yellow"):
                 xGoal = left+2*(keywidth+division)+keywidth/2
-            if note == "orange":
+            elif(note == "orange"):
                 xGoal = left+3*(keywidth+division)+keywidth/2
-            if note == "red":
+            elif(note == "red"):
                 xGoal = left+4*(keywidth+division)+keywidth/2
-            if note == "purple":
+            elif(note == "purple"):
                 xGoal = left+5*(keywidth+division)+keywidth/2
-            if note == "white":
+            elif(note == "white"):
                 xGoal = left+6*(keywidth+division)+keywidth/2
-            if note == "darkblue":
+            elif(note == "darkblue"):
                 xGoal = left+7*(keywidth+division)+keywidth/2
-            xLeg = xGoal - width / 2
-            yLeg = base - yGoal
+            xLeg = xGoal-width/2
+            yLeg = base-yGoal
             goal_direction = int(math.degrees(math.atan2(yLeg, xLeg)))-90
             done = False
             while(not done):
                 done = True
                 if(direction < goal_direction):
                     direction += 1
-                    done = False
+		    done = False
                 elif(direction > goal_direction):
                     direction -= 1
                     done = False
-                birds_eye_view.coords(b_line, width/2, base, # check base because something does not add up (print stuff)
+                birds_eye_view.coords(b_line, width/2, base, 
                                               width/2, base,
                                               width/2+multiplier*lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.sin(math.radians(direction)),
                                               base+multiplier*(lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
@@ -196,7 +165,6 @@ class Window(Frame):
                 side_view.update_idletasks()
                 birds_eye_view.update_idletasks()
                 time.sleep(sleep_time)
-
             completed = False
             x = 0
             y = 0
@@ -204,136 +172,108 @@ class Window(Frame):
                 done = False
                 xLeg = (width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))))-(width/2)
                 yLeg = (height+100-multiplier*xylophone_height)-(height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))))
-                goal_upper_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg))) + 180
-                fabrik = side_view.create_line(width / 2, height + 100 - multiplier * xylophone_height, width / 2,
-                                               height + 100 - multiplier * xylophone_height, fill="grey", width=10,
+                goal_upper_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg)))+180
+                fabrik = side_view.create_line(width/2, height+100-multiplier*xylophone_height, width/2,
+                                               height+100-multiplier*xylophone_height, fill="grey", width=10,
                                                joinstyle=ROUND)
                 time.sleep(1)
-                while (not done):
+                while(not done):
                     done = True
-                    if (upper_joint_angle < goal_upper_joint_angle):
-                        upper_joint_angle += 1
-                        done = False
-                    elif (upper_joint_angle > goal_upper_joint_angle):
-                        upper_joint_angle -= 1
-                        done = False
-                    side_view.coords(s_line, width / 2 + multiplier * (distance), height,
-                                     width / 2 + multiplier * (distance), height - multiplier * base_length,
-                                     width / 2 + multiplier * (distance + lower_arm_length * math.cos(
-                                         math.radians(lower_joint_angle)) * math.cos(math.radians(direction))),
-                                     height - multiplier * (base_length + lower_arm_length * math.sin(
-                                         math.radians(lower_joint_angle))))
-                    endpoint_lower_x = width / 2 + multiplier * (
-                                distance + lower_arm_length * math.cos(math.radians(lower_joint_angle)) * math.cos(
-                            math.radians(direction)))
-                    endpoint_lower_y = height - multiplier * (
-                                base_length + lower_arm_length * math.sin(math.radians(lower_joint_angle)))
-                    endpoint_upper_x = width / 2 + multiplier * (
-                                distance + lower_arm_length * math.cos(math.radians(lower_joint_angle)) * math.cos(
-                            math.radians(direction)) +
-                                upper_arm_length * math.cos(math.radians(upper_joint_angle)) * math.cos(
-                            math.radians(direction)))
-                    endpoint_upper_y = height - multiplier * (
-                                base_length + lower_arm_length * math.sin(math.radians(lower_joint_angle)) +
-                                upper_arm_length * math.sin(math.radians(upper_joint_angle)))
-                    xDifference = endpoint_lower_x - endpoint_upper_x
-                    yDifference = endpoint_lower_y - endpoint_upper_y
-                    side_view.coords(fabrik, width / 2, height + 100 - multiplier * xylophone_height,
-                                     width / 2 + xDifference,
-                                     height + 100 - multiplier * xylophone_height + yDifference)
+                    if(upper_joint_angle < goal_upper_joint_angle):
+                    	upper_joint_angle += 1
+                    	done = False
+                    elif(upper_joint_angle > goal_upper_joint_angle):
+                    	upper_joint_angle -= 1
+                    	done = False
+                    side_view.coords(s_line, width/2+multiplier*(distance), height,
+                                             width/2+multiplier*(distance), height-multiplier*base_length,
+                                             width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+                                             height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))))
+                    endpoint_lower_x = width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction)))
+                    endpoint_lower_y = height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle)))
+                    endpoint_upper_x = width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+                                                                    upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction)))
+                    endpoint_upper_y = height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
+                                                               upper_arm_length*math.sin(math.radians(upper_joint_angle)))
+                    xDifference = endpoint_lower_x-endpoint_upper_x
+                    yDifference = endpoint_lower_y-endpoint_upper_y
+                    side_view.coords(fabrik, width/2, height+100-multiplier*xylophone_height,
+                                             width/2+xDifference, height+100-multiplier*xylophone_height+yDifference)
                     side_view.update_idletasks()
                     birds_eye_view.update_idletasks()
                     time.sleep(sleep_time)
                 done = False
                 xLeg = (width/2+multiplier*(distance))-(width/2+xDifference)
                 yLeg = (height+100-multiplier*xylophone_height+yDifference)-(height-multiplier*base_length)
-                goal_lower_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg))) + 180
+                goal_lower_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg)))+180
                 time.sleep(1)
-                while (not done):
+                while(not done):
                     done = True
-                    if (lower_joint_angle < goal_lower_joint_angle):
-                        lower_joint_angle += 1
+                    if(lower_joint_angle < goal_lower_joint_angle):
+                    	lower_joint_angle += 1
+                    	done = False
+                    elif(lower_joint_angle > goal_lower_joint_angle):
+                    	lower_joint_angle -= 1
                         done = False
-                    elif (lower_joint_angle > goal_lower_joint_angle):
-                        lower_joint_angle -= 1
-                        done = False
-                    side_view.coords(s_line, width / 2 + multiplier * (distance), height,
-                                     width / 2 + multiplier * (distance), height - multiplier * base_length)
-                    endpoint_base_x = width / 2 + multiplier * (distance)
-                    endpoint_base_y = height - multiplier * base_length
-                    endpoint_lower_x = width / 2 + multiplier * (
-                                distance + lower_arm_length * math.cos(math.radians(lower_joint_angle)) * math.cos(
-                            math.radians(direction)))
-                    endpoint_lower_y = height - multiplier * (
-                                base_length + lower_arm_length * math.sin(math.radians(lower_joint_angle)))
-                    xDifference2 = endpoint_base_x - endpoint_lower_x
-                    yDifference2 = endpoint_base_y - endpoint_lower_y
-                    side_view.coords(fabrik, width / 2, height + 100 - multiplier * xylophone_height,
-                                     width / 2 + xDifference,
-                                     height + 100 - multiplier * xylophone_height + yDifference,
-                                     width / 2 + xDifference + xDifference2,
-                                     height + 100 - multiplier * xylophone_height + yDifference + yDifference2)
+                    side_view.coords(s_line, width/2+multiplier*(distance), height,
+                                             width/2+multiplier*(distance), height-multiplier*base_length)
+                    endpoint_base_x = width/2+multiplier*(distance)
+                    endpoint_base_y = height-multiplier*base_length
+                    endpoint_lower_x = width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction)))
+                    endpoint_lower_y = height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle)))
+                    xDifference2 = endpoint_base_x-endpoint_lower_x
+                    yDifference2 = endpoint_base_y-endpoint_lower_y
+                    side_view.coords(fabrik, width/2, height+100-multiplier*xylophone_height,
+                                             width/2+xDifference, height+100-multiplier*xylophone_height+yDifference,
+                                             width/2+xDifference+xDifference2, height+100-multiplier*xylophone_height+yDifference+yDifference2)
                     side_view.update_idletasks()
                     birds_eye_view.update_idletasks()
                     time.sleep(sleep_time)
-                # side_view.create_oval(endpoint_lower_x - 5, endpoint_lower_y - 5,
-                #                       endpoint_lower_x + 5, endpoint_lower_y + 5, fill="red", width=2)
                 done = False
                 xLeg = (width/2+multiplier*(distance))-(width/2+xDifference)
-                yLeg = (height+100-multiplier*xylophone_height+yDifference)-(height-multiplier*base_length)  # note here that there should be a check to see which line enpoint is lower (as this will not always be correct)
-                goal_lower_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg))) + 180
-                # side_view.create_oval(endpoint_lower_x - 5, endpoint_lower_y - 5,
-                #                       endpoint_lower_x + 5, endpoint_lower_y + 5, fill="red", width=2)
+                yLeg = (height+100-multiplier*xylophone_height+yDifference)-(height-multiplier*base_length) 
+                goal_lower_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg)))+180
                 time.sleep(1)
-                while (not done):
+                while(not done):
                     done = True
-                    if (lower_joint_angle < goal_lower_joint_angle):
-                        lower_joint_angle += 1
+                    if(lower_joint_angle < goal_lower_joint_angle):
+                    	lower_joint_angle += 1
+                    	done = False
+                    elif(lower_joint_angle > goal_lower_joint_angle):
+                    	lower_joint_angle -= 1
                         done = False
-                    elif (lower_joint_angle > goal_lower_joint_angle):
-                        lower_joint_angle -= 1
-                        done = False
-                    side_view.coords(s_line, width / 2 + multiplier * (distance), height,
-                                     width / 2 + multiplier * (distance), height - multiplier * base_length,
-                                     width / 2 + multiplier * (distance + lower_arm_length * math.cos(
-                                         math.radians(lower_joint_angle)) * math.cos(math.radians(direction))),
-                                     height - multiplier * (base_length + lower_arm_length * math.sin(
-                                         math.radians(lower_joint_angle))))
-                    side_view.coords(fabrik, width / 2, height + 100 - multiplier * xylophone_height,
-                                     width / 2 + xDifference,
-                                     height + 100 - multiplier * xylophone_height + yDifference)
+                    side_view.coords(s_line, width/2+multiplier*(distance), height,
+                                             width/2+multiplier*(distance), height-multiplier*base_length,
+                                             width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+                                             height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))))
+                    side_view.coords(fabrik, width/2, height+100-multiplier*xylophone_height,
+                                             width/2+xDifference, height+100-multiplier*xylophone_height+yDifference)
                     side_view.update_idletasks()
                     birds_eye_view.update_idletasks()
                     time.sleep(sleep_time)
                 done = False
                 xLeg = (width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))))-(width/2)
-                yLeg = (height+100-multiplier*xylophone_height)-(height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))))  # note here that there should be a check to see which line enpoint is lower (as this will not always be correct)
-                goal_upper_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg))) + 180
+                yLeg = (height+100-multiplier*xylophone_height)-(height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))))  
+                goal_upper_joint_angle = int(math.degrees(math.atan2(yLeg, xLeg)))+180
                 time.sleep(1)
-                while (not done):
+                while(not done):
                     done = True
-                    if (upper_joint_angle < goal_upper_joint_angle):
-                        upper_joint_angle += 1
+                    if(upper_joint_angle < goal_upper_joint_angle):
+                    	upper_joint_angle += 1
                         done = False
-                    elif (upper_joint_angle > goal_upper_joint_angle):
-                        upper_joint_angle -= 1
+                    elif(upper_joint_angle > goal_upper_joint_angle):
+                    	upper_joint_angle -= 1
                         done = False
-                    side_view.coords(s_line, width / 2 + multiplier * (distance), height,
-                                     width / 2 + multiplier * (distance), height - multiplier * base_length,
-                                     width / 2 + multiplier * (distance + lower_arm_length * math.cos(
-                                         math.radians(lower_joint_angle)) * math.cos(math.radians(direction))),
-                                     height - multiplier * (base_length + lower_arm_length * math.sin(
-                                         math.radians(lower_joint_angle))),
-                                     width / 2 + multiplier * (distance + lower_arm_length * math.cos(
-                                         math.radians(lower_joint_angle)) * math.cos(math.radians(direction)) +
-                                                               upper_arm_length * math.cos(
-                                                 math.radians(upper_joint_angle)) * math.cos(math.radians(direction))),
-                                     height - multiplier * (base_length + lower_arm_length * math.sin(
-                                         math.radians(lower_joint_angle)) +
-                                                            upper_arm_length * math.sin(
-                                                 math.radians(upper_joint_angle))))
-                    side_view.coords(fabrik, width / 2, height + 100 - multiplier * xylophone_height,
-                                     width / 2, height + 100 - multiplier * xylophone_height)
+                    side_view.coords(s_line, width/2+multiplier*(distance), height,
+                                             width/2+multiplier*(distance), height-multiplier*base_length,
+                                             width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))),
+                                             height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))),
+                                             width/2+multiplier*(distance+lower_arm_length*math.cos(math.radians(lower_joint_angle))*math.cos(math.radians(direction))+
+                                                                          upper_arm_length*math.cos(math.radians(upper_joint_angle))*math.cos(math.radians(direction))),
+                                             height-multiplier*(base_length+lower_arm_length*math.sin(math.radians(lower_joint_angle))+
+                                                                            upper_arm_length*math.sin(math.radians(upper_joint_angle))))
+                    side_view.coords(fabrik, width/2, height+100-multiplier*xylophone_height,
+                                             width/2, height+100-multiplier*xylophone_height)
                     side_view.update_idletasks()
                     birds_eye_view.update_idletasks()
                     time.sleep(sleep_time)
@@ -343,19 +283,12 @@ class Window(Frame):
                     print(upper_joint_angle)
                 x = goal_lower_joint_angle
                 y = goal_upper_joint_angle
-
-
-
-
-
-
     def __init__(self, master = None):
             Frame.__init__(self, master)
             self.master = master
             self.master.title("Simulation")
             self.update()
             self.init_window()
-
 def main():
     root = Tk()
     width = root.winfo_screenwidth()
@@ -363,5 +296,4 @@ def main():
     root.geometry(f"{width}x{height}")
     app = Window(root)
     root.mainloop()
-
 main()
