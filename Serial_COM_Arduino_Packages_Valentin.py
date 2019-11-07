@@ -56,7 +56,7 @@
 #=====================================
 #import Serial as Serial
 import IK as ik
-
+import Simulation
 
 def sendToArduino(sendStr):
   print("inside send to Arduino ", sendStr)
@@ -147,10 +147,16 @@ def hit(target):
     #time.sleep(1)
     target = ik.Point(target[0], target[1], target[2])
     coords = ik.getAngles(target)
+    print("Coords: ")
+    print(coords)
     sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
+    #sendToArduino(str(round(0, 2)) + "," + str(round(coords[1],2)) + "," + str(round(26,2)) + "\n")
 
-
-
+def getAngles():
+    target = Xylophone.notes[7]
+    target = ik.Point(target[0], target[1], target[2])
+    ang = ik.getAngles(target)
+    return ang
 
 #======================================
 
@@ -180,8 +186,8 @@ print("//////////////////// Serial Communication started////////////////////////
 #sendToArduino('-70,-63,-57\n')
 #sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
 
-hit(Xylophone.notes[0])
-
+hit(Xylophone.notes[7])
+Simulation
 ser.close() #closes serial port
 
 

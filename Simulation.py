@@ -1,11 +1,15 @@
 from tkinter import *
+import Serial_COM_Arduino_Packages_Valentin as seri
 import math
 import time
 
 class Window(Frame):
     def init_window(self):
+        print("This is a printline in simulatrion:")
+        botAngles = seri.getAngles()
+        print(botAngles)
         direction = 0
-        type = "backwards"
+        type = "forwards"
         lower_joint_angle = 160
         upper_joint_angle = 210
         base_length = 18.5
@@ -57,9 +61,14 @@ class Window(Frame):
                                                                                   upper_arm_length*math.sin(math.radians(upper_joint_angle))),
                                                fill = "grey", width = 10, joinstyle = ROUND)
         if(type == "forwards"):
-            directions = [-30, -15, 0, 15, 30, 0]
-            lower_angles = [160, 185, 160, 185, 160, 170]
-            upper_angles = [180, 260, 180, 260, 180, 200]
+            # directions = [-30, -15, 0, 15, 30, 0]
+            # lower_angles = [160, 185, 160, 185, 160, 170]
+            # upper_angles = [180, 260, 180, 260, 180, 200]
+
+            directions = [-botAngles[0]]
+            lower_angles = [180-(botAngles[1]+90)]
+            upper_angles = [180 + botAngles[2]]
+
             i = 0
             while(i < len(directions)):
                 goal_direction = directions[i]
