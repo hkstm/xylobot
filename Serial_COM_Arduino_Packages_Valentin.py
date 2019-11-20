@@ -57,6 +57,7 @@
 #import Serial as Serial
 import IK as ik
 
+import ArduinoProxy as proxy
 
 def sendToArduino(sendStr):
   print("inside send to Arduino ", sendStr)
@@ -148,7 +149,7 @@ def hit(target):
     target = ik.Point(target[0], target[1], target[2])
     coords = ik.getAngles(target)
     sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
-
+    proxy.tryToSendToArduino(coords)
 
 
 
@@ -177,7 +178,7 @@ print("//////////////////// Serial Communication started////////////////////////
 #target = ik.Point(18, 27, 15)
 #coords = ik.getAngles(target)
 
-#sendToArduino('-70,-63,-57\n')
+sendToArduino('-70,-63,-57\n')
 #sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
 
 hit(Xylophone.notes[0])
