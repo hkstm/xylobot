@@ -1,8 +1,10 @@
-import argparse
 import logging
+import os
 import numpy as np
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
+
+"""use pitchtracking.py to run"""
 
 pitches = dict([
     (987.8, 'b5'),
@@ -28,6 +30,19 @@ pitches_ranges = [
     (2034.5, 'b6'),
     (2221, 'c7'),
 ]
+
+# def get_logger(name):
+#     logger = logging.getLogger(name)
+#     if not logger.handlers:
+#         # Prevent logging from propagating to the root logger
+#         logger.propagate = 0
+#         console = logging.StreamHandler()
+#         logger.addHandler(console)
+#         formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+#         console.setFormatter(formatter)
+#     return logger
+
+logger = logging.getLogger(__name__)
 
 
 def freq_axis(fft_size, fs):
@@ -110,12 +125,12 @@ def find_key(pitch):
 
 
 def detect_hits(result, loudness_factor):
+    global args
     averages = []
     max_magn = -1
     for i, bins in enumerate(result):
         if np.average(bins) > max_magn:
             max_magn = np.average(bins)
-        logger.debug(f'max: {max_magn}')
         averages.append(np.average(bins))
     hits = []
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
@@ -154,57 +169,58 @@ def process_results(result, freq_list):
     return results_cutoff
 
 
-parser = argparse.ArgumentParser(description="Custom Pitch")
-parser.add_argument('-n', '--name', help="Name of audio file")
-parser.add_argument('-p', '--plot', action='store_true')
-parser.add_argument('-l', '--level', nargs='?', default='Error', choices=['Critical', 'Error', 'Warning', 'Info', 'Debug'], help='Levels of logger')
-logger_levels = {
-    'Critical': 50,
-    'Error': 40,
-    'Warning': 30,
-    'Info': 20,
-    'Debug': 10,
-}
-args = parser.parse_args()
+def pitch_track(args_dict):
+    global args
+    global logger
+    args = args_dict
+    logger_levels = {
+        'Critical': 50,
+        'Error': 40,
+        'Warning': 30,
+        'Info': 20,
+        'Debug': 10,
+    }
+    logger.setLevel(level=logger_levels[args.level])
+    logger.addHandler(logging.StreamHandler())
+    logger.info("Starting script")
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logger_levels[args.level])
-logger.addHandler(logging.StreamHandler())
-logger.info("Starting script")
+    # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
+    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
+    logger.debug(f' path: {sound_file_path}')
+    fs, data = wavfile.read(sound_file_path)
+    fft_size = 2 ** 12
+    overlap_fac = 0.5
+    loudness_factor = 0.4  # determines senitivity off hit detection
 
-# https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
-fs, data = wavfile.read(f'./data/{args.name}')
-fft_size = 2 ** 12
-overlap_fac = 0.5
-loudness_factor = 0.4  # determines senitivity off hit detection
+    hop_size = np.int32(np.floor(fft_size * (1 - overlap_fac)))
+    pad_end_size = fft_size  # the last segment can overlap the end of the data array by no more than one window size
+    total_segments = np.int32(np.ceil(len(data) / np.float32(hop_size)))
+    t_max = len(data) / np.float32(fs)
 
-hop_size = np.int32(np.floor(fft_size * (1 - overlap_fac)))
-pad_end_size = fft_size  # the last segment can overlap the end of the data array by no more than one window size
-total_segments = np.int32(np.ceil(len(data) / np.float32(hop_size)))
-t_max = len(data) / np.float32(fs)
+    freq_list = freq_axis(fft_size, fs)
+    time_list = time_axis(total_segments, t_max)
+    low_index_cutoff, upper_index_cutoff = find_cutoffs(freq_list)
+    freq_list_cutoff = freq_list[low_index_cutoff:upper_index_cutoff]
 
-freq_list = freq_axis(fft_size, fs)
-time_list = time_axis(total_segments, t_max)
-low_index_cutoff, upper_index_cutoff = find_cutoffs(freq_list)
-freq_list_cutoff = freq_list[low_index_cutoff:upper_index_cutoff]
+    result = stft(data=data, fft_size=fft_size, pad_end_size=fft_size, total_segments=total_segments, hop_size=hop_size)
 
-result = stft(data=data, fft_size=fft_size, pad_end_size=fft_size, total_segments=total_segments, hop_size=hop_size)
+    results_cutoff = process_results(result, freq_list)
 
-results_cutoff = process_results(result, freq_list)
+    hits = detect_hits(results_cutoff, loudness_factor)
+    key_and_times = []
+    for hit_idx in hits:
+        pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff)
+        logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
+        key_and_times.append((find_key(pitch), convert_idx_to_time(time_list, hit_idx)))
 
-hits = detect_hits(results_cutoff, loudness_factor)
-key_and_times = []
-for hit_idx in hits:
-    pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff)
-    logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
-    key_and_times.append((find_key(pitch), convert_idx_to_time(time_list, hit_idx)))
+    results_transposed = np.transpose(results_cutoff)
+    if args.plot:
+        img = plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                         extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
+                                 freq_list[upper_index_cutoff]])
+        plt.show()
 
-results_transposed = np.transpose(results_cutoff)
-if args.plot:
-    img = plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-                     extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff], freq_list[upper_index_cutoff]])
-    plt.show()
+    # !!! FINAL RESULT !!!
 
-# !!! FINAL RESULT !!!
-
-logger.info(key_and_times)
+    logger.info(key_and_times)
+    return key_and_times
