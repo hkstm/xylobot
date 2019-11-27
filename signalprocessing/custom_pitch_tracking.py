@@ -108,17 +108,23 @@ def find_key(pitch):
                 return pitches_ranges[i][1]
 
 
-def detect_hits(result):
+def detect_hits(result, loudness_factor):
     averages = []
+    max_magn = -1
     for i, bins in enumerate(result):
+        if np.average(bins) > max_magn:
+            max_magn = np.average(bins)
+        print(f'max: {max_magn}')
         averages.append(np.average(bins))
     hits = []
-    loudness_offset = 20  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
+    loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
+    print(f'loudness offset: {loudness_offset}')
     for i in range(1, len(averages)):
         if averages[i] > averages[i - 1] + loudness_offset:
             hits.append(i)
-    plt.plot(averages, '.-')
-    plt.show()
+    if args.plot:
+        plt.plot(averages, '.-')
+        plt.show()
     return hits
 
 
@@ -149,8 +155,9 @@ def process_results(result, freq_list):
 
 logging.basicConfig(level=logging.INFO)
 logging.info("Starting script")
-parser = argparse.ArgumentParser(description="Librosa")
-parser.add_argument('-n', "--name", help="Name of audio file")
+parser = argparse.ArgumentParser(description="Custom Pitch")
+parser.add_argument('-n', '--name', help="Name of audio file")
+parser.add_argument('-p', '--plot',  action='store_true')
 args = parser.parse_args()
 logging.info("Parsed arguments")
 
@@ -158,6 +165,7 @@ logging.info("Parsed arguments")
 fs, data = wavfile.read(f'./data/{args.name}')
 fft_size = 2 ** 12
 overlap_fac = 0.5
+loudness_factor = 0.4  # determines senitivity off hit detection
 
 hop_size = np.int32(np.floor(fft_size * (1 - overlap_fac)))
 pad_end_size = fft_size  # the last segment can overlap the end of the data array by no more than one window size
@@ -173,7 +181,7 @@ result = stft(data=data, fft_size=fft_size, pad_end_size=fft_size, total_segment
 
 results_cutoff = process_results(result, freq_list)
 
-hits = detect_hits(results_cutoff)
+hits = detect_hits(results_cutoff, loudness_factor)
 key_and_times = []
 for hit_idx in hits:
     pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff)
@@ -182,9 +190,10 @@ for hit_idx in hits:
 
 
 results_transposed = np.transpose(results_cutoff)
-img = plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-                 extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff], freq_list[upper_index_cutoff]])
-plt.show()
+if args.plot:
+    img = plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                     extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff], freq_list[upper_index_cutoff]])
+    plt.show()
 
 # !!! FINAL RESULT !!!
 
