@@ -39,7 +39,8 @@ def time_axis(total_segments, t_max):
     """Returns a list of times which correspond to the bins in the returned data from stft()"""
     return np.arange(total_segments) / np.float32(total_segments) * t_max
 
-#https://jakevdp.github.io/blog/2013/08/28/understanding-the-fft/
+
+# https://jakevdp.github.io/blog/2013/08/28/understanding-the-fft/
 def fft(x):
     """A vectorized, non-recursive version of the Cooley-Tukey FFT"""
     x = np.asarray(x, dtype=float)
@@ -69,6 +70,7 @@ def fft(x):
 
     return X.ravel()
 
+
 def stft(fft_size, data, pad_end_size, total_segments, hop_size, ):
     window = np.hanning(fft_size)  # our half cosine window
     inner_pad = np.zeros(fft_size)  # the zeros which will be used to double each segment size
@@ -85,7 +87,6 @@ def stft(fft_size, data, pad_end_size, total_segments, hop_size, ):
         autopower = np.abs(spectrum * np.conj(spectrum))  # find the autopower spectrum
         result[i, :] = autopower[:fft_size]  # append to the results array
     return result
-
 
 
 def convert_idx_to_time(time_list, idx):
@@ -114,11 +115,11 @@ def detect_hits(result, loudness_factor):
     for i, bins in enumerate(result):
         if np.average(bins) > max_magn:
             max_magn = np.average(bins)
-        print(f'max: {max_magn}')
+        logger.debug(f'max: {max_magn}')
         averages.append(np.average(bins))
     hits = []
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
-    print(f'loudness offset: {loudness_offset}')
+    logger.debug(f'loudness offset: {loudness_offset}')
     for i in range(1, len(averages)):
         if averages[i] > averages[i - 1] + loudness_offset:
             hits.append(i)
@@ -153,13 +154,23 @@ def process_results(result, freq_list):
     return results_cutoff
 
 
-logging.basicConfig(level=logging.INFO)
-logging.info("Starting script")
 parser = argparse.ArgumentParser(description="Custom Pitch")
 parser.add_argument('-n', '--name', help="Name of audio file")
-parser.add_argument('-p', '--plot',  action='store_true')
+parser.add_argument('-p', '--plot', action='store_true')
+parser.add_argument('-l', '--level', nargs='?', default='Error', choices=['Critical', 'Error', 'Warning', 'Info', 'Debug'], help='Levels of logger')
+logger_levels = {
+    'Critical': 50,
+    'Error': 40,
+    'Warning': 30,
+    'Info': 20,
+    'Debug': 10,
+}
 args = parser.parse_args()
-logging.info("Parsed arguments")
+
+logger = logging.getLogger(__name__)
+logger.setLevel(level=logger_levels[args.level])
+logger.addHandler(logging.StreamHandler())
+logger.info("Starting script")
 
 # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
 fs, data = wavfile.read(f'./data/{args.name}')
@@ -174,7 +185,7 @@ t_max = len(data) / np.float32(fs)
 
 freq_list = freq_axis(fft_size, fs)
 time_list = time_axis(total_segments, t_max)
-low_index_cutoff, upper_index_cutoff =  find_cutoffs(freq_list)
+low_index_cutoff, upper_index_cutoff = find_cutoffs(freq_list)
 freq_list_cutoff = freq_list[low_index_cutoff:upper_index_cutoff]
 
 result = stft(data=data, fft_size=fft_size, pad_end_size=fft_size, total_segments=total_segments, hop_size=hop_size)
@@ -185,9 +196,8 @@ hits = detect_hits(results_cutoff, loudness_factor)
 key_and_times = []
 for hit_idx in hits:
     pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff)
-    print(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
+    logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
     key_and_times.append((find_key(pitch), convert_idx_to_time(time_list, hit_idx)))
-
 
 results_transposed = np.transpose(results_cutoff)
 if args.plot:
@@ -197,4 +207,4 @@ if args.plot:
 
 # !!! FINAL RESULT !!!
 
-print(key_and_times)
+logger.info(key_and_times)
