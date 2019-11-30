@@ -49,120 +49,128 @@
 #
 
 
-#=====================================-1
+# =====================================-1
 
 #  Function Definitions
 
-#=====================================
-#import Serial as Serial
+# =====================================
+# import Serial as Serial
+import time
 import IK as ik
 import Simulation
+import Alignment
+
 
 def sendToArduino(sendStr):
-  print("inside send to Arduino ", sendStr)
-  ser.write(sendStr.encode('UTF-8'))
+	print("inside send to Arduino ", sendStr)
+	ser.write(sendStr.encode('UTF-8'))
 
 
-#======================================
+# ======================================
 
 def recvFromArduino():
-  global startMarker, endMarker
-  
-  ck = ""
-  x = "z" # any value that is not an end- or startMarker
-  byteCount = -1 # to allow for the fact that the last increment will be one too many
-  print("in receive from arduino " )
-  # wait for the start character
-  while  ord(x) != startMarker: 
-    x = ser.read()
-  print("in receive from arduino 3" )
-  # save data until the end marker is found
-  while ord(x) != endMarker:
-    if ord(x) != startMarker:
-      ck = ck + x 
-      byteCount += 1
-    x = ser.read()
-  print("in receive from arduino 4"  )
-  return(ck)
+	global startMarker, endMarker
+
+	ck = ""
+	x = "z"  # any value that is not an end- or startMarker
+	byteCount = -1  # to allow for the fact that the last increment will be one too many
+	print("in receive from arduino ")
+	# wait for the start character
+	while ord(x) != startMarker:
+		x = ser.read()
+	print("in receive from arduino 3")
+	# save data until the end marker is found
+	while ord(x) != endMarker:
+		if ord(x) != startMarker:
+			ck = ck + x
+			byteCount += 1
+		x = ser.read()
+	print("in receive from arduino 4")
+	return (ck)
 
 
-#============================
+# ============================
 
 def waitForArduino():
+	# wait until the Arduino sends 'Arduino Ready' - allows time for Arduino reset
+	# it also ensures that any bytes left over from a previous message are discarded
 
-   # wait until the Arduino sends 'Arduino Ready' - allows time for Arduino reset
-   # it also ensures that any bytes left over from a previous message are discarded
-   
-    global startMarker, endMarker
-    print("inside waiting for arduino" )
-    msg = ""
-    while msg.find("Arduino is ready") == -1:
+	global startMarker, endMarker
+	print("inside waiting for arduino")
+	msg = ""
+	while msg.find("Arduino is ready") == -1:
 
-      while ser.inWaiting() == 0:
-        #Serial.println("<Arduino is ready>")
-        print("<Arduino is ready>")
-        pass
-        
-      msg = recvFromArduino()
+		while ser.inWaiting() == 0:
+			# Serial.println("<Arduino is ready>")
+			print("<Arduino is ready>")
+			pass
 
-      print(msg)
-      print()
-      
-#======================================
+		msg = recvFromArduino()
+
+		print(msg)
+		print()
+
+
+# ======================================
 
 def runTest(td):
-  print("Angles Received by Serial_COM from Call Serial")
-  print(td)
-  numLoops = len(td)
-  waitingForReply = False
+	print("Angles Received by Serial_COM from Call Serial")
+	print(td)
+	numLoops = len(td)
+	waitingForReply = False
 
-  n = 0
-  while n < numLoops:
+	n = 0
+	while n < numLoops:
 
-    teststr = td[n]
+		teststr = td[n]
 
-    if waitingForReply == False:
-      sendToArduino(teststr)
-      print("Sent from PC -- LOOP NUM " + str(n) + " TEST STR " + teststr)
-      waitingForReply = True
-      print("sending done")
-    if waitingForReply == True:
-      print("waitingForReply  = True ")
-      while ser.inWaiting() == 0:
-        pass    
-      dataRecvd = recvFromArduino()
+		if waitingForReply == False:
+			sendToArduino(teststr)
+			print("Sent from PC -- LOOP NUM " + str(n) + " TEST STR " + teststr)
+			waitingForReply = True
+			print("sending done")
+		if waitingForReply == True:
+			print("waitingForReply  = True ")
+			while ser.inWaiting() == 0:
+				pass
+			dataRecvd = recvFromArduino()
 
-      print("Reply Received  " + dataRecvd)
-      n += 1
-      waitingForReply = False
+			print("Reply Received  " + dataRecvd)
+			n += 1
+			waitingForReply = False
 
-      print("===========")
+			print("===========")
 
-    time.sleep(0)
+		time.sleep(0)
+
 
 def hit(target):
-    #midpoint = ik.getAngles(Xylophone.getMidpoint(target))
-    #print('Midpoint: ', midpoint)
-    #sendToArduino(str(round(midpoint[0], 2)) + "," + str(round(midpoint[1],2)) + "," + str(round(midpoint[2],2)) + "\n")
-    #time.sleep(1)
-    target = ik.Point(target[0], target[1], target[2])
-    coords = ik.getAngles(target)
-    print("Coords: ")
-    print(coords)
-    sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
-    #sendToArduino(str(round(0, 2)) + "," + str(round(coords[1],2)) + "," + str(round(26,2)) + "\n")
+	# midpoint = ik.getAngles(Xylophone.getMidpoint(target))
+	# print('Midpoint: ', midpoint)
+	# sendToArduino(str(round(midpoint[0], 2)) + "," + str(round(midpoint[1],2)) + "," + str(round(midpoint[2],2)) + "\n")
+	# time.sleep(1)
+	target = ik.Point(target[0], target[1], target[2])
+	coords = ik.getAngles(target)
+	print("Coords: ")
+	print(coords)
+	sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1], 2)) + "," + str(round(coords[2], 2)) + "\n")
+
+
+# sendToArduino(str(round(0, 2)) + "," + str(round(coords[1],2)) + "," + str(round(26,2)) + "\n")
+
 
 def getAngles():
-    target = Xylophone.notes[7]
-    target = ik.Point(target[0], target[1], target[2])
-    ang = ik.getAngles(target)
-    return ang
+	target = Xylophone.notes[7]
+	target = ik.Point(target[0], target[1], target[2])
+	ang = ik.getAngles(target)
+	return ang
 
-#======================================
+
+# ======================================
 
 # THE DEMO PROGRAM STARTS HERE
 
-#======================================
+# ======================================
 
 import serial
 import time
@@ -180,14 +188,40 @@ endMarker = 62
 
 print("//////////////////// Serial Communication started//////////////////////////")
 
-#target = ik.Point(18, 27, 15)
-#coords = ik.getAngles(target)
+# target = ik.Point(18, 27, 15)
+# coords = ik.getAngles(target)
 
-#sendToArduino('-70,-63,-57\n')
-#sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
+# sendToArduino('-70,-63,-57\n')
+# sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
 
-hit(Xylophone.notes[7])
+
+alignment = Alignment.aligned_note_info
+num_notes = len(alignment[0])
+for i in num_notes:
+    if alignment[0][i] == 'b5':
+        hit(Xylophone.notes[0])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'c6':
+		hit(Xylophone.notes[1])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'd6':
+		hit(Xylophone.notes[2])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'e6':
+		hit(Xylophone.notes[3])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'f6':
+		hit(Xylophone.notes[4])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'g6':
+		hit(Xylophone.notes[5])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'a6':
+		hit(Xylophone.notes[6])
+        time.sleep(alignment[1][i])
+	elif alignment[0][i] == 'b7':
+		hit(Xylophone.notes[7])
+        time.sleep(alignment[1][i])
+
 Simulation
-ser.close() #closes serial port
-
-
+ser.close()  # closes serial port
