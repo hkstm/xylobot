@@ -9,12 +9,14 @@ class Point:
 
 
 # Length of stick, wrist, and their total
-L_STICK = 12.5
-WRIST_NO_STICK = 5
-WRIST = L_STICK + WRIST_NO_STICK
-
+#L_STICK = 13.7
+#WRIST_NO_STICK = 5
+#WRIST = L_STICK + WRIST_NO_STICK
+WRIST = 17.1
+WRISTB = 17.4
 # Length of elbow
 ELBOW = 10.5
+ELBOWB = 10.7
 
 # Length of shoulder
 SHOULDER = 19
@@ -34,17 +36,14 @@ actualPosition = Point(0, 27, SHOULDER)
 def getAngles(t):
     # Calculate distance between target and origin
     try:
-        #dist2Target = math.sqrt((t.x - O.x)**2 + (t.y - O.y)**2 + (t.z - O.z)**2)
+        t.z = t.z + 2
         dist2Target = math.sqrt((t.y - O.y)**2 + (t.z - O.z)**2)
         print('\nDistance to target: ', dist2Target, ' cm')
 
         if dist2Target > WRIST + ELBOW:
             raise Exception("DISTANCE TO TARGET TOO LARGE")
 
-        c = math.atan2(t.x, t.y)*180/math.pi*-1
-        if c < -90 or c > 90:
-            print(c)
-            raise Exception("BASE ANGLE OUT OF BOUNDS")
+
 
         cos_b = ((ELBOW ** 2) + (WRIST ** 2) - (dist2Target ** 2)) / (2 * WRIST * ELBOW)
         b = math.acos(cos_b) * 180 / math.pi
@@ -58,6 +57,21 @@ def getAngles(t):
         a1 = math.acos(cos_a1)*180/math.pi
         a2 = math.asin(t.y / dist2Target)*180/math.pi
         a = a1+a2
+
+        c = math.atan2(t.x, t.y)*180/math.pi*-1
+        angle1 = 180-a
+        angle2 = 180-b
+        print(angle1)
+        print(angle2)
+        d = (ELBOW*math.cos(math.radians(angle1)) + WRIST*math.cos(math.radians(angle1 + angle2)))
+        e = (ELBOWB*math.cos(math.radians(angle1)) + WRISTB*math.cos(math.radians(angle1 + angle2)))
+        c2 = math.degrees(math.acos(d/e))
+        print(d, e, 'c2: ', c2)
+        c = c - c2
+
+        if c < -90 or c > 90:
+            print(c)
+            raise Exception("BASE ANGLE OUT OF BOUNDS")
 
         if angleToMotorAngle(a)*-1 < -90:
             raise Exception("ELBOW ANGLE TOO LARGE (> -90)")
@@ -86,4 +100,4 @@ def setActualPos(pos):
 def getActualPos():
     return actualPosition
 
-getAngles(Point(0, 20, 10))
+getAngles(Point(0, 25.5, 15))
