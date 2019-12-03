@@ -181,7 +181,8 @@ def pitch_track(args_dict):
         'Debug': 10,
     }
     logger.setLevel(level=logger_levels[args.level])
-    logger.addHandler(logging.StreamHandler())
+    if not len(logger.handlers):
+        logger.addHandler(logging.StreamHandler())
     logger.info("Starting script")
 
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
@@ -223,4 +224,5 @@ def pitch_track(args_dict):
     # !!! FINAL RESULT !!!
 
     logger.info(key_and_times)
+    print(f'final keys and time {key_and_times}')
     return key_and_times

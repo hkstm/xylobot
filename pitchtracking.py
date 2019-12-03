@@ -18,5 +18,4 @@ argsdict = {
     'plot': plot,
     'level': level,
 }
-
 keys_and_times = pitch_track(SimpleNamespace(**argsdict))
