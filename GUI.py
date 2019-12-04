@@ -106,8 +106,10 @@ class XylobotGUI:
         self.window.geometry(f'{self.width}x{self.height}')
         self.window.update()
 
-        self.log_size = 25
+        self.log_size = 31
         self.log_text_list = []
+        for i in range(self.log_size):
+            self.log_text_list.append('---')
         self.log_text = StringVar()
 
         # 2 for the videos and 8 for xylophone keys and buttons
@@ -131,8 +133,9 @@ class XylobotGUI:
         self.log['textvariable'] = self.log_text
 
         key_list = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
+        color_list = ['blue', 'green', 'yellow', 'orange', 'red', 'purple', 'white', 'blue']
         for i, key in enumerate(key_list):
-            Button(window, text=key_list[i], command=partial(self.play_button, key)).grid(row=5, column=(2 + i),
+            Button(window, text=key_list[i].upper(), bg=color_list[i], relief=RAISED, command=partial(self.play_button, key)).grid(row=5, column=(2 + i),
                                                                                           sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
 
