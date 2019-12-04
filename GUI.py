@@ -197,7 +197,12 @@ class XylobotGUI:
                 self.photo_side = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_side))
                 self.sim_side_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_side)
 
-        self.window.after(self.delay, self.updatevid)
+        try:
+            self.window.after(self.delay, self.updatevid)
+        except:
+            pass
+
+
 
     def updatesim(self):
         pass
