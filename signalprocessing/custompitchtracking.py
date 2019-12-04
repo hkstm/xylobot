@@ -225,4 +225,8 @@ def pitch_track(args_dict):
 
     logger.info(key_and_times)
     print(f'final keys and time {key_and_times}')
+    if args.guiplot:
+        return key_and_times, plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                         extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
+                                 freq_list[upper_index_cutoff]])
     return key_and_times

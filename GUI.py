@@ -2,11 +2,12 @@ import os
 import ast
 import pyaudio
 import wave
+import matplotlib.pyplot as plt
+import datetime
 
 from tkinter import *
 from functools import partial
 from tkinter.filedialog import askopenfilename
-from tkinter.messagebox import showerror
 from types import SimpleNamespace
 
 import PIL.Image
@@ -29,7 +30,6 @@ class XylobotGUI:
 
     def record_clip(self):
         self.record_clip_button_clicked = True
-        filename = 'output.wav'
         self.p = pyaudio.PyAudio()  # Create an interface to
         self.update_log('Started recording')
         self.stream = self.p.open(format=self.sample_format,
@@ -60,8 +60,10 @@ class XylobotGUI:
         self.update_log('Finished recording')
 
         # Save the recorded data as a WAV file
-        filename = 'output.wav'
-        wf = wave.open(filename, 'wb')
+        currentdt = datetime.datetime.now()
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'signalprocessing\\data\\clip_{currentdt.strftime("%m-%d_%H-%M-%S")}.wav')
+        print(os.path.abspath(filename))
+        wf = wave.open(os.path.abspath(filename), 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(self.p.get_sample_size(self.sample_format))
         wf.setframerate(self.fs)
@@ -77,10 +79,15 @@ class XylobotGUI:
         argsdict = {
             'name': fname.split('/')[-1],
             'plot': False,
+            'guiplot': True,
             'level': 'Info',
         }
-        keys_and_times = pitch_track(SimpleNamespace(**argsdict))
+        keys_and_times, img = pitch_track(SimpleNamespace(**argsdict))
+        plt.savefig('displayplot.png')
         self.sequence_entry_text.set(str(keys_and_times))
+
+        self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('displayplot.png'))
+        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
@@ -111,11 +118,13 @@ class XylobotGUI:
         self.sim_bird_canvas = Canvas(window, width=self.canvaswidth, height=self.canvasheight, background='black')
         self.sim_side_canvas = Canvas(window, width=self.canvaswidth, height=self.canvasheight, background='black')
         self.vid_bird_canvas = Canvas(window, width=self.canvaswidth, height=self.canvasheight, background='black')
+        self.plot_canvas = Canvas(window, width=self.canvaswidth, height=self.canvasheight, background='black')
 
         # set positioning row span for because we have gridrows amount of rows to correctly place buttons
         self.sim_bird_canvas.grid(row=0, column=0, rowspan=4)
         self.sim_side_canvas.grid(row=0, column=1, rowspan=4)
         self.vid_bird_canvas.grid(row=4, column=0, rowspan=4)
+        self.plot_canvas.grid(row=4, column=1, rowspan=4)
 
         self.log = Label(window, bg='white', textvariable=self.log_text)
         self.log.grid(row=0, column=2, columnspan=8, sticky=NSEW)
@@ -180,7 +189,7 @@ class XylobotGUI:
 
         if ret_bird:
             self.photo_bird = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_bird))
-            self.sim_bird_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_bird)
+            self.sim_bird_canvas.create_image(self.canvaswidth/2, self.canvasheight/2, image=self.photo_bird)
 
         if not self.vid_source_side == 0:
             ret_side, frame_side = self.vid_side.get_frame()
@@ -205,16 +214,16 @@ class CamCapture:
         self.vid.set(4, height)  # 4 refers to height
 
     def get_frame(self):
-        ret = False;
+        ret = False
         if self.vid.isOpened():
             ret, frame = self.vid.read()
             if ret:
                 # Return a boolean success flag and the current frame converted to BGR
-                return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                return ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             else:
-                return (ret, None)
+                return ret, None
         else:
-            return (ret, None)
+            return ret, None
 
     # Release the video source when the object is destroyed
     def __del__(self):
