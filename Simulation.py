@@ -3,11 +3,14 @@ import Serial_COM_Arduino_Packages_Valentin as seri
 import math
 import time
 
+from SimulationXylo import SimulationXylo
+
+
 class Window(Frame):
     def init_window(self):
         print("This is a printline in simulatrion:")
-        botAngles = seri.getAngles()
-        print(botAngles)
+        #botAngles = seri.getAngles()
+        #print(botAngles)
         direction = 0
         type = "forwards"
         lower_joint_angle = 160
@@ -20,9 +23,12 @@ class Window(Frame):
         sleep_time = 0.01
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()/2
+        CENTER_X = self.winfo_screenwidth()/2
+        CENTER_Y = self.winfo_screenheight()/2
         xylophone_height = 10 
         keywidth = multiplier*2
         birds_eye_view = Canvas(self, width = width, height = height, background = "black")
+        birds_eye_view.size()
         side_view = Canvas(self, width = width, height = height, background = "black")
         birds_eye_view.grid(row = 1, column = 0)
         side_view.grid(row = 0, column = 0)
@@ -32,14 +38,18 @@ class Window(Frame):
         bottom = height/2+multiplier*5.53
         left = width/2-multiplier*11-division/2
         c = 0.4714
-        birds_eye_view.create_rectangle(left+0*(keywidth+division), top+0*c, left+0*(keywidth+division)+keywidth, bottom-0*c, fill = "blue")
-        birds_eye_view.create_rectangle(left+1*(keywidth+division), top+1*c, left+1*(keywidth+division)+keywidth, bottom-1*c, fill = "green")
-        birds_eye_view.create_rectangle(left+2*(keywidth+division), top+2*c, left+2*(keywidth+division)+keywidth, bottom-2*c, fill = "yellow")
-        birds_eye_view.create_rectangle(left+3*(keywidth+division), top+3*c, left+3*(keywidth+division)+keywidth, bottom-3*c, fill = "orange")
-        birds_eye_view.create_rectangle(left+4*(keywidth+division), top+4*c, left+4*(keywidth+division)+keywidth, bottom-4*c, fill = "red")
-        birds_eye_view.create_rectangle(left+5*(keywidth+division), top+5*c, left+5*(keywidth+division)+keywidth, bottom-5*c, fill = "purple")
-        birds_eye_view.create_rectangle(left+6*(keywidth+division), top+6*c, left+6*(keywidth+division)+keywidth, bottom-6*c, fill = "white")
-        birds_eye_view.create_rectangle(left+7*(keywidth+division), top+7*c, left+7*(keywidth+division)+keywidth, bottom-7*c, fill = "darkblue")
+        # birds_eye_view.create_rectangle(left+0*(keywidth+division), top+0*c, left+0*(keywidth+division)+keywidth, bottom-0*c, fill = "blue")
+        # birds_eye_view.create_rectangle(left+1*(keywidth+division), top+1*c, left+1*(keywidth+division)+keywidth, bottom-1*c, fill = "green")
+        # birds_eye_view.create_rectangle(left+2*(keywidth+division), top+2*c, left+2*(keywidth+division)+keywidth, bottom-2*c, fill = "yellow")
+        # birds_eye_view.create_rectangle(left+3*(keywidth+division), top+3*c, left+3*(keywidth+division)+keywidth, bottom-3*c, fill = "orange")
+        # birds_eye_view.create_rectangle(left+4*(keywidth+division), top+4*c, left+4*(keywidth+division)+keywidth, bottom-4*c, fill = "red")
+        # birds_eye_view.create_rectangle(left+5*(keywidth+division), top+5*c, left+5*(keywidth+division)+keywidth, bottom-5*c, fill = "purple")
+        # birds_eye_view.create_rectangle(left+6*(keywidth+division), top+6*c, left+6*(keywidth+division)+keywidth, bottom-6*c, fill = "white")
+        # birds_eye_view.create_rectangle(left+7*(keywidth+division), top+7*c, left+7*(keywidth+division)+keywidth, bottom-7*c, fill = "darkblue")
+
+        xylo = SimulationXylo(birds_eye_view,0,CENTER_X,CENTER_Y)
+
+
         side_view.create_rectangle(width/2-multiplier*5.53, height+100-multiplier*xylophone_height, width/2+multiplier*5.53, height+100, fill="blue")
         base = bottom+multiplier*distance -110.6 
         b_line = birds_eye_view.create_line(width/2, base, 
@@ -61,13 +71,14 @@ class Window(Frame):
                                                                                   upper_arm_length*math.sin(math.radians(upper_joint_angle))),
                                                fill = "grey", width = 10, joinstyle = ROUND)
         if(type == "forwards"):
-            # directions = [-30, -15, 0, 15, 30, 0]
-            # lower_angles = [160, 185, 160, 185, 160, 170]
-            # upper_angles = [180, 260, 180, 260, 180, 200]
+            directions = [-30, -15, 0, 15, 30, 0]
+            lower_angles = [160, 185, 160, 185, 160, 170]
+            upper_angles = [180, 260, 180, 260, 180, 200]
 
-            directions = [-botAngles[0]]
-            lower_angles = [180-(botAngles[1]+90)]
-            upper_angles = [180 + botAngles[2]]
+            #TODO: UNCOMMENT THE FOLLOWING THREE LINES, AND COMMENT THE PREVIOUS THREE
+            # directions = [-botAngles[0]]
+            # lower_angles = [180-(botAngles[1]+90)]
+            # upper_angles = [180 + botAngles[2]]
 
             i = 0
             while(i < len(directions)):
