@@ -1,4 +1,5 @@
-import Control as c
+import xylobot.Control.Control as c
+#from xylobot.Control.ControlManager import ControlManager
 import random
 from xylobot.Note import Note
 
@@ -33,9 +34,11 @@ def randomNotes(delay, amount):
         list.append(note)
     return list
 
+#cm = ControlManager()
 sequence = randomNotes(0.8, 8)
 try:
     c.play(sequence)
+    #cm.play(sequence)
 except Exception as e:
     print(e)
     pass

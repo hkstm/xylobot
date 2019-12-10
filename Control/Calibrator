@@ -10,6 +10,8 @@ startMarker = 60
 endMarker = 62
 
 def calibrate():
+    for i in range(0,6):
+        
     point1 = (0, 25, 15)
     point2 = (0, 25, 15)
     point3 = (0, 25, 15)
