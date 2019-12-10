@@ -4,6 +4,7 @@ import threading
 import os
 import ast
 from functools import partial
+from symbol import factor
 from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
 
@@ -183,64 +184,70 @@ class XylobotGUI:
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.simlooping = True
         self.idx_direction = 0
+        self.factor = 10
+        self.directions_copy = self.directions[:]
+        self.tmp_directions = self.directions[:]
+        self.tmp_lower_angles = self.lower_angles[:]
+        self.tmp_upper_angles = self.upper_angles[:]
+        self.tmp_directions.insert(0, self.direction)
+        self.tmp_lower_angles.insert(0, self.direction)
+        self.tmp_upper_angles.insert(0, self.direction)
+
+        self.directions_extended = []
+        self.lower_angles_extended = []
+        self.upper_angles_extended = []
+
+        for i in range(1, len(self.tmp_directions)):
+            self.diff_directions = self.tmp_directions[i] - self.tmp_directions[i - 1]
+            # print(f"{tmp_directions[i]} - {tmp_directions[i-1]}")
+            # print(f"diff direction: {diff_directions}")
+            self.increment_direction = self.diff_directions/factor
+            self.diff_lower_angles = self.tmp_lower_angles[i] - self.tmp_lower_angles[i - 1]
+            self.increment_lower_angles = self.diff_lower_angles/self.factor
+            self.diff_upper_angles = self.tmp_upper_angles[i] - self.tmp_upper_angles[i - 1]
+            self.increment_upper_angles = self.diff_upper_angles/self.factor
+            for j in range(factor):
+                # print(f"j * increment_direction {j * self.increment_direction}")
+                self.directions_extended.append(self.tmp_directions[i-1] + j * self.increment_direction)
+                self.lower_angles_extended.append(self.tmp_lower_angles[i-1] + j * self.increment_lower_angles)
+                self.upper_angles_extended.append(self.tmp_upper_angles[i-1] + j * self.increment_upper_angles)
+        # print(f"tmp: {self.tmp_directions}")
+        # print(f"tmp: {self.tmp_lower_angles}")
+        # print(f"tmp: {self.tmp_upper_angles}")
+        # print(self.directions_extended)
+        # print(self.lower_angles_extended)
+        # print(self.upper_angles_extended)
+        del self.directions_extended[0]
+        del self.lower_angles_extended[0]
+        del self.upper_angles_extended[0]
         self.update_sim_loop()
         # self.window.after(self.delay, self.update_sim_loop())
         # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
         # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
     def update_sim_loop(self):
-        factor = 10
-        directions_copy = self.directions[:]
-        tmp_directions = self.directions[:]
-        tmp_lower_angles = self.lower_angles[:]
-        tmp_upper_angles = self.upper_angles[:]
-        tmp_directions.insert(0, self.direction)
-        tmp_lower_angles.insert(0, self.direction)
-        tmp_upper_angles.insert(0, self.direction)
+        print('updatesimloop')
+        # print(f'extended')
+        # print(self.directions_extended)
+        # print(self.lower_angles_extended)
+        # print(self.upper_angles_extended)
+        # for i in range(len(self.directions_extended)):
+        self.goal_direction = self.directions_extended[self.idx_direction]
 
-        directions_extended = []
-        lower_angles_extended = []
-        upper_angles_extended = []
-        for i in range(1, len(tmp_directions)):
-            diff_directions = tmp_directions[i] - tmp_directions[i - 1]
-            # print(f"{tmp_directions[i]} - {tmp_directions[i-1]}")
-            # print(f"diff direction: {diff_directions}")
-            increment_direction = diff_directions/factor
-            diff_lower_angles = tmp_lower_angles[i] - tmp_lower_angles[i - 1]
-            increment_lower_angles = diff_lower_angles/factor
-            diff_upper_angles = tmp_upper_angles[i] - tmp_upper_angles[i - 1]
-            increment_upper_angles = diff_upper_angles/factor
-            for j in range(factor):
-                print(f"j * increment_direction {j * increment_direction}")
-                directions_extended.append(tmp_directions[i-1] + j * increment_direction)
-                lower_angles_extended.append(tmp_lower_angles[i-1] + j * increment_lower_angles)
-                upper_angles_extended.append(tmp_upper_angles[i-1] + j * increment_upper_angles)
-        print(f"tmp: {tmp_directions}")
-        print(f"tmp: {tmp_lower_angles}")
-        print(f"tmp: {tmp_upper_angles}")
-        print(directions_extended)
-        print(lower_angles_extended)
-        print(upper_angles_extended)
-        del directions_extended[0]
-        del lower_angles_extended[0]
-        del upper_angles_extended[0]
-        for i in range(len(directions_extended)):
-            goal_direction = directions_extended[self.idx_direction]
-
-            goal_lower_joint_angle = lower_angles_extended[self.idx_direction]
-            goal_upper_joint_angle = upper_angles_extended[self.idx_direction]
-            details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
-                                  self.upper_joint_angle,
-                                  goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, 1/factor)
-            self.direction = details[0]
-            self.lower_joint_angle = details[1]
-            self.upper_joint_angle = details[2]
-            self.idx_direction += 1
-            if self.idx_direction == len(directions_extended):
-                self.simlooping = False
-            if self.simlooping:
-                self.window.after(self.delay, self.update_sim_loop)
-                self.window.after(self.delay, self.update_vid)
+        self.goal_lower_joint_angle = self.lower_angles_extended[self.idx_direction]
+        self.goal_upper_joint_angle = self.upper_angles_extended[self.idx_direction]
+        self.details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
+                              self.upper_joint_angle,
+                              self.goal_direction, self.goal_lower_joint_angle, self.goal_upper_joint_angle, 0.1/self.factor)
+        self.direction = self.details[0]
+        self.lower_joint_angle = self.details[1]
+        self.upper_joint_angle = self.details[2]
+        self.idx_direction += 1
+        if self.idx_direction == len(self.directions_extended):
+            self.simlooping = False
+        if self.simlooping:
+            self.window.after(self.delay, self.update_sim_loop)
+            self.window.after(self.delay, self.update_vid)
 
     def update_log(self, text):
         if len(self.log_text_list) > self.log_size:
