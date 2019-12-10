@@ -172,34 +172,75 @@ class XylobotGUI:
                                                                      (arm_width / (2 * multiplier)) * math.sin(
                                                           math.radians(self.upper_joint_angle - 90))),
                                               fill="grey", width=mallet_width, joinstyle=ROUND, tags="s_mallet")
-        self.directions = [-12]
-        lower_angles = [180 - (-87 + 90)]
-        upper_angles = [180 + 26]
+        # self.directions = [-12]
+        # lower_angles = [180 - (-87 + 90)]
+        # upper_angles = [180 + 26]
 
     def update_sim(self):
-        self.directions = [-30, -15, 0, 15, 30,
-                           0]  # theses three arrays are sequences of goal self.directions and angles
+        print('Update sim')
+        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.simlooping = True
         self.idx_direction = 0
-        self.window.after(self.delay, self.update_sim_loop())
+        self.update_sim_loop()
+        # self.window.after(self.delay, self.update_sim_loop())
         # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
         # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
     def update_sim_loop(self):
-        goal_direction = self.directions[self.idx_direction]
-        goal_lower_joint_angle = self.lower_angles[self.idx_direction]
-        goal_upper_joint_angle = self.upper_angles[self.idx_direction]
-        details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
-                              self.upper_joint_angle,
-                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, 1)
-        self.direction = details[0]
-        self.lower_joint_angle = details[1]
-        self.upper_joint_angle = details[2]
-        self.idx_direction += 1
-        if self.idx_direction == len(self.directions):
-            self.simlooping = False
+        factor = 10
+        directions_copy = self.directions[:]
+        tmp_directions = self.directions[:]
+        tmp_lower_angles = self.lower_angles[:]
+        tmp_upper_angles = self.upper_angles[:]
+        tmp_directions.insert(0, self.direction)
+        tmp_lower_angles.insert(0, self.direction)
+        tmp_upper_angles.insert(0, self.direction)
+
+        directions_extended = []
+        lower_angles_extended = []
+        upper_angles_extended = []
+        for i in range(1, len(tmp_directions)):
+            diff_directions = tmp_directions[i] - tmp_directions[i - 1]
+            # print(f"{tmp_directions[i]} - {tmp_directions[i-1]}")
+            # print(f"diff direction: {diff_directions}")
+            increment_direction = diff_directions/factor
+            diff_lower_angles = tmp_lower_angles[i] - tmp_lower_angles[i - 1]
+            increment_lower_angles = diff_lower_angles/factor
+            diff_upper_angles = tmp_upper_angles[i] - tmp_upper_angles[i - 1]
+            increment_upper_angles = diff_upper_angles/factor
+            for j in range(factor):
+                print(f"j * increment_direction {j * increment_direction}")
+                directions_extended.append(tmp_directions[i-1] + j * increment_direction)
+                lower_angles_extended.append(tmp_lower_angles[i-1] + j * increment_lower_angles)
+                upper_angles_extended.append(tmp_upper_angles[i-1] + j * increment_upper_angles)
+        print(f"tmp: {tmp_directions}")
+        print(f"tmp: {tmp_lower_angles}")
+        print(f"tmp: {tmp_upper_angles}")
+        print(directions_extended)
+        print(lower_angles_extended)
+        print(upper_angles_extended)
+        del directions_extended[0]
+        del lower_angles_extended[0]
+        del upper_angles_extended[0]
+        for i in range(len(directions_extended)):
+            goal_direction = directions_extended[self.idx_direction]
+
+            goal_lower_joint_angle = lower_angles_extended[self.idx_direction]
+            goal_upper_joint_angle = upper_angles_extended[self.idx_direction]
+            details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
+                                  self.upper_joint_angle,
+                                  goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, 1/factor)
+            self.direction = details[0]
+            self.lower_joint_angle = details[1]
+            self.upper_joint_angle = details[2]
+            self.idx_direction += 1
+            if self.idx_direction == len(directions_extended):
+                self.simlooping = False
+            if self.simlooping:
+                self.window.after(self.delay, self.update_sim_loop)
+                self.window.after(self.delay, self.update_vid)
 
     def update_log(self, text):
         if len(self.log_text_list) > self.log_size:
@@ -366,12 +407,14 @@ class XylobotGUI:
         self.update_log('Initialized cameras')
 
         # After it is called once, the update method will be automatically called every delay milliseconds
-        self.delay = 10
+        self.delay = 20
 
         self.record_clip_button_clicked = False
         self.update_vid()
+        self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
+        # p1.join()
 
         # t1 = threading.Thread(target=self.update_sim)
         # t1.start()
@@ -403,7 +446,7 @@ class XylobotGUI:
         #     if ret_side:
         #         self.photo_side = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_side))
         #         self.sim_side_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_side)
-
+        print('updatevideo')
         self.window.after(self.delay, self.update_vid)
 
 
