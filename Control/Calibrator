@@ -1,4 +1,7 @@
 import xylobot.xylophoneController.Control as Control
+import xylobot.Point as Point
+import xylobot.Position as Position
+import xylobot.IK as ik
 
 import serial
 
@@ -8,6 +11,8 @@ ser = serial.Serial(serPort, baudRate)
 print("Serial port " + serPort + " opened,  Baudrate " + str(baudRate))
 startMarker = 60
 endMarker = 62
+currentPoint = Point(0,0,46)
+rang = 100
 
 def calibrate():
     for i in range(0,6):
@@ -18,3 +23,20 @@ def calibrate():
     Control.hit(point1)
     Control.hit(point2)
     Control.hit(point3)
+
+def moveTo(point):
+    c = ik.getAngles(currentPoint)
+    c2 = ik.getAngles(point)
+    p = Position(c.m0,c.m1,c.m2)
+    g = Position(c2.m0,c2.m1,c2.m2)
+    m0dif = g.m0-p.m0
+    m1dif = g.m1-p.m1
+    m2dif = g.m2-p.m2
+
+
+    for i in range(0, rang):
+        temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
+        Control.sendToArduino(temp)
+
+
+
