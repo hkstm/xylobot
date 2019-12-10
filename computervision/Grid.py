@@ -1,25 +1,23 @@
+import computervision.EwanCV.getSides as getSides
+import computervision.getMallet as getMallet
+import computervision.CenterPoint as CP
 list = []
 #list of key centers
-c6 = None
-d6 = None
-e6 = None
-f6 = None
-g6 = None
-a6 = None
-c7 = None
 
-def getKey(a):
-    if a == 'c6':
-        return c6
-    if a == 'd6':
-        return d6
-    if a == 'e6':
-        return e6
-    if a == 'f6':
-        return f6
-    if a == 'g6':
-        return g6
-    if a == 'a6':
-        return a6
-    if a == 'c7':
-        return c7
+
+
+def generateList():
+    print(" Generating LIst")
+    getSides.run()
+    list = getSides.getList()
+    return list
+
+def getOffset(key):
+    mallet = getMallet.run()
+    try:
+        xoffset = mallet[0][0]-key.px
+        yoffset = mallet[0][1]-key.py
+    except:
+        print("Mallet not found")
+        return None
+    return(xoffset, yoffset)

@@ -1,8 +1,8 @@
 import serial
-import xylobot.IK as ik
-import xylobot.delayexample as delay
-from xylobot.Point import Point
-from xylobot.Position import Position
+import IK as ik
+import delayexample as delay
+from Point import Point
+from Position import Position
 
 class ControlManager():
 

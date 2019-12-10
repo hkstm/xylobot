@@ -12,7 +12,7 @@ def run():
     #DenseOpticalFlow()
     use_color_detection_also = False
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     cv2.CAP_PROP_FRAME_HEIGHT = 500
     cv2.CAP_PROP_FRAME_HEIGHT = 500
 

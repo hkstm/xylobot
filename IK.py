@@ -1,5 +1,5 @@
 import math
-import xylobot.Position as position
+import Position as position
 
 class Point:
     def __init__(self, x, y, z):
@@ -7,19 +7,19 @@ class Point:
         self.y = y
         self.z = z
 
-
+DEBUG = 1
 # Length of stick, wrist, and their total
 #L_STICK = 13.7
 #WRIST_NO_STICK = 5
 #WRIST = L_STICK + WRIST_NO_STICK
-WRIST = 17.1
-WRISTB = 17.4
+WRIST = 17.3
+WRISTB = 17.55
 # Length of elbow
-ELBOW = 10.5
-ELBOWB = 10.7
+ELBOW = 10.4
+ELBOWB = 10.55
 
 # Length of shoulder
-SHOULDER = 19
+SHOULDER = 18.8
 
 # Origin
 O = Point(0, 0, SHOULDER)
@@ -38,7 +38,8 @@ def getAngles(t):
     try:
         t.z = t.z + 2
         dist2Target = math.sqrt((t.y - O.y)**2 + (t.z - O.z)**2)
-        print('\nDistance to target: ', dist2Target, ' cm')
+        if DEBUG == 2:
+            print('\nDistance to target: ', dist2Target, ' cm')
 
         if dist2Target > WRIST + ELBOW:
             raise Exception("DISTANCE TO TARGET TOO LARGE")
@@ -61,13 +62,15 @@ def getAngles(t):
         c = math.atan2(t.x, t.y)*180/math.pi*-1
         angle1 = 180-a
         angle2 = 180-b
-        print(angle1)
-        print(angle2)
+        if DEBUG == 2:
+            print(angle1)
+            print(angle2)
         d = (ELBOW*math.cos(math.radians(angle1)) + WRIST*math.cos(math.radians(angle1 + angle2)))
         e = (ELBOWB*math.cos(math.radians(angle1)) + WRISTB*math.cos(math.radians(angle1 + angle2)))
         c2 = math.degrees(math.acos(d/e))
-        print(d, e, 'c2: ', c2)
-        #c = c - c2
+        if DEBUG == 2:
+            print(d, e, 'c2: ', c2)
+        c = c - c2
 
         if c < -90 or c > 90:
             print(c)
@@ -79,12 +82,13 @@ def getAngles(t):
             raise Exception("ELBOW ANGLE IS NEGATIVE")
 
         setActualPos(t)
-        print('Original angles - origin angle: ', c, ' elbow angle: ', a, ' wrist angle: ', b)
-        print('Arduino angles - origin angle: ', c, ' elbow angle: ', angleToMotorAngle(a)*-1,
-              ' wrist angle: ', angleToMotorAngle(b), '\n')
+        if DEBUG == 2:
+            print('Original angles - origin angle: ', c, ' elbow angle: ', a, ' wrist angle: ', b)
+            print('Arduino angles - origin angle: ', c, ' elbow angle: ', angleToMotorAngle(a)*-1,
+                  ' wrist angle: ', angleToMotorAngle(b), '\n')
 
-        #return [c, angleToMotorAngle(a)*-1, angleToMotorAngle(b)]
-        return [-1*c, angleToMotorAngle(a) * 1, -1*angleToMotorAngle(b)]
+        return [c, angleToMotorAngle(a)*-1, angleToMotorAngle(b)]
+        #return [-1*c, angleToMotorAngle(a) * 1, -1*angleToMotorAngle(b)]
     except Exception as e:
         raise Warning("[!] OUT OF REACH - ", e)
 
@@ -103,7 +107,8 @@ def angleToMotorAngle(a):
     return 180 - a
 
 def setActualPos(pos):
-    print('Setting new position ', pos.x, ' ', pos.y, ' ', pos.z)
+    if DEBUG == 2:
+        print('Setting new position ', pos.x, ' ', pos.y, ' ', pos.z)
     global actualPosition
     actualPosition = pos
 

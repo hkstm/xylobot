@@ -1,13 +1,13 @@
 import serial
 import time
-import xylobot.Point
-import xylobot.Position
-import xylobot.Note
-import xylobot.computervision.Grid as Grid
-import xylobot.IK as ik
-import xylobot.delayexample as delay
-from xylobot.Point import Point
-from xylobot.Position import Position
+import Point
+import Position
+import Note
+import computervision.Grid as Grid
+import IK as ik
+import delayexample as delay
+from Point import Point
+from Position import Position
 
 currentPosition = Position(21,57,-51)
 currentPoint = None
