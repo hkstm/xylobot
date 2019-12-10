@@ -1,5 +1,5 @@
 import math
-
+import xylobot.Position as position
 
 class Point:
     def __init__(self, x, y, z):
@@ -87,6 +87,14 @@ def getAngles(t):
     except Exception as e:
         raise Warning("[!] OUT OF REACH - ", e)
 
+#   def getCoordinates(position):
+#       m0 = position.m0
+#       m1 = position.m1
+#       m2 = position.m2
+#       length2d = 0
+#       x = math.sin(m0)*length2d
+#       y = math.cos(m0)*length2d
+#       z = SHOULDER +
 
 def angleToMotorAngle(a):
     #dif = math.fabs(90 - a)
