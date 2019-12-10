@@ -7,13 +7,14 @@ from computervision.CenterPoint import CenterPoint
 cap = cv2.VideoCapture(1)
 bready = False
 b2ready = False
-while(True):
+DONE = False
+while(DONE == False):
     ret, frame = cap.read()
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     blur = cv2.GaussianBlur(frame, (9, 9), 0)
     edges = cv2.Canny(blur, 100, 200)
-    cv2.imshow('Edges', edges)
+    #cv2.imshow('Edges', edges)
 
     lower_black = np.array([0, 0, 0])
     upper_black = np.array([180, 255, 20])
@@ -23,7 +24,7 @@ while(True):
     kernel = np.ones((7, 7), np.uint8)
     dilatemask = cv2.dilate(mask, kernel, iterations=1)
     resb = cv2.bitwise_and(frame, frame, mask=dilatemask)
-    cv2.imshow('black', resb)
+    #cv2.imshow('black', resb)
     resb2 = cv2.bitwise_and(edges, edges, mask=dilatemask)
 
     blackcnts = cv2.findContours(mask.copy(),
@@ -65,7 +66,7 @@ while(True):
     kernel = np.ones((7, 7), np.uint8)
     dilatemask = cv2.dilate(mask, kernel, iterations=1)
     resb = cv2.bitwise_and(crop, crop, mask=dilatemask)
-    cv2.imshow('black2', resb)
+    #cv2.imshow('black2', resb)
     resb2 = cv2.bitwise_and(edges, edges, mask=dilatemask)
 
     blackcnts = cv2.findContours(mask.copy(),
@@ -107,7 +108,7 @@ while(True):
         cv2.circle(frame, (int(blackcx + (5 / 9)*(black2cx-blackcx)), int((blackcy + (5/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
         cv2.circle(frame, (int(blackcx + (6 / 9)*(black2cx-blackcx)), int((blackcy + (6/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
         cv2.circle(frame, (int(blackcx + (7 / 9)*(black2cx-blackcx)), int((blackcy + (7/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
-        cv2.circle(frame, (int(blackcx + (8.1 / 9)*(black2cx-blackcx)), int((blackcy + (8/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
+        cv2.circle(frame, (int(blackcx + (8.05 / 9)*(black2cx-blackcx)), int((blackcy + (8/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
 
         list = []
         list.append(CenterPoint("c6",int(blackcx + (1 / 9)*(black2cx-blackcx)),int(blackcy + (1/9)*(black2cy-blackcy)), 0, 0, 0))
@@ -117,10 +118,10 @@ while(True):
         list.append(CenterPoint("g6",int(blackcx + (5 / 9)*(black2cx-blackcx)),int(blackcy + (5/9)*(black2cy-blackcy)), 0, 0, 0))
         list.append(CenterPoint("a6",int(blackcx + (6 / 9)*(black2cx-blackcx)),int(blackcy + (6/9)*(black2cy-blackcy)), 0, 0, 0))
         list.append(CenterPoint("b6",int(blackcx + (7 / 9)*(black2cx-blackcx)),int(blackcy + (7/9)*(black2cy-blackcy)), 0, 0, 0))
-        list.append(CenterPoint("c7",int(blackcx + (8.1 / 9)*(black2cx-blackcx)),int(blackcy + (8/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("c7",int(blackcx + (8.05 / 9)*(black2cx-blackcx)),int(blackcy + (8/9)*(black2cy-blackcy)), 0, 0, 0))
         Grid.list = list
 
-        break
+        DONE = True
 
     cv2.imshow('frame', frame)
 
