@@ -59,6 +59,17 @@ key0 = [-33, -25, -20, -13, -7, 0, 6, 12]
 key1 = [-85, -82, -82, -75, -76, -75, -80, -90]
 key2 = [24, 33, 33, 44, 42, 44, 35, 18]
 
+pitches_ranges = [
+    'c6',
+    'd6',
+    'e6',
+    'f6',
+    'g6',
+    'a6',
+    'b6',
+    'c7',
+]
+
 import serial
 import time
 import numpy as np
@@ -78,6 +89,8 @@ if DEBUG == 0 or DEBUG == 3:
     print("Serial port " + serPort + " opened,  Baudrate " + str(baudRate))
     startMarker = 60
     endMarker = 62
+
+
 
 def singlehit (cur, key, speed):
     goalPos = [key1[key], key2[key]]
