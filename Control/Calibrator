@@ -1,0 +1,18 @@
+import xylobot.xylophoneController.Control as Control
+
+import serial
+
+baudRate = 9600
+serPort = "COM3"
+ser = serial.Serial(serPort, baudRate)
+print("Serial port " + serPort + " opened,  Baudrate " + str(baudRate))
+startMarker = 60
+endMarker = 62
+
+def calibrate():
+    point1 = (0, 25, 15)
+    point2 = (0, 25, 15)
+    point3 = (0, 25, 15)
+    Control.hit(point1)
+    Control.hit(point2)
+    Control.hit(point3)

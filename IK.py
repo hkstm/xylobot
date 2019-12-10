@@ -67,7 +67,7 @@ def getAngles(t):
         e = (ELBOWB*math.cos(math.radians(angle1)) + WRISTB*math.cos(math.radians(angle1 + angle2)))
         c2 = math.degrees(math.acos(d/e))
         print(d, e, 'c2: ', c2)
-        c = c - c2
+        #c = c - c2
 
         if c < -90 or c > 90:
             print(c)
@@ -83,7 +83,8 @@ def getAngles(t):
         print('Arduino angles - origin angle: ', c, ' elbow angle: ', angleToMotorAngle(a)*-1,
               ' wrist angle: ', angleToMotorAngle(b), '\n')
 
-        return [c, angleToMotorAngle(a)*-1, angleToMotorAngle(b)]
+        #return [c, angleToMotorAngle(a)*-1, angleToMotorAngle(b)]
+        return [-1*c, angleToMotorAngle(a) * 1, -1*angleToMotorAngle(b)]
     except Exception as e:
         raise Warning("[!] OUT OF REACH - ", e)
 
@@ -103,9 +104,10 @@ def angleToMotorAngle(a):
 
 def setActualPos(pos):
     print('Setting new position ', pos.x, ' ', pos.y, ' ', pos.z)
+    global actualPosition
     actualPosition = pos
 
 def getActualPos():
     return actualPosition
 
-getAngles(Point(0, 25.5, 15))
+#getAngles(Point(0, 25.5, 15))
