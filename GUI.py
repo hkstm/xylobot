@@ -172,18 +172,16 @@ class XylobotGUI:
                                                                      (arm_width / (2 * multiplier)) * math.sin(
                                                           math.radians(self.upper_joint_angle - 90))),
                                               fill="grey", width=mallet_width, joinstyle=ROUND, tags="s_mallet")
-        self.directions = [-12]
-        lower_angles = [180 - (-87 + 90)]
-        upper_angles = [180 + 26]
+
+
 
     def update_sim(self):
-        self.directions = [-30, -15, 0, 15, 30,
-                           0]  # theses three arrays are sequences of goal self.directions and angles
+        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.simlooping = True
         self.idx_direction = 0
-        self.window.after(self.delay, self.update_sim_loop())
+        self.window.after(self.delay, self.update_sim_loop)
         # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
         # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
@@ -200,6 +198,8 @@ class XylobotGUI:
         self.idx_direction += 1
         if self.idx_direction == len(self.directions):
             self.simlooping = False
+        if self.simlooping:
+            self.window.after(self.delay, self.update_sim_loop)
 
     def update_log(self, text):
         if len(self.log_text_list) > self.log_size:
@@ -370,6 +370,7 @@ class XylobotGUI:
 
         self.record_clip_button_clicked = False
         self.update_vid()
+        self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
 
