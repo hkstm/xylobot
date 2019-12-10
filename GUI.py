@@ -14,6 +14,7 @@ import PIL.Image
 import PIL.ImageTk
 import cv2
 
+from Note import Note
 from signalprocessing.custompitchtracking import pitch_track
 
 
@@ -61,7 +62,8 @@ class XylobotGUI:
 
         # Save the recorded data as a WAV file
         currentdt = datetime.datetime.now()
-        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'signalprocessing\\data\\clip_{currentdt.strftime("%m-%d_%H-%M-%S")}.wav')
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                f'signalprocessing\\data\\clip_{currentdt.strftime("%m-%d_%H-%M-%S")}.wav')
         print(os.path.abspath(filename))
         wf = wave.open(os.path.abspath(filename), 'wb')
         wf.setnchannels(self.channels)
@@ -91,8 +93,19 @@ class XylobotGUI:
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
-        print(seq_list)
-        self.update_log(seq_list)
+        self.update_log(f'Running sequence: {seq_list}')
+        note_list = []
+        prevtime = 0
+        for seqpart in seq_list:
+            note, time = seqpart
+            note_list.append(Note(note=note, time=(time-prevtime)))
+            prevtime = time
+
+
+
+    def closeGUI(self):
+        self.window.destroy()
+        exit()
 
     def __init__(self, window, window_title, vid_source_bird=0, vid_source_side=0):
         self.window = window
@@ -135,8 +148,9 @@ class XylobotGUI:
         key_list = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         color_list = ['blue', 'green', 'yellow', 'orange', 'red', 'purple', 'white', 'blue']
         for i, key in enumerate(key_list):
-            Button(window, text=key_list[i].upper(), bg=color_list[i], relief=RAISED, command=partial(self.play_button, key)).grid(row=5, column=(2 + i),
-                                                                                          sticky=NSEW, ipadx=(
+            Button(window, text=key_list[i].upper(), bg=color_list[i], relief=RAISED,
+                   command=partial(self.play_button, key)).grid(row=5, column=(2 + i),
+                                                                sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
 
         self.sequence_entry_text = StringVar()
@@ -152,7 +166,8 @@ class XylobotGUI:
                                                                                                   columnspan=4,
                                                                                                   sticky=NSEW)
         self.run_button = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=7, column=6,
-                                                                                              columnspan=4, sticky=NSEW)
+                                                                                               columnspan=4, sticky=NSEW)
+        self.window.protocol('WM_DELETE_WINDOW', self.closeGUI)
         self.update_log('Initialized window')
 
         # open vid sources (cameras need to be plugged in
@@ -168,7 +183,7 @@ class XylobotGUI:
         self.update_log('Initialized cameras')
 
         # After it is called once, the update method will be automatically called every delay milliseconds
-        self.delay = 50
+        self.delay = 10
 
         self.record_clip_button_clicked = False
         self.updatevid()
@@ -192,7 +207,7 @@ class XylobotGUI:
 
         if ret_bird:
             self.photo_bird = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_bird))
-            self.sim_bird_canvas.create_image(self.canvaswidth/2, self.canvasheight/2, image=self.photo_bird)
+            self.sim_bird_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_bird)
 
         if not self.vid_source_side == 0:
             ret_side, frame_side = self.vid_side.get_frame()
@@ -200,12 +215,7 @@ class XylobotGUI:
                 self.photo_side = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_side))
                 self.sim_side_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_side)
 
-        try:
-            self.window.after(self.delay, self.updatevid)
-        except:
-            pass
-
-
+        self.window.after(self.delay, self.updatevid)
 
     def updatesim(self):
         pass
