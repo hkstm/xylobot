@@ -1,6 +1,9 @@
 import numpy as np
 import cv2
 
+from computervision import Grid
+from computervision.CenterPoint import CenterPoint
+
 cap = cv2.VideoCapture(1)
 bready = False
 b2ready = False
@@ -16,6 +19,7 @@ while(True):
     upper_black = np.array([180, 255, 20])
 
     mask = cv2.inRange(hsv, lower_black, upper_black)
+    cv2.imshow('blackmask', mask)
     kernel = np.ones((7, 7), np.uint8)
     dilatemask = cv2.dilate(mask, kernel, iterations=1)
     resb = cv2.bitwise_and(frame, frame, mask=dilatemask)
@@ -43,7 +47,7 @@ while(True):
 
 #SECOND HALF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if bready:
-        offset = blackx + 380
+        offset = blackx + 390
     else:
         offset = 450
     crop = frame[0:380, offset:640]
@@ -54,9 +58,10 @@ while(True):
     edges = cv2.Canny(blur, 100, 200)
 
     lower_black = np.array([0, 0, 0])
-    upper_black = np.array([180, 255, 40])
+    upper_black = np.array([180, 255, 35])
 
     mask = cv2.inRange(hsv, lower_black, upper_black)
+    cv2.imshow('blackmask2', mask)
     kernel = np.ones((7, 7), np.uint8)
     dilatemask = cv2.dilate(mask, kernel, iterations=1)
     resb = cv2.bitwise_and(crop, crop, mask=dilatemask)
@@ -73,7 +78,7 @@ while(True):
         print(hg)
         print(wg)
 
-    if 195 > hg > 185 and 30 > wg > 25:
+    if 195 > hg > 185 and 35 > wg > 20:
         b2ready = True
         black2x = xg + offset
         black2y = yg
@@ -102,9 +107,20 @@ while(True):
         cv2.circle(frame, (int(blackcx + (5 / 9)*(black2cx-blackcx)), int((blackcy + (5/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
         cv2.circle(frame, (int(blackcx + (6 / 9)*(black2cx-blackcx)), int((blackcy + (6/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
         cv2.circle(frame, (int(blackcx + (7 / 9)*(black2cx-blackcx)), int((blackcy + (7/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
-        cv2.circle(frame, (int(blackcx + (8 / 9)*(black2cx-blackcx)), int((blackcy + (8/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
+        cv2.circle(frame, (int(blackcx + (8.1 / 9)*(black2cx-blackcx)), int((blackcy + (8/9)*(black2cy-blackcy)))), 1, (0, 0, 255), 3)
 
+        list = []
+        list.append(CenterPoint("c6",int(blackcx + (1 / 9)*(black2cx-blackcx)),int(blackcy + (1/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("d6",int(blackcx + (2 / 9)*(black2cx-blackcx)),int(blackcy + (2/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("e6",int(blackcx + (3 / 9)*(black2cx-blackcx)),int(blackcy + (3/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("f6",int(blackcx + (4 / 9)*(black2cx-blackcx)),int(blackcy + (4/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("g6",int(blackcx + (5 / 9)*(black2cx-blackcx)),int(blackcy + (5/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("a6",int(blackcx + (6 / 9)*(black2cx-blackcx)),int(blackcy + (6/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("b6",int(blackcx + (7 / 9)*(black2cx-blackcx)),int(blackcy + (7/9)*(black2cy-blackcy)), 0, 0, 0))
+        list.append(CenterPoint("c7",int(blackcx + (8.1 / 9)*(black2cx-blackcx)),int(blackcy + (8/9)*(black2cy-blackcy)), 0, 0, 0))
+        Grid.list = list
 
+        break
 
     cv2.imshow('frame', frame)
 

@@ -1,4 +1,4 @@
-
+list = []
 #list of key centers
 c6 = None
 d6 = None
