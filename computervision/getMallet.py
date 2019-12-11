@@ -3,7 +3,7 @@ import numpy
 from collections import deque
 import imutils
 
-def run():
+def run(previous_coordinates, boundarycenterleft, boundarycenterright):
     cap = cv2.VideoCapture(1)
 
     width = int(cap.get(3))
@@ -12,45 +12,47 @@ def run():
     print(height)
 
 
-    writer = cv2.VideoWriter('color-vide.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (width, height))
+    #writer = cv2.VideoWriter('color-vide.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (width, height))
 
-    y1 = 50
+
+    y1 = 0 #50
     y2 = 400
-    x1 = 120
+    x1 = 0 #20
     x2 = 480
 
     while (1):
         _, frame = cap.read()
-        frame = frame[y1:y2, x1:x2]  # crop frame
+        #frame = frame[y1:y2, x1:x2]  # crop frame
 
-        mask, res, ((x, y), radius) = colorDetection(frame)
+        mask, res, ((x, y), radius) = colorDetection(frame, previous_coordinates, boundarycenterleft, boundarycenterright)
 
-        try:
+        #try:
             #cv2.imshow('Frame',frame)
-            cv2.imshow('Mask', mask)
-            cv2.imshow('Res', res)
-            writer.write(res)
+            #cv2.imshow('Mask', mask)
+            #cv2.imshow('Res', res)
+            #cv2.imwrite('res.jpg', res)
+            #writer.write(res)
             #cv2.imshow('Pure Color Detection', res)
-        except:
-            print("Could not print all requested frames")
+        #except:
+            #print("Could not print all requested frames")
 
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break
 
         if ((x,y))[0] is not None and ((x,y))[1]:
-            print(((x + x1, y + y1), radius))
-            writer.release()
+            print(" Mallet ",((x + x1, y + y1), radius))
+            #writer.release()
             cap.release()
             cv2.destroyAllWindows()
             return ((x, y), radius)
-    writer.release()
+    #writer.release()
     cap.release()
     cv2.destroyAllWindows()
 
 
 
-def colorDetection(frame):
+def colorDetection(frame, prec, bcl, bcr):
     frameoriginal = frame
     framecopy = cv2.medianBlur(frame, 15)
 
@@ -81,30 +83,35 @@ def colorDetection(frame):
     #resblur[mask == 255] = [0, 0, 255]
     #cv2.imshow('resblur', resblur)
 
-    res, ((x, y), radius) = drawCircle(cnts, res)
+    res, ((x, y), radius) = drawCircle(cnts, res, prec, bcl, bcr)
 
     return mask, res, ((x, y), radius)
 
-def drawCircle(cnts, frame):
+def drawCircle(cnts, frame, prec, bcl, bcr):
     if len(cnts) > 0:
         # find the largest contour in the mask, then use it to compute the minimum enclosing circle and centroid
-        c = max(cnts, key=cv2.contourArea)
         # print("area: ", cv2.contourArea(c))
         # cv2.waitKey(0)
-
-        ((x, y), radius) = cv2.minEnclosingCircle(c)
-        M = cv2.moments(c)
-        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-
-        if radius > 10:
-            # draw the circle and centroid on the frame,
-            # then update the list of tracked points
-            cv2.circle(frame, (int(x), int(y)), int(radius),
-                       (0, 255, 255), 2)
-            cv2.circle(frame, center, 5, (0, 0, 255), -1)
-
-        return frame, ((x, y), radius)
+        for c in cnts:
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            M = cv2.moments(c)
+            try:
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            except:
+                continue
+            if prec == (None, None):
+                prec = ((x,y), radius)[0]
+            print("prec: ", prec)
+            print("newc ", ((x,y), radius)[0])
+            if 60 > radius > 10 and (bcl[0] + 5 < ((x, y), radius)[0][0] < bcr[0] - 5): # and (abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)
+                # draw the circle and centroid on the frame,
+                # then update the list of tracked points
+                cv2.circle(frame, (int(x), int(y)), int(radius),
+                           (0, 255, 255), 2)
+                cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                return frame, ((x, y), radius)
     print("No mallet detected")
+    cv2.imshow('frame', frame)
     return frame, ((None, None), None)
 
 
@@ -123,4 +130,4 @@ if __name__ == '__main__':
     ff = 0
     buffer = 32
     pts = deque(maxlen=buffer)
-    run()
+    run((0,0))

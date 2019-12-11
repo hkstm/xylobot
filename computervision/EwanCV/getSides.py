@@ -9,28 +9,39 @@ bready = False
 b2ready = False
 DONE = False
 list = []
+boundarycenterleft = None
+boundarycenterright = None
 
 def run():
     print(" RUNNING Getssides")
-    global DONE, bready, b2ready, list
+    global DONE, bready, b2ready, list, boundarycenterleft, boundarycenterright
     while(DONE == False):
         ret, frame = cap.read()
 
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        blur = cv2.GaussianBlur(frame, (9, 9), 0)
+        cv2.imshow('hsv', hsv)
+        blur = cv2.GaussianBlur(frame, (23, 23), 0)
         edges = cv2.Canny(blur, 100, 200)
         #cv2.imshow('Edges', edges)
 
         lower_black = np.array([0, 0, 0])
-        upper_black = np.array([180, 255, 20])
+        upper_black = np.array([50, 50, 50])
 
         mask = cv2.inRange(hsv, lower_black, upper_black)
-        cv2.imshow('blackmask', mask)
-        kernel = np.ones((7, 7), np.uint8)
-        dilatemask = cv2.dilate(mask, kernel, iterations=1)
+        kernel = np.ones((2, 2), np.uint8)
+        erode = cv2.morphologyEx(mask, cv2.MORPH_ERODE, kernel)
+        kernel = np.ones((3, 3), np.uint8)
+        dilatemask = cv2.dilate(erode, kernel, iterations=1)
+        kernel = np.ones((4, 4), np.uint8)
+        dilatemask = cv2.morphologyEx(dilatemask, cv2.MORPH_CLOSE, kernel)
+
+
         resb = cv2.bitwise_and(frame, frame, mask=dilatemask)
         #cv2.imshow('black', resb)
         resb2 = cv2.bitwise_and(edges, edges, mask=dilatemask)
+
+        mask = dilatemask
+        cv2.imshow('blackmask', mask)
 
         blackcnts = cv2.findContours(mask.copy(),
                                      cv2.RETR_EXTERNAL,
@@ -38,9 +49,9 @@ def run():
         if len(blackcnts) > 0:
             black_area = max(blackcnts, key=cv2.contourArea)
             (xg, yg, wg, hg) = cv2.boundingRect(black_area)
-            #print(hg)
-            #print(wg)
-            if  145 > hg > 135 and 30 > wg > 20:
+            print("hg: ", hg)
+            print("wg: ", wg)
+            if  125 > hg > 100 and 25 > wg > 10:
                 bready = True
                 blackx = xg
                 blacky = yg
@@ -63,26 +74,29 @@ def run():
         edges = cv2.Canny(blur, 100, 200)
 
         lower_black = np.array([0, 0, 0])
-        upper_black = np.array([180, 255, 35])
+        upper_black = np.array([50, 50, 50])
 
         mask = cv2.inRange(hsv, lower_black, upper_black)
+        kernel = np.ones((2, 2), np.uint8)
+        erode = cv2.morphologyEx(mask, cv2.MORPH_ERODE, kernel)
+        kernel = np.ones((3, 3), np.uint8)
+        dilatemask = cv2.dilate(erode, kernel, iterations=1)
+        kernel = np.ones((4, 4), np.uint8)
+        dilatemask = cv2.morphologyEx(dilatemask, cv2.MORPH_CLOSE, kernel)
+
+        mask = dilatemask
         cv2.imshow('blackmask2', mask)
-        kernel = np.ones((7, 7), np.uint8)
-        dilatemask = cv2.dilate(mask, kernel, iterations=1)
-        resb = cv2.bitwise_and(crop, crop, mask=dilatemask)
-        #cv2.imshow('black2', resb)
-        resb2 = cv2.bitwise_and(edges, edges, mask=dilatemask)
 
         blackcnts = cv2.findContours(mask.copy(),
                                      cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
         if len(blackcnts) > 0:
-            black_area = max(blackcnts, key=cv2.contourArea)
-            (xg, yg, wg, hg) = cv2.boundingRect(black_area)
+            black_area2 = max(blackcnts, key=cv2.contourArea)
+            (xg, yg, wg, hg) = cv2.boundingRect(black_area2)
             #cv2.rectangle(frame, (xg+offset, yg), (xg +offset+ wg, yg + hg), (0, 0, 255), 2)
             print(hg)
             print(wg)
-            if 195 > hg > 185 and 35 > wg > 20:
+            if 125 > hg > 105 and 20 > wg > 10:
                 b2ready = True
                 black2x = xg + offset
                 black2y = yg
@@ -95,12 +109,17 @@ def run():
         #dimensions = frame.shape
         #print(dimensions)
 
+
         if bready:
             cv2.rectangle(frame, (blackx, blacky), (blackx + blackw, blacky + blackh), (0, 0, 255), 2)
+            #cv2.drawContours(frame, black_area, -1, (0, 255, 255), 1, 8)
             cv2.circle(frame, (blackcx, blackcy), 1, (0, 0, 255), 3)
+            boundarycenterleft = (blackcx, blackcy)
         if b2ready:
             cv2.rectangle(frame, (black2x, black2y), (black2x + black2w, black2y + black2h), (0, 0, 255), 2)
+            #cv2.drawContours(frame, black_area2, -1, (0, 255, 255), 1, 8)
             cv2.circle(frame, (black2cx, black2cy), 1, (0, 0, 255), 3)
+            boundarycenterright = (black2cx, black2cy)
         if b2ready and bready:
             lineThickness = 2
             cv2.line(frame, (blackcx, blackcy), (black2cx, black2cy), (0, 255, 0), lineThickness)
@@ -115,6 +134,7 @@ def run():
             print(" List Found")
             createList(blackcx, black2cx, blackcy, black2cy)
 
+            cv2.imwrite('centerpoints.jpg', frame)
             DONE = True
 
 
@@ -160,3 +180,10 @@ def createList(blackcx, black2cx, blackcy, black2cy):
     list.append(
         CenterPoint("c7", int(blackcx + (1 / 9) * (black2cx - blackcx)), int(blackcy + (1 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
+
+def getBoundaryMidpoints():
+    global boundarycenterleft, boundarycenterright
+    return boundarycenterleft, boundarycenterright
+
+if __name__ == '__main__':
+    run()
