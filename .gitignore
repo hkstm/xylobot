@@ -6,3 +6,5 @@
 *.pyc
 *.avi
 *.pyc
+
+__pycache__/
