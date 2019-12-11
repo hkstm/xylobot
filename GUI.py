@@ -6,6 +6,7 @@ import ast
 from functools import partial
 from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
+from Control import Control
 
 import pyaudio
 import wave
@@ -131,7 +132,7 @@ class XylobotGUI:
                                                        math.radians(self.lower_joint_angle)) * math.sin(
                                                        math.radians(self.direction)) +
                                                                              (
-                                                                                         upper_arm_length + mallet_length) * math.cos(
+                                                                                     upper_arm_length + mallet_length) * math.cos(
                                                                math.radians(self.upper_joint_angle)) * math.sin(
                                                                math.radians(self.direction)) +
                                                                              (arm_width / (2 * multiplier)) * math.cos(
@@ -173,10 +174,9 @@ class XylobotGUI:
                                                           math.radians(self.upper_joint_angle - 90))),
                                               fill="grey", width=mallet_width, joinstyle=ROUND, tags="s_mallet")
 
-
-
     def update_sim(self):
-        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
+        self.directions = [-30, -15, 0, 15, 30,
+                           0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.simlooping = True
@@ -204,11 +204,14 @@ class XylobotGUI:
     def update_log(self, text):
         if len(self.log_text_list) > self.log_size:
             self.log_text_list.pop()
-        self.log_text_list.insert(0, text)
+        text_length_limit = 80
+        text_short = (text[:text_length_limit] + '...') if len(text) > text_length_limit else text
+        self.log_text_list.insert(0, text_short)
         self.log_text.set('\n'.join(self.log_text_list))
 
     def play_button(self, key):
         self.update_log(f'playing: {key}')
+        Control.hitkey(key)
 
     def record_clip(self):
         self.record_clip_button_clicked = True
@@ -281,6 +284,7 @@ class XylobotGUI:
             note, time = seqpart
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
+        Control.play(note_list)
 
     def closeGUI(self):
         self.window.destroy()
@@ -297,7 +301,6 @@ class XylobotGUI:
         self.canvasheight = (self.height / 2)
         self.window.geometry(f'{self.width}x{self.height}')
         self.window.update()
-
         self.init_window()
 
         self.log_size = 31
@@ -370,7 +373,7 @@ class XylobotGUI:
 
         self.record_clip_button_clicked = False
         self.update_vid()
-        self.update_sim()
+        # self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
 

@@ -1,15 +1,16 @@
 import argparse
-from signalprocessing.custompitchtracking import pitch_track
 from types import SimpleNamespace
+
+from signalprocessing.custompitchtracking import pitch_track
 
 parser = argparse.ArgumentParser(description="Custom Pitch")
 parser.add_argument('-n', '--name', help="Name of audio file")
 parser.add_argument('-p', '--plot', action='store_true')
 parser.add_argument('-g', '--guiplot', action='store_true')
+parser.add_argument('-r', '--raw', action='store_true', help='Return data so it can be used for analysis')
 parser.add_argument('-l', '--level', nargs='?', default='Error',
                     choices=['Critical', 'Error', 'Warning', 'Info', 'Debug'], help='Levels of logger')
 args = parser.parse_args()
-
 # this is all redundant but shows usage when not using CLI arguments
 name = args.name
 plot = args.plot

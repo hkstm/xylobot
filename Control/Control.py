@@ -19,7 +19,8 @@ print("Serial port " + serPort + " opened,  Baudrate " + str(baudRate))
 startMarker = 60
 endMarker = 62
 
-notes = [[18, 25, 15], [14, 25, 15], [10, 25, 15], [7, 25, 15], [4, 25, 15], [0, 25, 15], [-3, 25, 15], [-6, 25, 15]]
+z = 10.75
+notes = [[18, 25, z], [14, 25, z], [10, 25, z], [7, 24, z+0.022], [4, 23.5, z+0.022], [1, 25, z], [-3, 25, z], [-6, 25, z]]
 speed = 20
 
 #   Takes a list of Note objects
@@ -151,20 +152,19 @@ def getPath(point, speed):
     zpath = []
     path = []
 
-    if x1 > x0:
-        zmid = z0 + 0.6 * (x1 - x0)
-    else:
-        zmid = z0 + 0.6 * -(x1 - x0)
+    zmid = z0 - 50
+    ymid = y0 + 20
 
     if x1 - x0 == 0:
         zmid = z0 + 20
         for i in range(0, speed):
             x = x0 + (i + 1) * ((x1 - x0) / speed)
-            y = y0 + (i + 1) * ((y1 - y0) / speed)
 
             if i < speed / 2:
+                y = y0 + (i + 1) * ((ymid - y0) / speed)
                 z = z0 + (i + 1) * (zmid - z0) / speed
             else:
+                y = y0 + (i + 1) * ((y1 - ymid) / speed)
                 z = zmid + (i + 1) * (z1 - zmid) / speed
             xpath.append(x)
             ypath.append(y)
