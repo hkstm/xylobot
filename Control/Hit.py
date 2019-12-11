@@ -1,4 +1,4 @@
-from xylobot.Control.HitManager import Point
+from xylobot.Point import Point
 import math
 
 
@@ -11,12 +11,13 @@ class Hit:
         self.origin = origin
         self.target = target
         self.speed = speed
-        self.midpoint = Point(origin.x + (math.fabs(target.x - origin.x) / 2), 0, self.PREHIT_HEIGHT)
         self.offset_target = None
         self.offset_midpoint = None
         self.offset_origin = None
-        self.offset()
-        print(self.origin, ' ', self.midpoint, ' ', self.target)
+        self.midpoint = None
+        if target != '' and origin != '':
+            self.midpoint = Point(origin.x + (math.fabs(target.x - origin.x) / 2), 0, self.PREHIT_HEIGHT)
+            self.offset()
         self.path = []
         self.x = 0
         self.z = 0
@@ -25,11 +26,15 @@ class Hit:
         self.offset_target = Point(self.target.x - self.origin.x, 0, self.target.z)
         self.offset_midpoint = Point(self.midpoint.x - self.origin.x, 0, self.midpoint.z)
         self.offset_origin = Point(0, 0, self.target.z)
+        print('Offset - target: ', self.offset_target, ' midpoint: ', self.offset_midpoint, ' origin: ', self.offset_origin)
 
     def set(self, origin, target, speed):
         self.origin = origin
         self.target = target
+        self.midpoint = Point(self.origin.x + (math.fabs(self.target.x - self.origin.x) / 2), 0, self.PREHIT_HEIGHT)
         self.speed = speed
+        self.offset()
+        print('Current position: ', self.origin, ' target: ', self.target, ' speed: ', self.speed, ' midpoint: ', self.midpoint)
 
 
 class RightAngledTriangularHit(Hit):
@@ -73,7 +78,6 @@ class TriangularHit(Hit):
     def getFunction(self):
         self.slope = (self.midpoint.z - self.origin.z) / (self.midpoint.x - self.origin.x)
         self.b = self.origin.z - self.slope * self.origin.x
-        print('slope: ', self.slope, ' b: ', self.b)
 
     def generatePoints(self):
         self.getFunction()
@@ -138,17 +142,15 @@ class QuadraticHit(Hit):
 
     def getFunction(self):
         self.getRatio()
-        print(self.offset_origin, ' ', self.offset_midpoint, ' ', self.offset_target)
         self.c = self.offset_origin.z
         self.a = (0 - ((self.offset_midpoint.z - self.c) * self.ratio)) / \
                  (self.offset_target.x ** 2 - ((self.offset_midpoint.x ** 2) * self.ratio))
         self.b = ((self.offset_midpoint.z - self.offset_origin.z) - (self.offset_midpoint.x ** 2 * self.a)) / \
                  self.offset_midpoint.x
-        print('a: ', self.a, ' b: ', self.b, ' c: ', self.c)
+        print('Quadratic parameters - a: ', self.a, ' b: ', self.b, ' c: ', self.c)
 
     def getRatio(self):
         self.ratio = self.offset_target.x * (1 / self.offset_midpoint.x)
-        print('ratio: ', self.ratio)
 
     def generatePoints(self):
         self.getFunction()
@@ -164,16 +166,16 @@ class QuadraticHit(Hit):
         return self.path
 
 
-qh = QuadraticHit(Point(10, 25, 12), Point(18, 25, 12), 50)
-uh = UniformHit(Point(10, 25, 12), Point(18, 25, 12), 50)
-th = TriangularHit(Point(10, 25, 12), Point(18, 25, 12), 50)
-rh = RightAngledTriangularHit(Point(10, 25, 12), Point(18, 25, 12), 50)
+#qh = QuadraticHit(Point(10, 25, 12), Point(18, 25, 12), 50)
+#uh = UniformHit(Point(10, 25, 12), Point(18, 25, 12), 50)
+#th = TriangularHit(Point(10, 25, 12), Point(18, 25, 12), 50)
+#rh = RightAngledTriangularHit(Point(10, 25, 12), Point(18, 25, 12), 50)
 #path = qh.getPath()
 #path = uh.getPath()
 #path = th.getPath()
-path = rh.getPath()
-for i in path:
-    print(i)
+#path = rh.getPath()
+#for i in path:
+#    print(i)
 
 
 

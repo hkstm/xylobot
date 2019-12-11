@@ -49,7 +49,11 @@ class SongManager:
                 self.hm.hit(note)
 
     def add(self, name, tempo, notes):
-        song = Song(name, tempo, notes)
+        newnotes = []
+        for note in notes:
+            newnote = next((x for x in self.notecoords if x.key == note.key), None)
+            newnotes.append(Note(note.key, note.delay, newnote.coords))
+        song = Song(name, tempo, newnotes)
         if song not in self.songs:
             self.songs.append(song)
 
