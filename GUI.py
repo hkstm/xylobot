@@ -7,12 +7,15 @@ from functools import partial
 from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
 
+from SimuVector import SimuVector
+from SimulationXylo import SimulationXylo
 import pyaudio
 import wave
 import matplotlib.pyplot as plt
 import datetime
 from tkinter import *
 from simulation import fill_canvas
+from simulation import updateXyloDrawing
 from fabrik import calculate
 from fabrik import calculate_and_draw
 import math
@@ -22,6 +25,7 @@ import PIL.Image
 import PIL.ImageTk
 import cv2
 
+
 from Note import Note
 from signalprocessing.custompitchtracking import pitch_track
 
@@ -29,6 +33,7 @@ from signalprocessing.custompitchtracking import pitch_track
 class XylobotGUI:
 
     def init_window(self):
+        self.switchTest = True
         arm_width = 20
         mallet_width = 5
         self.direction = 0
@@ -46,6 +51,15 @@ class XylobotGUI:
         keywidth = multiplier * 2
         self.birds_eye_view = Canvas(self.window, width=width, height=height, background="black")
         self.side_view = Canvas(self.window, width=width, height=height, background="black")
+
+        self.xylo = SimulationXylo(self.birds_eye_view, 0)
+        self.xylo.setXyloMidpoint(SimuVector(0,20,0), cm = True)
+        keys = self.xylo.getKeys()
+        for key in keys:
+            self.birds_eye_view.create_polygon(key.getPoints(), fill=key.getColor(), tags = key.getColor())
+
+
+
         # self.birds_eye_view.grid(row=0, column=0)
         # self.side_view.grid(row=0, column=1)
         # self.pack(fill=BOTH, expand=1)
@@ -54,23 +68,23 @@ class XylobotGUI:
         bottom = height / 2 + multiplier * 5.53
         left = width / 2 - multiplier * 11 - division / 2
         c = 0.4714
-        self.birds_eye_view.create_rectangle(left + 0 * (keywidth + division), top + 0 * c,
-                                             left + 0 * (keywidth + division) + keywidth, bottom - 0 * c, fill="blue")
-        self.birds_eye_view.create_rectangle(left + 1 * (keywidth + division), top + 1 * c,
-                                             left + 1 * (keywidth + division) + keywidth, bottom - 1 * c, fill="green")
-        self.birds_eye_view.create_rectangle(left + 2 * (keywidth + division), top + 2 * c,
-                                             left + 2 * (keywidth + division) + keywidth, bottom - 2 * c, fill="yellow")
-        self.birds_eye_view.create_rectangle(left + 3 * (keywidth + division), top + 3 * c,
-                                             left + 3 * (keywidth + division) + keywidth, bottom - 3 * c, fill="orange")
-        self.birds_eye_view.create_rectangle(left + 4 * (keywidth + division), top + 4 * c,
-                                             left + 4 * (keywidth + division) + keywidth, bottom - 4 * c, fill="red")
-        self.birds_eye_view.create_rectangle(left + 5 * (keywidth + division), top + 5 * c,
-                                             left + 5 * (keywidth + division) + keywidth, bottom - 5 * c, fill="purple")
-        self.birds_eye_view.create_rectangle(left + 6 * (keywidth + division), top + 6 * c,
-                                             left + 6 * (keywidth + division) + keywidth, bottom - 6 * c, fill="white")
-        self.birds_eye_view.create_rectangle(left + 7 * (keywidth + division), top + 7 * c,
-                                             left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
-                                             fill="darkblue")
+        # self.birds_eye_view.create_rectangle(left + 0 * (keywidth + division), top + 0 * c,
+        #                                      left + 0 * (keywidth + division) + keywidth, bottom - 0 * c, fill="blue")
+        # self.birds_eye_view.create_rectangle(left + 1 * (keywidth + division), top + 1 * c,
+        #                                      left + 1 * (keywidth + division) + keywidth, bottom - 1 * c, fill="green")
+        # self.birds_eye_view.create_rectangle(left + 2 * (keywidth + division), top + 2 * c,
+        #                                      left + 2 * (keywidth + division) + keywidth, bottom - 2 * c, fill="yellow")
+        # self.birds_eye_view.create_rectangle(left + 3 * (keywidth + division), top + 3 * c,
+        #                                      left + 3 * (keywidth + division) + keywidth, bottom - 3 * c, fill="orange")
+        # self.birds_eye_view.create_rectangle(left + 4 * (keywidth + division), top + 4 * c,
+        #                                      left + 4 * (keywidth + division) + keywidth, bottom - 4 * c, fill="red")
+        # self.birds_eye_view.create_rectangle(left + 5 * (keywidth + division), top + 5 * c,
+        #                                      left + 5 * (keywidth + division) + keywidth, bottom - 5 * c, fill="purple")
+        # self.birds_eye_view.create_rectangle(left + 6 * (keywidth + division), top + 6 * c,
+        #                                      left + 6 * (keywidth + division) + keywidth, bottom - 6 * c, fill="white")
+        # self.birds_eye_view.create_rectangle(left + 7 * (keywidth + division), top + 7 * c,
+        #                                      left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
+        #                                      fill="darkblue")
         self.side_view.create_rectangle(width / 2 - multiplier * 5.53, height - multiplier * xylophone_height,
                                         width / 2 + multiplier * 5.53, height, fill="blue")
         base = bottom + multiplier * distance - 110.6
@@ -191,7 +205,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
                               self.upper_joint_angle,
-                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, 1)
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo, 1)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -209,6 +223,11 @@ class XylobotGUI:
 
     def play_button(self, key):
         self.update_log(f'playing: {key}')
+        #TODO REMOVE THIS TESTER:
+        self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+        self.xylo.goodRotate(0)
+        updateXyloDrawing(self.xylo,self.birds_eye_view)
+        ############3
 
     def record_clip(self):
         self.record_clip_button_clicked = True
@@ -292,7 +311,10 @@ class XylobotGUI:
         self.window.iconbitmap('data/amsterdam.ico')
         screen_factor = 0.9
         self.width = int(window.winfo_screenwidth() * screen_factor)
+        #print('winfo width: ',window.winfo_screenwidth())
         self.height = int(window.winfo_screenheight() * screen_factor)
+        #print('winfo height: ',window.winfo_screenheight())
+
         self.canvaswidth = (self.width / 3)
         self.canvasheight = (self.height / 2)
         self.window.geometry(f'{self.width}x{self.height}')
@@ -300,7 +322,7 @@ class XylobotGUI:
 
         self.init_window()
 
-        self.log_size = 31
+        self.log_size = 20
         self.log_text_list = []
         for i in range(self.log_size):
             self.log_text_list.append('---')
