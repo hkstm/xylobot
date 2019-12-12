@@ -22,3 +22,8 @@ def getOffset(key, previous_coordinates = (None, None)):
         print("Mallet not found")
         return None
     return(xoffset, yoffset)
+
+def destroyWindows():
+    getSides.destroyWindows()
+    getMallet.destroyWindows()
+    print("Windows destroyed")
