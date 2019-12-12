@@ -111,7 +111,7 @@ def convert_idx_to_time(time_list, idx):
 def detect_pitch(magnitudes, freq_list):
     n = 10
     indices = np.argpartition(magnitudes, -n)[-n:]
-    logging.debug(f'indices {indices}')
+    # logger.debug(f'indices {indices}')
     return freq_list[min(indices)]
 
 
@@ -195,8 +195,7 @@ def pitch_track(args_dict):
 
     # !!! FINAL RESULT !!!
 
-    logger.info(key_and_times)
-    logging.info(f'final keys and time {key_and_times}')
+    logger.info(f'final keys and time {key_and_times}')
     if args.guiplot:
         return key_and_times, plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest',
                                          aspect='auto',
@@ -214,9 +213,9 @@ def pitch_track_raw(args, logging=False):
     fft_size = 2 ** 11
     if logging:
         logger.debug(f' path: {sound_file_path}')
-        logging.debug(fs)
-        logging.debug(fft_size)
-        logging.debug(f'fs/fft {fs/fft_size}')
+        logger.debug(fs)
+        logger.debug(fft_size)
+        logger.debug(f'fs/fft {fs/fft_size}')
 
     overlap_fac = 0.5
     loudness_factor = 0.5  # determines senitivity off hit detection

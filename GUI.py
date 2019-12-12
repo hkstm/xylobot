@@ -1,3 +1,5 @@
+from tkinter.ttk import Combobox
+
 connectedtosetup = False
 import multiprocessing
 import threading
@@ -7,6 +9,7 @@ import ast
 from functools import partial
 from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
+from Alignment import full_align
 if connectedtosetup:
     from Control import Control, Calibrator
 
@@ -277,6 +280,9 @@ class XylobotGUI:
             'level': 'Info',
         }
         keys_and_times, img = pitch_track(SimpleNamespace(**argsdict))
+        #print(keys_and_times)
+        #temp = full_align(keys_and_times)
+        #print(temp)
         plt.savefig('displayplot.png')
         self.sequence_entry_text.set(str(keys_and_times))
 
@@ -355,17 +361,22 @@ class XylobotGUI:
         self.calibrate_button = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
                                                                                                columnspan=4,
                                                                                                sticky=NSEW)
+        self.hitmethodsvar = StringVar()
+        self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly', values=('Uniform', 'Triangle', 'Path 3', 'Quadratic'))
+        self.hitmethodsbox.bind('<<ComboboxSelected>>', None)
+        self.hitmethodsbox.grid(row=6, column=6, columnspan=4, sticky=NSEW)
+
         self.record_button = Button(window, text="Record Clip", command=self.record_clip).grid(row=7, column=2,
                                                                                                columnspan=2,
                                                                                                sticky=NSEW)
         self.stop_button = Button(window, text="Stop Recording", command=self.stop_recording).grid(row=7, column=4,
                                                                                                    columnspan=2,
                                                                                                    sticky=NSEW)
-        self.analyse_button = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=6, column=6,
-                                                                                                  columnspan=4,
+        self.analyse_button = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=7, column=6,
+                                                                                                  columnspan=2,
                                                                                                   sticky=NSEW)
-        self.run_button = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=7, column=6,
-                                                                                              columnspan=4, sticky=NSEW)
+        self.run_button = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=7, column=8,
+                                                                                              columnspan=2, sticky=NSEW)
         self.window.protocol('WM_DELETE_WINDOW', self.closeGUI)
         self.update_log('Initialized window')
 
