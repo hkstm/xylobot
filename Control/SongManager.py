@@ -45,8 +45,10 @@ class SongManager:
             for note in song.getNotes():
                 print('[*] Playing note: ', note)
                 delay.sleep(note.delay)
-                #self.hm.hitkey(note.key)
-                self.hm.hit(note)
+                #self.hm.hit(note, 'quadratic')
+                #self.hm.hit(note, 'triangle 1')
+                #self.hm.hit(note, 'triangle 2')
+                self.hm.hit(note, 'uniform')
 
     def add(self, name, tempo, notes):
         newnotes = []
