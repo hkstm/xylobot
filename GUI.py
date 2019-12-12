@@ -1,3 +1,4 @@
+connectedtosetup = False
 import multiprocessing
 import threading
 
@@ -6,7 +7,8 @@ import ast
 from functools import partial
 from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
-from Control import Control
+if connectedtosetup:
+    from Control import Control, Calibrator
 
 import pyaudio
 import wave
@@ -209,9 +211,15 @@ class XylobotGUI:
         self.log_text_list.insert(0, text_short)
         self.log_text.set('\n'.join(self.log_text_list))
 
-    def play_button(self, key):
+    def play_button(self, key, event=None):
         self.update_log(f'playing: {key}')
-        Control.hitkey(key)
+        if connectedtosetup:
+            Control.hitkey(key)
+
+    # TODO call right method, calibrator needs to be restructured
+    def calibrate(self):
+        if connectedtosetup:
+            Calibrator.calibrate()
 
     def record_clip(self):
         self.record_clip_button_clicked = True
@@ -284,7 +292,8 @@ class XylobotGUI:
             note, time = seqpart
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
-        Control.play(note_list)
+        if connectedtosetup:
+            Control.play(note_list)
 
     def closeGUI(self):
         self.window.destroy()
@@ -338,15 +347,19 @@ class XylobotGUI:
                    command=partial(self.play_button, key)).grid(row=5, column=(2 + i),
                                                                 sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
+            self.window.bind(f'q', partial(self.play_button, key))
 
         self.sequence_entry_text = StringVar()
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
                                                                                         sticky=NSEW)
-        self.record_button = Button(window, text="Record Clip", command=self.record_clip).grid(row=6, column=2,
+        self.calibrate_button = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
                                                                                                columnspan=4,
                                                                                                sticky=NSEW)
-        self.stop_button = Button(window, text="Stop Recording", command=self.stop_recording).grid(row=7, column=2,
-                                                                                                   columnspan=4,
+        self.record_button = Button(window, text="Record Clip", command=self.record_clip).grid(row=7, column=2,
+                                                                                               columnspan=2,
+                                                                                               sticky=NSEW)
+        self.stop_button = Button(window, text="Stop Recording", command=self.stop_recording).grid(row=7, column=4,
+                                                                                                   columnspan=2,
                                                                                                    sticky=NSEW)
         self.analyse_button = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=6, column=6,
                                                                                                   columnspan=4,
