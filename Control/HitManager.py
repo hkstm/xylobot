@@ -1,7 +1,7 @@
-import xylobot.IK as ik
-from xylobot.Control.Hit import *
-from xylobot.Point import Point
-from xylobot.Position import Position
+import IK as ik
+from Control.Hit import *
+from Point import Point
+from Position import Position
 
 
 class HitManager:

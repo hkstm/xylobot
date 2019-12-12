@@ -18,8 +18,19 @@ lower_joint_angle = 0
 upper_joint_angle = 0
 division = multiplier*1
 keywidth = multiplier*2
+biv = None
+sv = None
 
-
+def moveSimulationRobot(angle1, angle2, angle3):
+	width = biv.winfo_screenwidth() / 3
+	height = biv.winfo_screenheight() / 2
+	bottom = height / 2 + multiplier * 5.53
+	base = bottom + multiplier * distance - 110.6
+	left = width / 2 - multiplier * 11 - division / 2
+	s_line = sv.find_withtag("s_line")
+	b_line = biv.find_withtag("b_line")
+	s_mallet = sv.find_withtag("s_mallet")
+	b_mallet = biv.find_withtag("b_mallet")
 
 def updateXyloDrawing(xylo,birds_eye_view):
 	keys = xylo.getKeys()
@@ -44,17 +55,19 @@ def updateXyloDrawing(xylo,birds_eye_view):
 		print(key.getPoints()[0])
 		birds_eye_view.update_idletasks()
 
-		##TODO REMOVE THIS TESTER:
-		print(xylo.getKeyLocation( 0, cm = True).x,"  ",xylo.getKeyLocation(0, cm = True).y)
-		midpp = xylo.getXyloMidpoint()
-		offsets = xylo.getConversions()
-		birds_eye_view.create_line(midpp.x, midpp.y, offsets[1],offsets[2])
+		# ##TODO REMOVE THIS TESTER:
+		# print(xylo.getKeyLocation( 0, cm = True).x,"  ",xylo.getKeyLocation(0, cm = True).y)
+		# midpp = xylo.getXyloMidpoint()
+		# offsets = xylo.getConversions()
+		# birds_eye_view.create_line(midpp.x, midpp.y, offsets[1],offsets[2])
 
 def flatten(list_of_lists):
 	"""Flatten one level of nesting"""
 	return itertools.chain.from_iterable(list_of_lists)
 
 def fill_canvas(birds_eye_view, side_view, direction, lower_joint_angle, upper_joint_angle, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, xylo, seconds):
+	biv = birds_eye_view
+	sv = side_view
 	sleep_time = seconds/abs(goal_direction-direction)
 	width = birds_eye_view.winfo_screenwidth()/3
 	height = birds_eye_view.winfo_screenheight()/2

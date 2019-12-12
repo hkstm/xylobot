@@ -56,6 +56,9 @@ class XylobotGUI:
         self.birds_eye_view = Canvas(self.window, width=width, height=height, background="black")
         self.side_view = Canvas(self.window, width=width, height=height, background="black")
 
+
+        #####################
+        #instantiate xylophone
         self.xylo = SimulationXylo(self.birds_eye_view, 0)
         self.xylo.setXyloMidpoint(SimuVector(0,20,0), cm = True)
         keys = self.xylo.getKeys()
@@ -196,9 +199,10 @@ class XylobotGUI:
                            0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
-        self.simlooping = True
+        self.simlooping = False
         self.idx_direction = 0
-        self.window.after(self.delay, self.update_sim_loop)
+        self.update_sim_loop()
+        # self.window.after(self.delay, self.update_sim_loop)
         # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
         # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
@@ -208,7 +212,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
                               self.upper_joint_angle,
-                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo, 1)
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo,1)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -218,6 +222,21 @@ class XylobotGUI:
         if self.simlooping:
             self.window.after(self.delay, self.update_sim_loop)
 
+    def move_Simulation_Robot(self,goal_direction, goal_lower_joint_angle, goal_upper_joint_angle):
+        #TODO: calculate how long the movement should take based on the time the robot takes
+
+        details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
+                              self.upper_joint_angle,
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo, 3)
+        self.direction = details[0]
+        self.lower_joint_angle = details[1]
+        self.upper_joint_angle = details[2]
+        # self.idx_direction += 1
+        # if self.idx_direction == len(self.directions):
+        #     self.simlooping = False
+        # if self.simlooping:
+        #     self.window.after(self.delay, self.update_sim_loop)
+
     def update_log(self, text):
         if len(self.log_text_list) > self.log_size:
             self.log_text_list.pop()
@@ -226,12 +245,17 @@ class XylobotGUI:
         self.log_text_list.insert(0, text_short)
         self.log_text.set('\n'.join(self.log_text_list))
 
+    def setXylophoneLocation(self,x,y,z):
+        self.xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
+        updateXyloDrawing(self.xylo, self.birds_eye_view)
+
     def play_button(self, key, event=None):
         self.update_log(f'playing: {key}')
-        #TODO REMOVE THIS TESTER:
-        self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
-        self.xylo.goodRotate(0)
-        updateXyloDrawing(self.xylo,self.birds_eye_view)
+        # #TODO REMOVE THIS TESTER:
+        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+        # self.xylo.goodRotate(30)
+        # updateXyloDrawing(self.xylo,self.birds_eye_view)
+        # self.move_Simulation_Robot(20,180,220)
         ############3
         if connectedtosetup:
             Control.hitkey(key)
@@ -414,7 +438,7 @@ class XylobotGUI:
 
         self.record_clip_button_clicked = False
         self.update_vid()
-        # self.update_sim()
+        self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
 

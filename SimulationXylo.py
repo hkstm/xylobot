@@ -17,8 +17,9 @@ class SimulationXylo:
 
 
     COLORS = ["blue","green","yellow","orange","red", "purple","white","pink"]
-    CM_TOPIX_MULTIPLIER_X = 12
-    CM_TOPIX_MULTIPLIER_Y = -12
+    multi = 12
+    CM_TOPIX_MULTIPLIER_X = multi
+    CM_TOPIX_MULTIPLIER_Y = -multi
     CM_TOPIX_X_OFFSET = 266
     CM_TOPIX_Y_OFFSET = 400
 
