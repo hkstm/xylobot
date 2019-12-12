@@ -45,10 +45,17 @@ class SongManager:
             for note in song.getNotes():
                 print('[*] Playing note: ', note)
                 delay.sleep(note.delay)
-                self.hm.hitkey(note.key)
+                #self.hm.hit(note, 'quadratic')
+                #self.hm.hit(note, 'triangle 1')
+                #self.hm.hit(note, 'triangle 2')
+                self.hm.hit(note, 'uniform')
 
     def add(self, name, tempo, notes):
-        song = Song(name, tempo, notes)
+        newnotes = []
+        for note in notes:
+            newnote = next((x for x in self.notecoords if x.key == note.key), None)
+            newnotes.append(Note(note.key, note.delay, newnote.coords))
+        song = Song(name, tempo, newnotes)
         if song not in self.songs:
             self.songs.append(song)
 

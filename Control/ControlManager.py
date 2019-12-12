@@ -8,10 +8,13 @@ from xylobot.Control.SongManager import SongManager
 
 
 class ControlManager:
+    XYLO_HEIGHT = 12
 
     def __init__(self):
-        self.ser = self.initArduino(9600, "COM3")
-        self.hm = HitManager(self.ser)
+        #self.ser = self.initArduino(9600, "COM3")
+        self.ser = 0
+
+        self.hm = HitManager(self.ser, self.XYLO_HEIGHT)
         self.sm = SongManager(self.hm)
         self.startMarker = 60
         self.endMarker = 62
@@ -24,6 +27,9 @@ class ControlManager:
 
     def setNoteCoordinates(self, coords):
         self.sm.initializeCoords(coords)
+
+    def getSongs(self):
+        return self.sm.getSongs()
 
     def initArduino(self, baudRate, serPort):
         ser = serial.Serial(serPort, baudRate)

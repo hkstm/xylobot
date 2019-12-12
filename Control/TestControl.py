@@ -1,17 +1,18 @@
 from xylobot.Control.ControlManager import ControlManager
 from xylobot.Control.HitManager import Point
 from xylobot.Control.SongManager import Note
+from xylobot.Control.Hit import QuadraticHit
 import random
 
 coords = [
-    Point(18, 25, 15),
-    Point(14, 25, 15),
-    Point(10, 25, 15),
-    Point(7, 25, 15),
-    Point(4, 25, 15),
-    Point(0, 25, 15),
-    Point(-3, 25, 15),
-    Point(-6, 25, 15)
+    Point(18, 25, 12),
+    Point(14, 25, 12),
+    Point(10, 25, 12),
+    Point(7, 25, 12),
+    Point(4, 25, 12),
+    Point(0, 25, 12),
+    Point(-3, 25, 12),
+    Point(-6, 25, 12)
 ]
 
 def randomNotes(delay, amount):
@@ -45,7 +46,11 @@ def randomNotes(delay, amount):
         list.append(note)
     return list
 
+
 cm = ControlManager()
 cm.setNoteCoordinates(coords)
 cm.addSong('test', 20, randomNotes(0.8, 5))
+for s in cm.getSongs():
+    for n in s.notes:
+        print(n)
 cm.play()

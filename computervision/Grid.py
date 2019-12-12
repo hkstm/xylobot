@@ -12,8 +12,9 @@ def generateList():
     list = getSides.getList()
     return list
 
-def getOffset(key):
-    mallet = getMallet.run()
+def getOffset(key, previous_coordinates = (None, None)):
+    boundarycenterleft, boundarycenterright = getSides.getBoundaryMidpoints()
+    mallet = getMallet.run(previous_coordinates, boundarycenterleft, boundarycenterright)
     try:
         xoffset = mallet[0][0]-key.px
         yoffset = mallet[0][1]-key.py

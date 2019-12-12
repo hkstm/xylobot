@@ -1,3 +1,5 @@
+import time
+
 import Control as Control
 from Point import Point as Point
 from Position import Position as Position
@@ -6,17 +8,23 @@ import computervision.Grid as Grid
 import math
 
 keyList = []
-currentPoint = Point(12.6,25,12)
-currentPos = ik.getAngles(currentPoint)
-Control.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+currentPoint = Point(12.6, 25, 12)
 rang = 100
-
-
+discoveredPoints = []
 
 
 def calibrate():
-    height = 11
+    global keyList, currentPoint, rang, discoveredPoints
 
+    currentPoint = Point(12.6, 25, 12)
+    currentPos = ik.getAngles(currentPoint)
+    Control.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+
+    height = 10
+    Control.sendToArduino(Position(0,0,0))
+    # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
+    # Control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
+    # time.sleep(5)
     keyList = Grid.generateList()
     keyList[0].x = 12.6
     keyList[0].y = 25
@@ -51,27 +59,37 @@ def calibrate():
     keyList[7].z = height
 
     for k in keyList:
-        find(k)
+        moveTo(Point(k.x, k.y, k.z + 10))
+        newx, newy, newz = find(k)
+        discoveredPoints.append([newx, newy, Control.getZ()])
+        i = 0
+        while i < len(keyList):
+            keyList[i].y = newy
+            keyList[i].x = newx - 12/6.75
+            i += 1
+    return discoveredPoints
 
 def find(key):
     moveTo(Point(key.x,key.y,key.z))
     offset = Grid.getOffset(key)
-    error = 50
+    error = 5
+    stepsize = 0.05
     while abs(offset[0]) > error or abs(offset[1] > error):
-        print(" Px & y are: ", key.px, " ", key.py)
-
+        print(key.key," Px & y are: ", key.px, " ", key.py)
         print(" Offsets are: ", offset[0], " ", offset[1])
         print(" Keys are at: ", key.x, " ", key.y)
         if abs(offset[0])>error:
-            key.x -= offset[0]*0.001
+            key.x -= offset[0]*stepsize
         if abs(offset[1])>error:
-            key.y -= offset[1]*0.001
+            key.y -= offset[1]*stepsize
         moveTo(Point(key.x, key.y, key.z))
-        offset = Grid.getOffset(key)
-    print(" KEYFOUND")
+        offset = Grid.getOffset(key, (key.px, key.py))
+    print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
+    return key.x, key.y, key.z
 
 def moveTo(point):
     global currentPoint
+    print(" CURRENT POINT EQUALS ", currentPoint)
     c = ik.getAngles(currentPoint)
     c2 = ik.getAngles(point)
     p = Position(c[0],c[1],c[2])
@@ -80,11 +98,11 @@ def moveTo(point):
     m1dif = g.m1-p.m1
     m2dif = g.m2-p.m2
 
-    for i in range(0, rang):
-        temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2)
+    for i in range(1, rang):
+        temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
         Control.sendToArduino(temp)
 
     currentPoint = point
 
-calibrate()
-
+if __name__ == '__main__':
+    print(calibrate())
