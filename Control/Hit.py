@@ -1,6 +1,9 @@
+import time
+
 from xylobot.Point import Point
 from xylobot.Position import Position
 import math
+import xylobot.IK as ik
 
 
 class Hit:
@@ -231,6 +234,9 @@ class QuadraticHit(Hit):
                 self.x = self.offset_origin.x + i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
                 self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
+                #pos = ik.getAngles(Point(self.origin.x + self.x, self.origin.y, self.z))
+                #time.sleep(0.01)
+                #self.sendToArduino(Position(pos[0], pos[1], pos[2]))
         else:
             i = 0
             while self.x > self.offset_target.x:
@@ -238,6 +244,9 @@ class QuadraticHit(Hit):
                 self.x = self.offset_origin.x - i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
                 self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
+                #pos = ik.getAngles(Point(self.origin.x + self.x, self.origin.y, self.z))
+                #time.sleep(0.01)
+                #self.sendToArduino(Position(pos[0], pos[1], pos[2]))
 
 
     def getFunction(self):

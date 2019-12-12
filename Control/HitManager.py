@@ -1,16 +1,16 @@
-import IK as ik
-from Control.Hit import *
-from Point import Point
-from Position import Position
+import xylobot.IK as ik
+from xylobot.Control.Hit import *
+from xylobot.Point import Point
+from xylobot.Position import Position
 
 
 class HitManager:
-    SPEED = 2
-    POWER = 4
+    SPEED = 0.4
+    POWER = 3
 
     def __init__(self, ser, xyloheight):
         self.ser = ser
-        self.currentPosition = Point(0, 25, 12)
+        self.currentPosition = Point(0, 23, 12)
         self.targetPosition = None
         self.qh = QuadraticHit(ser, xyloheight)
         self.rh = RightAngledTriangularHit(ser, xyloheight)
@@ -19,6 +19,11 @@ class HitManager:
         self.lh = None
         self.snh = SameNoteHit(ser, xyloheight)
 
+    def sendToArduino(self, pos):
+        string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'
+        b = string.encode('utf-8')
+        self.ser.write(b)
+
     def hit(self, note, hittype, speed='', power=''):
         if speed == '':
             speed = self.SPEED
@@ -26,6 +31,10 @@ class HitManager:
             power = self.POWER
 
         self.targetPosition = note.coords
+        distance = math.fabs(self.targetPosition.x - self.currentPosition.x)
+        speed = distance / 20
+        if distance == 0:
+            speed = 0.2
 
         if self.targetPosition.x == self.currentPosition.x:
             self.snh.set(self.currentPosition, self.targetPosition, speed, power)
@@ -51,12 +60,12 @@ class HitManager:
         for p in path:
             print(p)
 
-        #anglepath = []
+        anglepath = []
 
-        #for i in path:
-        #    pos = ik.getAngles(i)
-        #    #anglepath.append(Position(pos[0], pos[1], pos[2]))
-        #    self.sendToArduino(Position(pos[0], pos[1], pos[2]))
+        for i in path:
+            pos = ik.getAngles(i)
+            #anglepath.append(Position(pos[0], pos[1], pos[2]))
+            self.sendToArduino(Position(pos[0], pos[1], pos[2]))
 
         #for p in anglepath:
         #    self.sendToArduino(p)
