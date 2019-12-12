@@ -208,15 +208,16 @@ def pitch_track(args_dict):
 def pitch_track_raw(args, logging=False):
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
     sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
-    if logging:
-        logger.debug(f' path: {sound_file_path}')
     fs, data = wavfile.read(sound_file_path)
 
     fft_size = 2 ** 12
     fft_size = 2 ** 11
-    logging.debug(fs)
-    logging.debug(fft_size)
-    logging.debug(f'fs/fft {fs/fft_size}')
+    if logging:
+        logger.debug(f' path: {sound_file_path}')
+        logging.debug(fs)
+        logging.debug(fft_size)
+        logging.debug(f'fs/fft {fs/fft_size}')
+
     overlap_fac = 0.5
     loudness_factor = 0.5  # determines senitivity off hit detection
 
