@@ -1,7 +1,9 @@
-connectedtosetup = False
-
 from tkinter.ttk import Combobox
-from Control.SongManager import Note
+from controll.ControlManager import ControlManager
+
+connectedtosetup = True
+import multiprocessing
+import threading
 
 import os
 import ast
@@ -10,13 +12,18 @@ from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
 
 if connectedtosetup:
-    from Control import Control, Calibrator
+    from controll import Control, Calibrator
 
+from SimuVector import SimuVector
+from SimulationXylo import SimulationXylo
 import pyaudio
 import wave
 import matplotlib.pyplot as plt
 import datetime
 from simulation import fill_canvas
+from simulation import updateXyloDrawing
+from fabrik import calculate
+from fabrik import calculate_and_draw
 import math
 from tkinter import *
 
@@ -31,6 +38,7 @@ from signalprocessing.custompitchtracking import pitch_track
 class XylobotGUI:
 
     def init_window(self):
+        self.cm = ControlManager()
         arm_width = 20
         mallet_width = 5
         self.direction = 0
@@ -48,6 +56,18 @@ class XylobotGUI:
         keywidth = multiplier * 2
         self.birds_eye_view = Canvas(self.window, width=width, height=height, background="black")
         self.side_view = Canvas(self.window, width=width, height=height, background="black")
+
+
+        #####################
+        #instantiate xylophone
+        self.xylo = SimulationXylo(self.birds_eye_view, 0)
+        self.xylo.setXyloMidpoint(SimuVector(0,20,0), cm = True)
+        keys = self.xylo.getKeys()
+        for key in keys:
+            self.birds_eye_view.create_polygon(key.getPoints(), fill=key.getColor(), tags = key.getColor())
+
+
+
         # self.birds_eye_view.grid(row=0, column=0)
         # self.side_view.grid(row=0, column=1)
         # self.pack(fill=BOTH, expand=1)
@@ -56,23 +76,23 @@ class XylobotGUI:
         bottom = height / 2 + multiplier * 5.53
         left = width / 2 - multiplier * 11 - division / 2
         c = 0.4714
-        self.birds_eye_view.create_rectangle(left + 0 * (keywidth + division), top + 0 * c,
-                                             left + 0 * (keywidth + division) + keywidth, bottom - 0 * c, fill="blue")
-        self.birds_eye_view.create_rectangle(left + 1 * (keywidth + division), top + 1 * c,
-                                             left + 1 * (keywidth + division) + keywidth, bottom - 1 * c, fill="green")
-        self.birds_eye_view.create_rectangle(left + 2 * (keywidth + division), top + 2 * c,
-                                             left + 2 * (keywidth + division) + keywidth, bottom - 2 * c, fill="yellow")
-        self.birds_eye_view.create_rectangle(left + 3 * (keywidth + division), top + 3 * c,
-                                             left + 3 * (keywidth + division) + keywidth, bottom - 3 * c, fill="orange")
-        self.birds_eye_view.create_rectangle(left + 4 * (keywidth + division), top + 4 * c,
-                                             left + 4 * (keywidth + division) + keywidth, bottom - 4 * c, fill="red")
-        self.birds_eye_view.create_rectangle(left + 5 * (keywidth + division), top + 5 * c,
-                                             left + 5 * (keywidth + division) + keywidth, bottom - 5 * c, fill="purple")
-        self.birds_eye_view.create_rectangle(left + 6 * (keywidth + division), top + 6 * c,
-                                             left + 6 * (keywidth + division) + keywidth, bottom - 6 * c, fill="white")
-        self.birds_eye_view.create_rectangle(left + 7 * (keywidth + division), top + 7 * c,
-                                             left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
-                                             fill="darkblue")
+        # self.birds_eye_view.create_rectangle(left + 0 * (keywidth + division), top + 0 * c,
+        #                                      left + 0 * (keywidth + division) + keywidth, bottom - 0 * c, fill="blue")
+        # self.birds_eye_view.create_rectangle(left + 1 * (keywidth + division), top + 1 * c,
+        #                                      left + 1 * (keywidth + division) + keywidth, bottom - 1 * c, fill="green")
+        # self.birds_eye_view.create_rectangle(left + 2 * (keywidth + division), top + 2 * c,
+        #                                      left + 2 * (keywidth + division) + keywidth, bottom - 2 * c, fill="yellow")
+        # self.birds_eye_view.create_rectangle(left + 3 * (keywidth + division), top + 3 * c,
+        #                                      left + 3 * (keywidth + division) + keywidth, bottom - 3 * c, fill="orange")
+        # self.birds_eye_view.create_rectangle(left + 4 * (keywidth + division), top + 4 * c,
+        #                                      left + 4 * (keywidth + division) + keywidth, bottom - 4 * c, fill="red")
+        # self.birds_eye_view.create_rectangle(left + 5 * (keywidth + division), top + 5 * c,
+        #                                      left + 5 * (keywidth + division) + keywidth, bottom - 5 * c, fill="purple")
+        # self.birds_eye_view.create_rectangle(left + 6 * (keywidth + division), top + 6 * c,
+        #                                      left + 6 * (keywidth + division) + keywidth, bottom - 6 * c, fill="white")
+        # self.birds_eye_view.create_rectangle(left + 7 * (keywidth + division), top + 7 * c,
+        #                                      left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
+        #                                      fill="darkblue")
         self.side_view.create_rectangle(width / 2 - multiplier * 5.53, height - multiplier * xylophone_height,
                                         width / 2 + multiplier * 5.53, height, fill="blue")
         base = bottom + multiplier * distance - 110.6
@@ -180,9 +200,10 @@ class XylobotGUI:
                            0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
-        self.simlooping = True
+        self.simlooping = False
         self.idx_direction = 0
-        self.window.after(self.delay, self.update_sim_loop)
+        self.update_sim_loop()
+        # self.window.after(self.delay, self.update_sim_loop)
         # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
         # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
@@ -192,7 +213,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
                               self.upper_joint_angle,
-                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, 1)
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo,1)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -202,6 +223,21 @@ class XylobotGUI:
         if self.simlooping:
             self.window.after(self.delay, self.update_sim_loop)
 
+    def move_Simulation_Robot(self,goal_direction, goal_lower_joint_angle, goal_upper_joint_angle):
+        #TODO: calculate how long the movement should take based on the time the robot takes
+
+        details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
+                              self.upper_joint_angle,
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo, 3)
+        self.direction = details[0]
+        self.lower_joint_angle = details[1]
+        self.upper_joint_angle = details[2]
+        # self.idx_direction += 1
+        # if self.idx_direction == len(self.directions):
+        #     self.simlooping = False
+        # if self.simlooping:
+        #     self.window.after(self.delay, self.update_sim_loop)
+
     def update_log(self, text):
         if len(self.log_text_list) > self.log_size:
             self.log_text_list.pop()
@@ -210,15 +246,38 @@ class XylobotGUI:
         self.log_text_list.insert(0, text_short)
         self.log_text.set('\n'.join(self.log_text_list))
 
+    def setXylophoneLocation(self,x,y,z):
+        self.xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
+        updateXyloDrawing(self.xylo, self.birds_eye_view)
+
     def play_button(self, key, event=None):
         self.update_log(f'playing: {key}')
+        # #TODO REMOVE THIS TESTER:
+        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+        # self.xylo.goodRotate(30)
+        # updateXyloDrawing(self.xylo,self.birds_eye_view)
+        # self.move_Simulation_Robot(20,180,220)
+        ############3
         if connectedtosetup:
-            Control.hitkey(key)
+            #controll.hitkey(key)
+            self.cm.hit(Note(key, 0.8), 'uniform')
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
         if connectedtosetup:
-            Calibrator.calibrate()
+            self.update_log('Started calibration')
+            try:
+                newNotes = Calibrator.calibrate(self.cm)
+                self.update_log(f'Calibration successful with: {newNotes}')
+                print('Calibration successful with: ', newNotes)
+                #controll.setNotes(newNotes)
+                self.cm.setNoteCoordinates(newNotes)
+                self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
+                self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
+            except Exception as e:
+                print(e)
+                self.update_log(f'Calibration failed: {e}')
+                Calibrator.destroyWindows()
 
     def record_clip(self):
         self.record_clip_button_clicked = True
@@ -302,7 +361,9 @@ class XylobotGUI:
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
         if connectedtosetup:
-            Control.play(note_list)
+            self.cm.addSong('test', 20, note_list)
+            self.cm.play()
+            #Control.play(note_list)
 
     def closeGUI(self):
         self.window.destroy()
@@ -321,7 +382,7 @@ class XylobotGUI:
         self.window.update()
         self.init_window()
 
-        self.log_size = 31
+        self.log_size = 20
         self.log_text_list = []
         for i in range(self.log_size):
             self.log_text_list.append('---')
@@ -411,7 +472,7 @@ class XylobotGUI:
 
         self.record_clip_button_clicked = False
         self.update_vid()
-        # self.update_sim()
+        self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
 

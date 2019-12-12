@@ -1,5 +1,8 @@
 import math
 import time
+import itertools
+import SimuKey as Simukey
+import SimuVector as SimuVector
 
 arm_width = 20
 base_length = 18.5
@@ -15,9 +18,56 @@ lower_joint_angle = 0
 upper_joint_angle = 0
 division = multiplier*1
 keywidth = multiplier*2
+biv = None
+sv = None
 
+def moveSimulationRobot(angle1, angle2, angle3):
+	width = biv.winfo_screenwidth() / 3
+	height = biv.winfo_screenheight() / 2
+	bottom = height / 2 + multiplier * 5.53
+	base = bottom + multiplier * distance - 110.6
+	left = width / 2 - multiplier * 11 - division / 2
+	s_line = sv.find_withtag("s_line")
+	b_line = biv.find_withtag("b_line")
+	s_mallet = sv.find_withtag("s_mallet")
+	b_mallet = biv.find_withtag("b_mallet")
 
-def fill_canvas(birds_eye_view, side_view, direction, lower_joint_angle, upper_joint_angle, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, seconds):
+def updateXyloDrawing(xylo,birds_eye_view):
+	keys = xylo.getKeys()
+	for key in keys:
+		color = key.getColor()
+		print(color)
+		thiskey = birds_eye_view.find_withtag(color)
+		pts = key.getPoints()
+		# for tuplee in pts:
+		# 	for pt in tuplee:
+		# 		print(pt)
+		#birds_eye_view.coords(thiskey,(pts[0][0],pts[0][1]),(pts[1][0],pts[1][1]),(pts[2][0],pts[2][1]),(pts[3][0],pts[3][1]))
+		#np.print(flatten(pts))
+		# newpts = flatten(pts)
+		# for item in newpts:
+		# 	print(item)
+
+		birds_eye_view.coords(thiskey, *flatten(pts))
+		#birds_eye_view.coords(thiskey, *newpts)
+
+		print(key.getKeyMidpoint().y)
+		print(key.getPoints()[0])
+		birds_eye_view.update_idletasks()
+
+		# ##TODO REMOVE THIS TESTER:
+		# print(xylo.getKeyLocation( 0, cm = True).x,"  ",xylo.getKeyLocation(0, cm = True).y)
+		# midpp = xylo.getXyloMidpoint()
+		# offsets = xylo.getConversions()
+		# birds_eye_view.create_line(midpp.x, midpp.y, offsets[1],offsets[2])
+
+def flatten(list_of_lists):
+	"""Flatten one level of nesting"""
+	return itertools.chain.from_iterable(list_of_lists)
+
+def fill_canvas(birds_eye_view, side_view, direction, lower_joint_angle, upper_joint_angle, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, xylo, seconds):
+	biv = birds_eye_view
+	sv = side_view
 	sleep_time = seconds/abs(goal_direction-direction)
 	width = birds_eye_view.winfo_screenwidth()/3
 	height = birds_eye_view.winfo_screenheight()/2
@@ -28,6 +78,21 @@ def fill_canvas(birds_eye_view, side_view, direction, lower_joint_angle, upper_j
 	b_line = birds_eye_view.find_withtag("b_line")
 	s_mallet = side_view.find_withtag("s_mallet")
 	b_mallet = birds_eye_view.find_withtag("b_mallet")
+
+	keys = xylo.getKeys()
+	for key in keys:
+		color = key.getColor()
+		thiskey = birds_eye_view.find_withtag(color)
+		pts = key.getPoints()
+		# for tuplee in pts:
+		# 	for pt in tuplee:
+		# 		print(pt)
+		#birds_eye_view.coords(thiskey,(pts[0][0],pts[0][1]),(pts[1][0],pts[1][1]),(pts[2][0],pts[2][1]),(pts[3][0],pts[3][1]))
+		birds_eye_view.coords(thiskey,*flatten(pts))
+
+
+
+
 	done = False
 	while(not done):
 		done = True
@@ -109,3 +174,5 @@ def fill_canvas(birds_eye_view, side_view, direction, lower_joint_angle, upper_j
 		side_view.update_idletasks()
 		birds_eye_view.update_idletasks()
 	return(direction, lower_joint_angle, upper_joint_angle)
+
+

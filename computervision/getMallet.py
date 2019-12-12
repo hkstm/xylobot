@@ -3,7 +3,10 @@ import numpy
 from collections import deque
 import imutils
 
+cap = None
+
 def run(previous_coordinates, boundarycenterleft, boundarycenterright):
+    global cap
     cap = cv2.VideoCapture(1)
 
     width = int(cap.get(3))
@@ -125,6 +128,14 @@ def removeSmallAreas(mask, cnts):
             if radius < 10:
                 cv2.drawContours(mask, c, "black")
     return mask
+
+def destroyWindows():
+    global cap
+    try:
+        cap.release()
+        cv2.destroyAllWindows()
+    except:
+        print("No getMallet() windows to destroy")
 
 if __name__ == '__main__':
     ff = 0

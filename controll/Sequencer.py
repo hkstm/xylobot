@@ -1,7 +1,7 @@
-import xylobot.Control.Control as c
-#from xylobot.Control.ControlManager import ControlManager
+import controll.Control as c
+#from controll.ControlManager import ControlManager
 import random
-from xylobot.Note import Note
+from Note import Note
 
 def randomNotes(delay, amount):
     list = []
