@@ -1,20 +1,18 @@
 import time
 
-import Control as Control
+try:
+    from Control import Control as Control
+except:
+    import Control as Control
+
 from Point import Point as Point
 from Position import Position as Position
 import IK as ik
 import computervision.Grid as Grid
 import math
 
-keyList = []
-currentPoint = Point(12.6, 25, 12)
-rang = 100
-discoveredPoints = []
-
-
 def calibrate():
-    global keyList, currentPoint, rang, discoveredPoints
+    discoveredPoints = []
 
     currentPoint = Point(12.6, 25, 12)
     currentPos = ik.getAngles(currentPoint)
@@ -59,8 +57,8 @@ def calibrate():
     keyList[7].z = height
 
     for k in keyList:
-        moveTo(Point(k.x, k.y, k.z + 10))
-        newx, newy, newz = find(k)
+        currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
+        newx, newy, newz = find(k, currentPoint)
         discoveredPoints.append([newx, newy, Control.getZ()])
         i = 0
         while i < len(keyList):
@@ -69,8 +67,8 @@ def calibrate():
             i += 1
     return discoveredPoints
 
-def find(key):
-    moveTo(Point(key.x,key.y,key.z))
+def find(key, currentPoint):
+    currentPoint = moveTo(Point(key.x,key.y,key.z), currentPoint)
     offset = Grid.getOffset(key)
     error = 5
     stepsize = 0.05
@@ -82,13 +80,12 @@ def find(key):
             key.x -= offset[0]*stepsize
         if abs(offset[1])>error:
             key.y -= offset[1]*stepsize
-        moveTo(Point(key.x, key.y, key.z))
+        currentPoint = moveTo(Point(key.x, key.y, key.z), currentPoint)
         offset = Grid.getOffset(key, (key.px, key.py))
     print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
     return key.x, key.y, key.z
 
-def moveTo(point):
-    global currentPoint
+def moveTo(point, currentPoint, rang = 100):
     print(" CURRENT POINT EQUALS ", currentPoint)
     c = ik.getAngles(currentPoint)
     c2 = ik.getAngles(point)
@@ -103,6 +100,11 @@ def moveTo(point):
         Control.sendToArduino(temp)
 
     currentPoint = point
+    return currentPoint
+
+def destroyWindows():
+    Grid.destroyWindows()
+    print("Windows destroyed")
 
 if __name__ == '__main__':
     print(calibrate())

@@ -134,7 +134,7 @@ def run():
             print(" List Found")
             createList(blackcx, black2cx, blackcy, black2cy)
 
-            cv2.imwrite('centerpoints.jpg', frame)
+            cv2.imwrite('Xylobot\centerpoints.jpg', frame)
             DONE = True
 
 
@@ -184,6 +184,13 @@ def createList(blackcx, black2cx, blackcy, black2cy):
 def getBoundaryMidpoints():
     global boundarycenterleft, boundarycenterright
     return boundarycenterleft, boundarycenterright
+
+def destroyWindows():
+    try:
+        cap.release()
+        cv2.destroyAllWindows()
+    except:
+        print("No getSides() windows to destroy")
 
 if __name__ == '__main__':
     run()

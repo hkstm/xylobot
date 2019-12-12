@@ -222,7 +222,17 @@ class XylobotGUI:
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
         if connectedtosetup:
-            Calibrator.calibrate()
+            self.update_log('Started calibration')
+            try:
+                newNotes = Calibrator.calibrate()
+                self.update_log(f'Calibration successful with: {newNotes}')
+                Control.setNotes(newNotes)
+                self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
+                self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
+            except Exception as e:
+                print(e)
+                self.update_log(f'Calibration failed: {e}')
+                Calibrator.destroyWindows()
 
     def record_clip(self):
         self.record_clip_button_clicked = True
