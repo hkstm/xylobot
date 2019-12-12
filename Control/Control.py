@@ -198,6 +198,12 @@ def getPath(point, speed):
 
     return path
 
+def getZ():
+    global z
+    return z
 
 
+def setNotes(newNotes):
+    global notes
+    notes = newNotes
 

@@ -61,7 +61,7 @@ def calibrate():
     for k in keyList:
         moveTo(Point(k.x, k.y, k.z + 10))
         newx, newy, newz = find(k)
-        discoveredPoints.append([newx, newy, newz])
+        discoveredPoints.append([newx, newy, Control.getZ()])
         i = 0
         while i < len(keyList):
             keyList[i].y = newy
