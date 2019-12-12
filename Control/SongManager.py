@@ -1,4 +1,4 @@
-import xylobot.delayexample as delay
+import delayexample as delay
 
 
 class Note:
