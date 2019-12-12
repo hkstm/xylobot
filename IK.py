@@ -1,5 +1,5 @@
 import math
-import xylobot.Position as position
+import Position as position
 
 class Point:
     def __init__(self, x, y, z):
@@ -49,7 +49,7 @@ def getAngles(t):
         newx = -1 * rotatedX
         newy = rotatedY
 
-        t.y = t.y + (t.y - newy) * 0.8
+        #t.y = t.y + (t.y - newy) * 0.6
 
         c = math.atan2(newx, newy)*180/math.pi*-1
         c = c - math.fabs(c - c_img)
@@ -57,7 +57,7 @@ def getAngles(t):
         #print(rotatedX, ' ', rotatedY, ' ', newx, ' ', newy)
         #print('old ang: ', c_img, ' new angle ', c, ' ang diff: ', math.fabs(c - c_img))
 
-        t.z = t.z + 2
+        #t.z = t.z + 2
 
         dist2Target = math.sqrt((t.y - O.y)**2 + (t.z - O.z)**2)
         if DEBUG == 2:
@@ -139,4 +139,4 @@ def setActualPos(pos):
 def getActualPos():
     return actualPosition
 
-#getAngles(Point(-5, 24, 15))
+getAngles(Point(-5, 24, 15))

@@ -1,10 +1,10 @@
 import serial
-import xylobot.IK as ik
-import xylobot.delayexample as delay
-from xylobot.Point import Point
-from xylobot.Position import Position
-from xylobot.Control.HitManager import HitManager
-from xylobot.Control.SongManager import SongManager
+import IK as ik
+import delayexample as delay
+from Point import Point
+from Position import Position
+from controll.HitManager import HitManager
+from controll.SongManager import SongManager
 
 
 class ControlManager:
@@ -25,6 +25,9 @@ class ControlManager:
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
 
+    def hit(self, note, hittype):
+        self.sm.hit(note, hittype)
+
     def setNoteCoordinates(self, coords):
         self.sm.initializeCoords(coords)
 
@@ -36,6 +39,8 @@ class ControlManager:
         print("Serial port " + serPort + " opened,  Baudrate " + str(baudRate))
         return ser
 
+    def sendToArduino(self, pos):
+        self.hm.sendToArduino(pos)
 
 
 

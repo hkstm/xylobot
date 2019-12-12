@@ -1,6 +1,7 @@
 from tkinter.ttk import Combobox
+from controll.ControlManager import ControlManager
 
-connectedtosetup = False
+connectedtosetup = True
 import multiprocessing
 import threading
 
@@ -11,7 +12,7 @@ from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
 from Alignment import full_align
 if connectedtosetup:
-    from Control import Control, Calibrator
+    from controll import Control, Calibrator
 
 from SimuVector import SimuVector
 from SimulationXylo import SimulationXylo
@@ -38,6 +39,7 @@ from signalprocessing.custompitchtracking import pitch_track
 class XylobotGUI:
 
     def init_window(self):
+        self.cm = ControlManager()
         arm_width = 20
         mallet_width = 5
         self.direction = 0
@@ -258,16 +260,19 @@ class XylobotGUI:
         # self.move_Simulation_Robot(20,180,220)
         ############3
         if connectedtosetup:
-            Control.hitkey(key)
+            #controll.hitkey(key)
+            self.cm.hit(Note(key, 0.8), 'uniform')
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
         if connectedtosetup:
             self.update_log('Started calibration')
             try:
-                newNotes = Calibrator.calibrate()
+                newNotes = Calibrator.calibrate(self.cm)
                 self.update_log(f'Calibration successful with: {newNotes}')
-                Control.setNotes(newNotes)
+                print('Calibration successful with: ', newNotes)
+                #controll.setNotes(newNotes)
+                self.cm.setNoteCoordinates(newNotes)
                 self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
                 self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
             except Exception as e:
@@ -350,7 +355,9 @@ class XylobotGUI:
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
         if connectedtosetup:
-            Control.play(note_list)
+            self.cm.addSong('test', 20, note_list)
+            self.cm.play()
+            #Control.play(note_list)
 
     def closeGUI(self):
         self.window.destroy()

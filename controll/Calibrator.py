@@ -1,9 +1,9 @@
 import time
 
 try:
-    from Control import Control as Control
+    from controll import Control as Control
 except:
-    import Control as Control
+    import controll as Control
 
 from Point import Point as Point
 from Position import Position as Position
@@ -11,25 +11,29 @@ import IK as ik
 import computervision.Grid as Grid
 import math
 
-def calibrate():
+def calibrate(cm):
     discoveredPoints = []
 
-    currentPoint = Point(12.6, 25, 12)
+    currentPoint = Point(12, 23, 12)
     currentPos = ik.getAngles(currentPoint)
-    Control.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+    #controll.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+    cm.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
 
-    height = 10
-    Control.sendToArduino(Position(0,0,0))
+    #height = Control.getZ()
+    height = 12
+    #controll.sendToArduino(Position(0,0,0))
+    cm.sendToArduino(Position(0,0,0))
+
     # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
-    # Control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
+    # controll.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
     keyList = Grid.generateList()
-    keyList[0].x = 12.6
-    keyList[0].y = 25
+    keyList[0].x = 10.25
+    keyList[0].y = 23
     keyList[0].z = height
 
     keyList[1].x = 9.4
-    keyList[1].y = 24
+    keyList[1].y = 23
     keyList[1].z = height
 
     keyList[2].x = 6.4
@@ -49,17 +53,18 @@ def calibrate():
     keyList[5].z = height
 
     keyList[6].x = -6.2
-    keyList[6].y = 23.8
+    keyList[6].y = 23
     keyList[6].z = height
 
     keyList[7].x = -9.7
-    keyList[7].y = 24.5
+    keyList[7].y = 23
     keyList[7].z = height
 
     for k in keyList:
-        currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
-        newx, newy, newz = find(k, currentPoint)
-        discoveredPoints.append([newx, newy, Control.getZ()])
+        #currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
+        newx, newy, newz, currentPoint = find(cm, k, currentPoint)
+        #discoveredPoints.append([newx, newy, height])
+        discoveredPoints.append(Point(newx, newy, height))
         i = 0
         while i < len(keyList):
             keyList[i].y = newy
@@ -67,8 +72,8 @@ def calibrate():
             i += 1
     return discoveredPoints
 
-def find(key, currentPoint):
-    currentPoint = moveTo(Point(key.x,key.y,key.z), currentPoint)
+def find(cm, key, currentPoint):
+    currentPoint = moveTo(cm, Point(key.x,key.y,key.z), currentPoint)
     offset = Grid.getOffset(key)
     error = 5
     stepsize = 0.05
@@ -80,12 +85,13 @@ def find(key, currentPoint):
             key.x -= offset[0]*stepsize
         if abs(offset[1])>error:
             key.y -= offset[1]*stepsize
-        currentPoint = moveTo(Point(key.x, key.y, key.z), currentPoint)
+        currentPoint = moveTo(cm, Point(key.x, key.y, key.z), currentPoint)
         offset = Grid.getOffset(key, (key.px, key.py))
     print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
-    return key.x, key.y, key.z
+    return key.x, key.y, key.z, currentPoint
 
-def moveTo(point, currentPoint, rang = 100):
+def moveTo(cm, point, currentPoint, rang = 100):
+    #currentPoint.y -= 3
     print(" CURRENT POINT EQUALS ", currentPoint)
     c = ik.getAngles(currentPoint)
     c2 = ik.getAngles(point)
@@ -97,7 +103,9 @@ def moveTo(point, currentPoint, rang = 100):
 
     for i in range(1, rang):
         temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
-        Control.sendToArduino(temp)
+        #controll.sendToArduino(temp)
+        cm.sendToArduino(temp)
+
 
     currentPoint = point
     return currentPoint

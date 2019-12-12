@@ -14,6 +14,7 @@ boundarycenterright = None
 
 def run():
     print(" RUNNING Getssides")
+
     global DONE, bready, b2ready, list, boundarycenterleft, boundarycenterright
     while(DONE == False):
         ret, frame = cap.read()
@@ -42,6 +43,7 @@ def run():
 
         mask = dilatemask
         cv2.imshow('blackmask', mask)
+        cv2.waitKey(1000)
 
         blackcnts = cv2.findContours(mask.copy(),
                                      cv2.RETR_EXTERNAL,
