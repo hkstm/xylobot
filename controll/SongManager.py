@@ -27,6 +27,9 @@ class Song:
     def getTempo(self):
         return self.tempo
 
+    def setTempo(self, tempo):
+        self.tempo = tempo
+
     def __str__(self):
         return "Name: {}, tempo: {}, notes: {}".format(self.name, self.tempo, self.notes)
 
@@ -39,13 +42,13 @@ class SongManager:
         self.notelist = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         self.hm = hm
 
-    def play(self, hittype):
+    def play(self):
         for song in self.songs:
             for note in song.getNotes():
                 try:
                     print('[*] Playing note: ', note)
-                    self.hm.calculatePath(note, hittype)
-                    #self.hm.hit()
+                    self.hm.calculatePath(note)
+                    self.hit(note)
                     delay.sleep(note.delay)
                 except Warning as w:
                     print(w)
@@ -61,18 +64,18 @@ class SongManager:
             Point(-5, 18, 16)
         ]
         for p in points:
-            self.hitPoint(p, 'triangular 1')
+            self.hitPoint(p)
         self.hm.standTall()
 
-    def hit(self, note, hittype):
+    def hit(self, note):
         newnote = next((x for x in self.notecoords if x.key == note.key), None)
         note.coords = newnote.coords
-        self.hm.calculatePath(note, hittype)
+        self.hm.calculatePath(note)
         #self.hm.hit()
 
-    def hitPoint(self, point, hittype):
+    def hitPoint(self, point):
         n = Note('sup', delay=0.01, coords=point)
-        self.hm.calculatePath(n, hittype)
+        self.hm.calculatePath(n)
         self.hm.hit()
 
     def add(self, name, tempo, notes):

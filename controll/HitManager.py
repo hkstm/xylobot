@@ -20,13 +20,14 @@ class HitManager:
         self.lh = None
         self.snh = SameNoteHit(ser, xyloheight)
         self.positions = []
+        self.hittype = 'quadratic'
 
     def hit(self):
         for p in self.positions:
             time.sleep(self.DT)
             self.sendToArduino(p)
 
-    def calculatePath(self, note, hittype, speed='', power=''):
+    def calculatePath(self, note, speed='', power=''):
         self.positions = []
         if speed == '':
             speed = self.SPEED
@@ -41,18 +42,20 @@ class HitManager:
 
         h = None
 
+        print(self.targetPosition, self.currentPosition)
         if self.targetPosition.x == self.currentPosition.x:
+            print('kek?')
             h = self.snh
         else:
-            if hittype == 'quadratic':
+            if self.hittype == 'quadratic':
                 h = self.qh
-            if hittype == 'triangle 1':
+            if self.hittype == 'triangle 1':
                 h = self.th
-            if hittype == 'triangle 2':
+            if self.hittype == 'triangle 2':
                 h = self.rh
-            if hittype == 'triangle 3':
+            if self.hittype == 'triangle 3':
                 h = self.lh
-            if hittype == 'uniform':
+            if self.hittype == 'uniform':
                 h = self.uh
 
         h.set(self.currentPosition, self.targetPosition, speed, power)
@@ -92,5 +95,8 @@ class HitManager:
 
     def standTall(self):
         self.sendToArduino(Position(0, 0, 0))
+
+    def setHitType(self, hittype):
+        self.hittype = hittype
 
 

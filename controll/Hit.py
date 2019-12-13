@@ -10,8 +10,8 @@ ACCURACY_COEFF = 10
 class Hit:
     def __init__(self, ser, xyloheight):
         self.ser = ser
-        self.calculatePath_height = xyloheight
-        self.precalculatePath_height = 0
+        self.hit_height = xyloheight
+        self.prehit_height = 0
         self.origin = None
         self.target = None
         self.midpoint = None
@@ -27,16 +27,16 @@ class Hit:
 
     def set(self, origin, target, speed, power):
         self.path = []
-        self.precalculatePath_height = self.calculatePath_height + power
+        self.prehit_height = self.hit_height + power
         self.origin = origin
         self.target = target
         self.speed = speed
 
         if self.origin.x < self.target.x:
-            self.midpoint = Point(self.origin.x + (math.fabs(self.target.x - self.origin.x) / 2), 0, self.precalculatePath_height)
+            self.midpoint = Point(self.origin.x + (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
             self.left = True
         elif self.origin.x > self.target.x:
-            self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.precalculatePath_height)
+            self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
             self.left = False
 
         print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
@@ -52,15 +52,15 @@ class SameNoteHit(Hit):
 
     def calculatePath(self):
         i = 0
-        while self.z <= self.precalculatePath_height:
+        while self.z <= self.prehit_height:
             i = i + self.speed + (i / ACCURACY_COEFF)
             self.z = self.origin.z + i
             self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
         i = 0
-        while self.z >= self.midpoint.z:
+        while self.z >= self.hit_height:
             i = i + self.speed + (i / ACCURACY_COEFF)
-            self.z = self.precalculatePath_height - i
+            self.z = self.prehit_height - i
             self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
 

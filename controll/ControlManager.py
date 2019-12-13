@@ -20,13 +20,16 @@ class ControlManager:
         self.endMarker = 62
 
     def play(self):
-        self.sm.play('triangle 1')
+        self.sm.play()
 
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
 
-    def hit(self, note, hittype):
-        self.sm.hit(note, hittype)
+    def hit(self, note, hittype=''):
+        self.sm.hit(note)
+
+    def hitPoint(self, point):
+        self.sm.hitPoint(point)
 
     def setNoteCoordinates(self, coords):
         self.sm.initializeCoords(coords)
@@ -41,6 +44,11 @@ class ControlManager:
 
     def sendToArduino(self, pos):
         self.hm.sendToArduino(pos)
+
+    def setHitType(self, hittype):
+        self.hm.setHitType(hittype)
+
+
 
 
 
