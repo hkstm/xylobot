@@ -36,23 +36,23 @@ actualPosition = Point(0, 27, SHOULDER)
 def getAngles(t):
     # Calculate distance between target and origin
     try:
-        c_img = math.atan2(t.x, t.y)*180/math.pi*-1
+        #c_img = math.atan2(t.x, t.y)*180/math.pi*-1
 
-        c1 = math.atan2(t.x, t.y)
+        #c1 = math.atan2(t.x, t.y)
 
-        x = -3.5
-        y = t.y
+        #x = -3.5
+        #y = t.y
 
-        rotatedX = x*math.cos(c1) - y*math.sin(c1)
-        rotatedY = x*math.sin(c1) + y*math.cos(c1)
+        #rotatedX = x*math.cos(c1) - y*math.sin(c1)
+        #rotatedY = x*math.sin(c1) + y*math.cos(c1)
 
-        newx = -1 * rotatedX
-        newy = rotatedY
+        #newx = -1 * rotatedX
+        #newy = rotatedY
 
         #t.y = t.y + (t.y - newy) * 0.6
 
-        c = math.atan2(newx, newy)*180/math.pi*-1
-        c = c - math.fabs(c - c_img)
+        #c = math.atan2(newx, newy)*180/math.pi*-1
+        #c = c - math.fabs(c - c_img)
 
         #print(rotatedX, ' ', rotatedY, ' ', newx, ' ', newy)
         #print('old ang: ', c_img, ' new angle ', c, ' ang diff: ', math.fabs(c - c_img))
@@ -83,6 +83,7 @@ def getAngles(t):
 
 
 
+        c = math.atan2(t.x, t.y)*180/math.pi*-1
         angle1 = 180-a
         angle2 = 180-b
         if DEBUG == 2:
@@ -93,7 +94,7 @@ def getAngles(t):
         c2 = math.degrees(math.acos(d/e))
         if DEBUG == 2:
             print(d, e, 'c2: ', c2)
-        #c = c - c2
+        c = c - c2
 
         if c < -90 or c > 90:
             print(c)
