@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 
 """use PitchtrackingDriver.py to run"""
 
+def dummy():
+    print('dummy method')
+
 pitches = dict([
     (987.8, 'b5'),
     (1047, 'c6'),
