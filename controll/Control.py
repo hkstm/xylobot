@@ -2,7 +2,6 @@ import serial
 import time
 import Point
 import Position
-import Note
 import computervision.Grid as Grid
 import IK as ik
 import delayexample as delay

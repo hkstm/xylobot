@@ -1,25 +1,23 @@
 import argparse
 from types import SimpleNamespace
 
+from signalprocessing.SignalParser import add_arguments
 from signalprocessing.custompitchtracking import pitch_track
 
 parser = argparse.ArgumentParser(description="Custom Pitch")
-parser.add_argument('-n', '--name', help="Name of audio file")
-parser.add_argument('-p', '--plot', action='store_true')
-parser.add_argument('-g', '--guiplot', action='store_true')
-parser.add_argument('-r', '--raw', action='store_true', help='Return data so it can be used for analysis')
-parser.add_argument('-l', '--level', nargs='?', default='Error',
-                    choices=['Critical', 'Error', 'Warning', 'Info', 'Debug'], help='Levels of logger')
+parser = add_arguments(parser)
 args = parser.parse_args()
+
+keys_and_times = pitch_track(args)
+
 # this is all redundant but shows usage when not using CLI arguments
-name = args.name
-plot = args.plot
-guiplot = args.guiplot
-level = args.level
-argsdict = {
-    'name': name,
-    'plot': plot,
-    'guiplot': guiplot,
-    'level': level,
-}
-keys_and_times = pitch_track(SimpleNamespace(**argsdict))
+
+# argsdict = {
+#     'name': args.name,
+#     'plot': args.plot,
+#     'guiplot': args.guiplot,
+#     'level': args.level,
+#     'window': args.window,
+#     'fftsize': args.fftsize
+# }
+# keys_and_times = pitch_track(SimpleNamespace(**argsdict))

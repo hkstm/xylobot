@@ -1,16 +1,15 @@
 from tkinter.ttk import Combobox
 from controll.ControlManager import ControlManager
+from controll.SongManager import Note
 
-connectedtosetup = True
-import multiprocessing
-import threading
+connectedtosetup = False
 
 import os
 import ast
 from functools import partial
 from tkinter.filedialog import askopenfilename
 from types import SimpleNamespace
-from Alignment import full_align
+
 if connectedtosetup:
     from controll import Control, Calibrator
 
@@ -20,7 +19,6 @@ import pyaudio
 import wave
 import matplotlib.pyplot as plt
 import datetime
-from tkinter import *
 from simulation import fill_canvas
 from simulation import updateXyloDrawing
 from fabrik import calculate
@@ -32,14 +30,14 @@ import PIL.Image
 import PIL.ImageTk
 import cv2
 
-from Note import Note
 from signalprocessing.custompitchtracking import pitch_track
 
 
 class XylobotGUI:
 
     def init_window(self):
-        self.cm = ControlManager()
+        if connectedtosetup:
+            self.cm = ControlManager()
         arm_width = 20
         mallet_width = 5
         self.direction = 0
@@ -58,16 +56,13 @@ class XylobotGUI:
         self.birds_eye_view = Canvas(self.window, width=width, height=height, background="black")
         self.side_view = Canvas(self.window, width=width, height=height, background="black")
 
-
         #####################
-        #instantiate xylophone
+        # instantiate xylophone
         self.xylo = SimulationXylo(self.birds_eye_view, 0)
-        self.xylo.setXyloMidpoint(SimuVector(0,20,0), cm = True)
+        self.xylo.setXyloMidpoint(SimuVector(0, 20, 0), cm=True)
         keys = self.xylo.getKeys()
         for key in keys:
-            self.birds_eye_view.create_polygon(key.getPoints(), fill=key.getColor(), tags = key.getColor())
-
-
+            self.birds_eye_view.create_polygon(key.getPoints(), fill=key.getColor(), tags=key.getColor())
 
         # self.birds_eye_view.grid(row=0, column=0)
         # self.side_view.grid(row=0, column=1)
@@ -214,7 +209,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
                               self.upper_joint_angle,
-                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo,1)
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, self.xylo, 1)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -224,12 +219,12 @@ class XylobotGUI:
         if self.simlooping:
             self.window.after(self.delay, self.update_sim_loop)
 
-    def move_Simulation_Robot(self,goal_direction, goal_lower_joint_angle, goal_upper_joint_angle):
-        #TODO: calculate how long the movement should take based on the time the robot takes
+    def move_Simulation_Robot(self, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle):
+        # TODO: calculate how long the movement should take based on the time the robot takes
 
         details = fill_canvas(self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle,
                               self.upper_joint_angle,
-                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,self.xylo, 3)
+                              goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, self.xylo, 3)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -247,7 +242,7 @@ class XylobotGUI:
         self.log_text_list.insert(0, text_short)
         self.log_text.set('\n'.join(self.log_text_list))
 
-    def setXylophoneLocation(self,x,y,z):
+    def setXylophoneLocation(self, x, y, z):
         self.xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
         updateXyloDrawing(self.xylo, self.birds_eye_view)
 
@@ -260,7 +255,7 @@ class XylobotGUI:
         # self.move_Simulation_Robot(20,180,220)
         ############3
         if connectedtosetup:
-            #controll.hitkey(key)
+            # controll.hitkey(key)
             self.cm.hit(Note(key, 0.8), 'uniform')
 
     # TODO call right method, calibrator needs to be restructured
@@ -271,7 +266,7 @@ class XylobotGUI:
                 newNotes = Calibrator.calibrate(self.cm)
                 self.update_log(f'Calibration successful with: {newNotes}')
                 print('Calibration successful with: ', newNotes)
-                #controll.setNotes(newNotes)
+                # controll.setNotes(newNotes)
                 self.cm.setNoteCoordinates(newNotes)
                 self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
                 self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
@@ -334,16 +329,23 @@ class XylobotGUI:
             'plot': False,
             'guiplot': True,
             'level': 'Info',
+            'window': 'hanning',
+            'fftsize': self.fft_entry_text.get(),
+            'topindex': 1
         }
         keys_and_times, img = pitch_track(SimpleNamespace(**argsdict))
-        #print(keys_and_times)
-        #temp = full_align(keys_and_times)
-        #print(temp)
+        # print(keys_and_times)
+        # temp = full_align(keys_and_times)
+        # print(temp)
         plt.savefig('displayplot.png')
         self.sequence_entry_text.set(str(keys_and_times))
 
         self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('displayplot.png'))
         self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
+
+    def update_hitmethods(self, event=None):
+        # combobox_event.selection_clear()
+        method = self.hitmethodsvar.get()
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
@@ -357,7 +359,7 @@ class XylobotGUI:
         if connectedtosetup:
             self.cm.addSong('test', 20, note_list)
             self.cm.play()
-            #Control.play(note_list)
+            # Control.play(note_list)
 
     def closeGUI(self):
         self.window.destroy()
@@ -395,10 +397,11 @@ class XylobotGUI:
         self.plot_canvas = Canvas(window, width=self.canvaswidth, height=self.canvasheight, background='black')
 
         # set positioning row span for because we have gridrows amount of rows to correctly place buttons
-        self.sim_bird_canvas.grid(row=4, column=0, rowspan=4)
+
         self.sim_side_canvas.grid(row=0, column=1, rowspan=4)
         self.vid_bird_canvas.grid(row=0, column=0, rowspan=4)
-        self.plot_canvas.grid(row=4, column=1, rowspan=4)
+        self.sim_bird_canvas.grid(row=4, column=0, rowspan=5)
+        self.plot_canvas.grid(row=4, column=1, rowspan=5)
 
         self.log = Label(window, bg='white', textvariable=self.log_text)
         self.log.grid(row=0, column=2, columnspan=8, sticky=NSEW)
@@ -417,23 +420,34 @@ class XylobotGUI:
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
                                                                                         sticky=NSEW)
         self.calibrate_button = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
-                                                                                               columnspan=4,
-                                                                                               sticky=NSEW)
-        self.hitmethodsvar = StringVar()
-        self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly', values=('Uniform', 'Triangle', 'Path 3', 'Quadratic'))
-        self.hitmethodsbox.bind('<<ComboboxSelected>>', None)
-        self.hitmethodsbox.grid(row=6, column=6, columnspan=4, sticky=NSEW)
+                                                                                                    columnspan=4,
+                                                                                                    rowspan=2,
+                                                                                                    sticky=NSEW)
+        self.fft_entry_text = StringVar()
+        self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
+        self.fft_entry.grid(row=6, column=6, columnspan=4, sticky=NSEW)
+        self.fft_entry_text.set("2048")
 
-        self.record_button = Button(window, text="Record Clip", command=self.record_clip).grid(row=7, column=2,
+        self.hitmethodsvar = StringVar()
+        self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly',
+                                      values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
+        self.hitmethodsbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
+        self.hitmethodsbox.grid(row=7, column=6, columnspan=4, sticky=NSEW)
+
+        self.record_button = Button(window, text="Record Clip", command=self.record_clip).grid(row=8, column=2,
+                                                                                               rowspan=2,
                                                                                                columnspan=2,
                                                                                                sticky=NSEW)
-        self.stop_button = Button(window, text="Stop Recording", command=self.stop_recording).grid(row=7, column=4,
+        self.stop_button = Button(window, text="Stop Recording", command=self.stop_recording).grid(row=8, column=4,
+                                                                                                   rowspan=2,
                                                                                                    columnspan=2,
                                                                                                    sticky=NSEW)
-        self.analyse_button = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=7, column=6,
+        self.analyse_button = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=8, column=6,
+                                                                                                  rowspan=2,
                                                                                                   columnspan=2,
                                                                                                   sticky=NSEW)
-        self.run_button = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=7, column=8,
+        self.run_button = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
+                                                                                              rowspan=2,
                                                                                               columnspan=2, sticky=NSEW)
         self.window.protocol('WM_DELETE_WINDOW', self.closeGUI)
         self.update_log('Initialized window')

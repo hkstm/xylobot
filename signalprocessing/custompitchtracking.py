@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 
 """use PitchtrackingDriver.py to run"""
 
+def dummy():
+    print('dummy method')
+
 pitches = dict([
     (987.8, 'b5'),
     (1047, 'c6'),
@@ -86,8 +89,16 @@ def fft(x):
     return X.ravel()
 
 
-def stft(fft_size, data, pad_end_size, total_segments, hop_size, ):
-    window = np.hanning(fft_size)  # our half cosine window
+def stft(fft_size, data, pad_end_size, total_segments, hop_size, args):
+    ['bartlett', 'blackman', 'hamming', 'hanning']
+    if args.window == 'bartlett':
+        window = np.bartlett(fft_size)
+    if args.window == 'blackman':
+        window = np.blackman(fft_size)
+    if args.window == 'hamming':
+        window = np.hamming(fft_size)
+    if args.window == 'hanning':
+        window = np.hanning(fft_size)
     inner_pad = np.zeros(fft_size)  # the zeros which will be used to double each segment size
 
     proc = np.concatenate((data, np.zeros(pad_end_size)))  # the data to process
@@ -108,8 +119,8 @@ def convert_idx_to_time(time_list, idx):
     return time_list[idx]
 
 
-def detect_pitch(magnitudes, freq_list):
-    n = 10
+def detect_pitch(magnitudes, freq_list, args):
+    n = args.topindex
     indices = np.argpartition(magnitudes, -n)[-n:]
     # logger.debug(f'indices {indices}')
     return freq_list[min(indices)]
@@ -125,13 +136,18 @@ def find_key(pitch):
                 return pitches_ranges[i][1]
 
 
-def detect_hits(result, loudness_factor, args):
+def detect_hits(result_not_cutoff, loudness_factor, args, freq_list):
+    result = process_results(result_not_cutoff, freq_list)
     averages = []
+    averages_not_cutoff = []
     max_magn = -1
     for i, bins in enumerate(result):
         if np.average(bins) > max_magn:
             max_magn = np.average(bins)
         averages.append(np.average(bins))
+    for i, bins in enumerate(result_not_cutoff):
+        averages_not_cutoff.append(np.average(bins))
+
     hits = []
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
     logger.debug(f'loudness offset: {loudness_offset}')
@@ -140,9 +156,10 @@ def detect_hits(result, loudness_factor, args):
             hits.append(i)
     if args.plot:
         plt.plot(averages, '.-')
+        plt.title('averages in detect hits')
         plt.show()
     # print(hits)
-    return hits, averages
+    return hits, averages_not_cutoff
 
 
 def find_cutoffs(freq_list):
@@ -171,7 +188,6 @@ def process_results(result, freq_list):
 
 
 def pitch_track(args_dict):
-    global args
     global logger
     args = args_dict
     logger_levels = {
@@ -186,11 +202,12 @@ def pitch_track(args_dict):
         logger.addHandler(logging.StreamHandler())
     logger.info("Starting script")
 
-    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages = pitch_track_raw(args, logging=True)
+    key_and_times, results_transposed, time_list, freq_list,low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_raw(args, logging=True)
     if args.plot:
         img = plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
                          extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
                                  freq_list[upper_index_cutoff]])
+        plt.title('results transposed')
         plt.show()
 
     # !!! FINAL RESULT !!!
@@ -209,8 +226,8 @@ def pitch_track_raw(args, logging=False):
     sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
     fs, data = wavfile.read(sound_file_path)
 
-    fft_size = 2 ** 12
-    fft_size = 2 ** 11
+    fft_size = int(args.fftsize)
+
     if logging:
         logger.debug(f' path: {sound_file_path}')
         logger.debug(fs)
@@ -230,17 +247,19 @@ def pitch_track_raw(args, logging=False):
     low_index_cutoff, upper_index_cutoff = find_cutoffs(freq_list)
     freq_list_cutoff = freq_list[low_index_cutoff:upper_index_cutoff]
 
-    result = stft(data=data, fft_size=fft_size, pad_end_size=fft_size, total_segments=total_segments, hop_size=hop_size)
-    results_cutoff = process_results(result, freq_list)
+    result = stft(data=data, fft_size=fft_size, pad_end_size=fft_size, total_segments=total_segments, hop_size=hop_size, args=args)
 
-    hits_cutoff, _ = detect_hits(results_cutoff, loudness_factor, args)
-    _, averages = detect_hits(result, loudness_factor, args)
+
+    hits_cutoff, averages = detect_hits(result, loudness_factor, args, freq_list)
+    results_cutoff = process_results(result, freq_list)
     key_and_times = []
+    freq_and_times = []
     for hit_idx in hits_cutoff:
-        pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff)
+        pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff, args)
         if logging:
             logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
         key_and_times.append((find_key(pitch), convert_idx_to_time(time_list, hit_idx)))
+        freq_and_times.append((pitch, convert_idx_to_time(time_list, hit_idx)))
 
     results_transposed = np.transpose(results_cutoff)
-    return key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages
+    return key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times
