@@ -113,7 +113,6 @@ def getAngles(t):
         return [c, angleToMotorAngle(a)*-1, angleToMotorAngle(b)]
         #return [-1*c, angleToMotorAngle(a) * 1, -1*angleToMotorAngle(b)]
     except Exception as e:
-        pass
         raise Warning("[!] OUT OF REACH - ", e)
 
 #   def getCoordinates(position):

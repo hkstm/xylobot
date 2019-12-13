@@ -11,8 +11,8 @@ class ControlManager:
     XYLO_HEIGHT = 13
 
     def __init__(self):
-        self.ser = self.initArduino(9600, "COM3")
-        #self.ser = 0
+        #self.ser = self.initArduino(9600, "COM3")
+        self.ser = 0
 
         self.hm = HitManager(self.ser, self.XYLO_HEIGHT)
         self.sm = SongManager(self.hm)
@@ -20,7 +20,7 @@ class ControlManager:
         self.endMarker = 62
 
     def play(self):
-        self.sm.play()
+        self.sm.play('triangle 1')
 
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
@@ -41,6 +41,7 @@ class ControlManager:
 
     def sendToArduino(self, pos):
         self.hm.sendToArduino(pos)
+
 
 
 

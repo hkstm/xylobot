@@ -1,5 +1,6 @@
 from controll.ControlManager import ControlManager
-from controll.HitManager import Point
+from Point import Point
+from controll.Kinematics import Kinematics
 from controll.SongManager import Note
 from controll.Hit import QuadraticHit
 
@@ -50,11 +51,12 @@ def randomNotes(delay, amount):
     return list
 
 
-#cm = ControlManager()
-#cm.setNoteCoordinates(coords)
-#cm.addSong('test', 20, randomNotes(0.8, 10))
-#cm.hit(Note('c7', 0.8), 'triangle 2')
-#for s in cm.getSongs():
-#   for n in s.notes:
-#        print(n)
-#cm.play()
+cm = ControlManager()
+cm.setNoteCoordinates(coords)
+cm.addSong('test', 20, randomNotes(0.8, 10))
+for s in cm.getSongs():
+   for n in s.notes:
+        print(n)
+cm.play()
+k = Kinematics(17.3, 10.4, 18.8, Point(0, 23, 13))
+k.getAngles(Point(15, 27, 22), Point(10, 21, 13))

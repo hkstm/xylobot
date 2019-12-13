@@ -5,12 +5,13 @@ from Position import Position
 import math
 import IK as ik
 
+ACCURACY_COEFF = 10
 
 class Hit:
     def __init__(self, ser, xyloheight):
         self.ser = ser
-        self.hit_height = xyloheight
-        self.prehit_height = 0
+        self.calculatePath_height = xyloheight
+        self.precalculatePath_height = 0
         self.origin = None
         self.target = None
         self.midpoint = None
@@ -26,47 +27,41 @@ class Hit:
 
     def set(self, origin, target, speed, power):
         self.path = []
-        self.prehit_height = self.hit_height + power
+        self.precalculatePath_height = self.calculatePath_height + power
         self.origin = origin
         self.target = target
         self.speed = speed
 
         if self.origin.x < self.target.x:
-            self.midpoint = Point(self.origin.x + (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
+            self.midpoint = Point(self.origin.x + (math.fabs(self.target.x - self.origin.x) / 2), 0, self.precalculatePath_height)
             self.left = True
         elif self.origin.x > self.target.x:
-            self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
+            self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.precalculatePath_height)
             self.left = False
 
         print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
               self.speed, ' power: ', self.power)
 
-    def sendToArduino(self, pos):
-        string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'
-        b = string.encode('utf-8')
-        self.ser.write(b)
+    def getPath(self):
+        return self.path
 
 class SameNoteHit(Hit):
     def __init__(self, ser, xyloheight):
         super().__init__(ser, xyloheight)
         self.z = 0
 
-    def generatePoints(self):
+    def calculatePath(self):
         i = 0
-        while self.z <= self.prehit_height:
-            i = i + self.speed
+        while self.z <= self.precalculatePath_height:
+            i = i + self.speed + (i / ACCURACY_COEFF)
             self.z = self.origin.z + i
             self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
         i = 0
-        while self.z >= self.hit_height:
-            i = i + self.speed
-            self.z = self.prehit_height - i
+        while self.z >= self.midpoint.z:
+            i = i + self.speed + (i / ACCURACY_COEFF)
+            self.z = self.precalculatePath_height - i
             self.path.append(Point(self.origin.x, self.origin.y, self.z))
-
-    def getPath(self):
-        self.generatePoints()
-        return self.path
 
 
 class RightAngledTriangularHit(Hit):
@@ -81,38 +76,34 @@ class RightAngledTriangularHit(Hit):
         self.b = self.midpoint.z - self.slope * self.origin.x
         print('slope: ', self.slope, ' b: ', self.b)
 
-    def generatePoints(self):
+    def calculatePath(self):
         self.getFunction()
         if self.left:
             i = 0
             while self.x < self.target.x:
-                i = i + self.speed
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
-                self.path.append(Point(self.x, self.origin.y, self.z))
+                self.path.append(Point(self.x, self.origin.y, self.z-5))
 
             j = 0
             while self.z > self.target.z:
-                j = j + self.speed
+                j = j + self.speed + (j / ACCURACY_COEFF)
                 self.z = self.target.z - j
                 self.path.append(Point(self.target.x, self.target.y, self.z))
         else:
             i = 0
             while self.x > self.target.x:
-                i = i + self.speed
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
 
             j = 0
             while self.z > self.target.z:
-                j = j + self.speed
+                j = j + self.speed + (j / ACCURACY_COEFF)
                 self.z = self.midpoint.z - j
                 self.path.append(Point(self.target.x, self.target.y, self.z))
-
-    def getPath(self):
-        self.generatePoints()
-        return self.path
 
 
 class TriangularHit(Hit):
@@ -128,12 +119,12 @@ class TriangularHit(Hit):
             self.slope = -1 * (self.midpoint.z - self.origin.z) / (math.fabs(self.midpoint.x - self.origin.x))
         self.b = self.midpoint.z - self.slope * self.midpoint.x
 
-    def generatePoints(self):
+    def calculatePath(self):
         self.getFunction(True)
         if self.left:
             i = 0
             while self.x < self.midpoint.x:
-                i = i + self.speed
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
@@ -141,14 +132,14 @@ class TriangularHit(Hit):
             self.getFunction(False)
             j = 0
             while self.x < self.target.x:
-                j = j + self.speed
+                j = j + self.speed + (j / ACCURACY_COEFF)
                 self.x = self.midpoint.x + j
                 self.z = self.slope * self.x + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
         else:
             i = 0
             while self.x > self.midpoint.x:
-                i = i + self.speed
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
@@ -156,61 +147,53 @@ class TriangularHit(Hit):
             self.getFunction(False)
             j = 0
             while self.x > self.target.x:
-                j = j + self.speed
+                j = j + self.speed + (j / ACCURACY_COEFF)
                 self.x = self.midpoint.x - j
                 self.z = self.slope * (self.midpoint.x + j) + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
-
-    def getPath(self):
-        self.generatePoints()
-        return self.path
 
 
 class UniformHit(Hit):
     def __init__(self, ser, xyloheight):
         super().__init__(ser, xyloheight)
 
-    def generatePoints(self):
+    def calculatePath(self):
         if self.left:
             i = 0
-            while self.z < self.midpoint.z:
-                i = i + self.speed
+            while self.z < self.midpoint.z - 1:
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.z = self.origin.z + i
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
             j = 0
-            while self.x < self.target.x:
-                j = j + self.speed
+            while self.x < self.target.x - 1:
+                j = j + self.speed + (j / ACCURACY_COEFF)
                 self.x = self.origin.x + j
                 self.path.append(Point(self.x, self.origin.y, self.midpoint.z))
 
             k = 0
-            while self.z > self.target.z:
-                k = k + self.speed
+            while self.z > self.target.z + 1:
+                k = k + self.speed + (k / ACCURACY_COEFF)
                 self.z = self.midpoint.z - k
                 self.path.append(Point(self.target.x, self.origin.y, self.z))
         else:
             i = 0
-            while self.z < self.midpoint.z:
-                i = i + self.speed
+            while self.z < self.midpoint.z - 1:
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.z = self.origin.z + i
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
             j = 0
-            while self.x > self.target.x:
-                j = j + self.speed
+            while self.x > self.target.x + 1:
+                j = j + self.speed + (j / ACCURACY_COEFF)
                 self.x = self.origin.x - j
                 self.path.append(Point(self.x, self.origin.y, self.midpoint.z))
 
             k = 0
-            while self.z > self.target.z:
-                k = k + self.speed
+            while self.z > self.target.z + 1:
+                k = k + self.speed + (k / ACCURACY_COEFF)
                 self.z = self.midpoint.z - k
                 self.path.append(Point(self.target.x, self.origin.y, self.z))
-
-    def getPath(self):
-        self.generatePoints()
-        return self.path
 
 
 class QuadraticHit(Hit):
@@ -221,32 +204,22 @@ class QuadraticHit(Hit):
         self.c = 0
         self.ratio = 0
 
-    def getPath(self):
-        self.generatePoints()
-        return self.path
-
-    def generatePoints(self):
+    def calculatePath(self):
         self.getFunction()
         if self.left:
             i = 0
             while self.x < self.offset_target.x:
-                i = i + self.speed
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.x = self.offset_origin.x + i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
                 self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
-                #pos = ik.getAngles(Point(self.origin.x + self.x, self.origin.y, self.z))
-                #time.sleep(0.01)
-                #self.sendToArduino(Position(pos[0], pos[1], pos[2]))
         else:
             i = 0
             while self.x > self.offset_target.x:
-                i = i + self.speed
+                i = i + self.speed + (i / ACCURACY_COEFF)
                 self.x = self.offset_origin.x - i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
                 self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
-                #pos = ik.getAngles(Point(self.origin.x + self.x, self.origin.y, self.z))
-                #time.sleep(0.01)
-                #self.sendToArduino(Position(pos[0], pos[1], pos[2]))
 
 
     def getFunction(self):

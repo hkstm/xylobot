@@ -1,8 +1,9 @@
 import delayexample as delay
+from Point import Point
 
 
 class Note:
-    def __init__(self, key, delay='', coords=''):
+    def __init__(self, key, delay=0.0, coords=''):
         self.key = key
         self.delay = delay
         self.coords = coords
@@ -32,28 +33,47 @@ class Song:
 
 class SongManager:
 
-    def __init__(self, hm, coords=''):
+    def __init__(self, hm):
         self.songs = []
         self.notecoords = []
         self.notelist = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         self.hm = hm
-        if coords != '':
-            self.initializeCoords(coords)
 
-    def play(self):
+    def play(self, hittype):
         for song in self.songs:
             for note in song.getNotes():
-                print('[*] Playing note: ', note)
-                delay.sleep(note.delay)
-                #self.hm.hit(note, 'quadratic')
-                self.hm.hit(note, 'triangle 1')
-                #self.hm.hit(note, 'triangle 2')
-                #self.hm.hit(note, 'uniform')
+                try:
+                    print('[*] Playing note: ', note)
+                    self.hm.calculatePath(note, hittype)
+                    #self.hm.hit()
+                    delay.sleep(note.delay)
+                except Warning as w:
+                    print(w)
+                    pass
+
+    def goCray(self):
+        points = [
+            Point(10, 18, 16),
+            Point(-5, 18, 16),
+            Point(10, 18, 16),
+            Point(-5, 18, 16),
+            Point(10, 18, 16),
+            Point(-5, 18, 16)
+        ]
+        for p in points:
+            self.hitPoint(p, 'triangular 1')
+        self.hm.standTall()
 
     def hit(self, note, hittype):
         newnote = next((x for x in self.notecoords if x.key == note.key), None)
         note.coords = newnote.coords
-        self.hm.hit(note, hittype)
+        self.hm.calculatePath(note, hittype)
+        #self.hm.hit()
+
+    def hitPoint(self, point, hittype):
+        n = Note('sup', delay=0.01, coords=point)
+        self.hm.calculatePath(n, hittype)
+        self.hm.hit()
 
     def add(self, name, tempo, notes):
         newnotes = []
@@ -74,6 +94,7 @@ class SongManager:
         self.songs = songs
 
     def initializeCoords(self, coords):
+        self.notecoords = []
         i = 0
         for point in coords:
             self.notecoords.append(Note(self.notelist[i], coords=point))
