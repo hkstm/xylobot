@@ -1,12 +1,12 @@
 from Point import Point
 from controll.SongManager import Note
 from controll.ControlManager import ControlManager
-from signalprocessing.librosapitchtracking import time
+import time
 
 
 class TestComponents:
     hittypes = ['quadratic', 'triangle 1', 'triangle 2', 'uniform']
-    tempos = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    tempos = [100, 50, 20]
     leftlimits = [
         Point(0, 23, 14),
         Point(5, 23, 14),
@@ -37,7 +37,7 @@ class TestComponents:
         Point(-8.5, 23, 12),
         Point(-10.2, 23, 12)
     ]
-    delay = 0.1
+    delay = 0.3
     notes = [
         Note('c6', delay),
         Note('d6', delay),
@@ -63,10 +63,12 @@ class Experiments:
         self.testBounds()
 
     def testHitAngles(self):
-        for note in self.getNotesFromSequence('0044777'):
+        for note in self.getNotesFromSequence('000444777'):
             self.cm.hit(note)
 
+        print('[*] Testing hit types')
         for type in TestComponents.hittypes:
+            print('[*] Hit type: ', type)
             self.cm.setHitType(type)
             self.testTempo()
 
@@ -74,21 +76,20 @@ class Experiments:
         #self.cm.play()
 
     def testTempo(self):
-        self.setTempo(9)
-        self.cm.play()
-        time.sleep(3)
-        self.setTempo(5)
-        self.cm.play()
-        time.sleep(3)
-        self.setTempo(2)
-        self.cm.play()
-        time.sleep(3)
+        print('[*] Testing the tempo')
+        for t in TestComponents.tempos:
+            print('[*] Setting tempo to: ', t)
+            self.cm.setTempo(t)
+            self.cm.play()
+            time.sleep(5)
 
-    def setTempo(self, ind):
+
+    def setTempo(self, t):
         for song in self.cm.getSongs():
-            song.setTempo(TestComponents.tempos[ind])
+            song.setTempo(t)
 
     def testBounds(self):
+        print('[*] Testing the bounds')
         for i in TestComponents.leftlimits:
             self.cm.hitPoint(i)
         for i in TestComponents.rightlimits:
@@ -99,7 +100,7 @@ class Experiments:
             notes = []
             for key in list(seq):
                 notes.append(TestComponents.notes[int(key)])
-            self.cm.addSong('test', 20, notes)
+            self.cm.addSong('test', 100, notes)
         else:
             notes = []
             for key in list(sequence):

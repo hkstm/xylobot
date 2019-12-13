@@ -5,9 +5,7 @@ from Position import Position
 
 
 class HitManager:
-    SPEED = 0.4
-    POWER = 3
-    DT = 0.01
+    POWER = 5
 
     def __init__(self, ser, xyloheight):
         self.ser = ser
@@ -21,30 +19,31 @@ class HitManager:
         self.snh = SameNoteHit(ser, xyloheight)
         self.positions = []
         self.hittype = 'quadratic'
+        self.tempo = 0.1
 
     def hit(self):
         for p in self.positions:
-            time.sleep(self.DT)
             self.sendToArduino(p)
+            print('tempo: ', self.tempo)
+            time.sleep(self.tempo)
 
     def calculatePath(self, note, speed='', power=''):
+        print('[*] calculating path...')
         self.positions = []
-        if speed == '':
-            speed = self.SPEED
         if power == '':
             power = self.POWER
 
         self.targetPosition = note.coords
         distance = math.fabs(self.targetPosition.x - self.currentPosition.x)
-        speed = distance / 100
+        speed = distance / 40
         if distance == 0:
-            speed = 0.5
+            speed = 0.1
 
         h = None
 
-        print(self.targetPosition, self.currentPosition)
+        print('target: ', self.targetPosition, ' current: ', self.currentPosition)
         if self.targetPosition.x == self.currentPosition.x:
-            print('kek?')
+            print('Same key is to be hit')
             h = self.snh
         else:
             if self.hittype == 'quadratic':
@@ -61,6 +60,8 @@ class HitManager:
         h.set(self.currentPosition, self.targetPosition, speed, power)
         h.calculatePath()
 
+        lastPos = None
+
         print('Points: ')
         for p in h.getPath():
             try:
@@ -68,16 +69,25 @@ class HitManager:
                 p.y = round(p.y, 2)
                 p.z = round(p.z, 2)
                 pos = ik.getAngles(p)
+                print('pos: ', pos)
+                lastPos = p
                 self.positions.append(Position(pos[0], pos[1], pos[2]))
                 print(p)
             except Warning as w:
+                print(w)
                 self.setCurrent(self.currentPosition)
                 self.positions = []
                 return Warning(w)
-            self.setCurrent(self.targetPosition)
+
             # Readjust the height
-            pos = ik.getAngles(Point(self.currentPosition.x, self.currentPosition.y, self.currentPosition.z + 1))
-            self.positions.append(Position(pos[0], pos[1], pos[2]))
+
+        #self.setCurrent(self.targetPosition)
+        if lastPos is None:
+            self.setCurrent(self.targetPosition)
+        else:
+            self.setCurrent(lastPos)
+        pos = ik.getAngles(Point(self.currentPosition.x, self.currentPosition.y, 13.5))
+        self.positions.append(Position(pos[0], pos[1], pos[2]))
 
     def sendToArduino(self, pos):
         string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'
@@ -98,5 +108,17 @@ class HitManager:
 
     def setHitType(self, hittype):
         self.hittype = hittype
+
+    def setTempo(self, tempo):
+        if tempo <= 100:
+            self.tempo = tempo / (10 ** 4)
+        if tempo <= 75:
+            self.tempo = tempo / (10 ** 3.5)
+        if tempo <= 50:
+            self.tempo = tempo / (10 ** 3)
+        if tempo <= 25:
+            self.tempo = tempo / (10 ** 2.5)
+        if tempo <= 10:
+            self.tempo = tempo / (10 ** 2)
 
 

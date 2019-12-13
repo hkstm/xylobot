@@ -5,7 +5,7 @@ from Position import Position
 import math
 import IK as ik
 
-ACCURACY_COEFF = 10
+ACCURACY_COEFF = 100
 
 class Hit:
     def __init__(self, ser, xyloheight):

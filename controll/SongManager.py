@@ -44,10 +44,10 @@ class SongManager:
 
     def play(self):
         for song in self.songs:
+            self.hm.setTempo(song.getTempo())
             for note in song.getNotes():
                 try:
                     print('[*] Playing note: ', note)
-                    self.hm.calculatePath(note)
                     self.hit(note)
                     delay.sleep(note.delay)
                 except Warning as w:
@@ -71,7 +71,7 @@ class SongManager:
         newnote = next((x for x in self.notecoords if x.key == note.key), None)
         note.coords = newnote.coords
         self.hm.calculatePath(note)
-        #self.hm.hit()
+        self.hm.hit()
 
     def hitPoint(self, point):
         n = Note('sup', delay=0.01, coords=point)
