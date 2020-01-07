@@ -375,6 +375,7 @@ class XylobotGUI:
         self.canvaswidth = (self.width / 3)
         self.canvasheight = (self.height / 2)
         self.window.geometry(f'{self.width}x{self.height}')
+        self.window.state('zoomed')
         self.window.update()
         self.init_window()
 
