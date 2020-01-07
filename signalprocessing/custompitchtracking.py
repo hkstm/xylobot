@@ -1,6 +1,7 @@
 import logging
 import os
 import numpy as np
+import scipy
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 
@@ -149,17 +150,25 @@ def detect_hits(result_not_cutoff, loudness_factor, args, freq_list):
         averages_not_cutoff.append(np.average(bins))
 
     hits = []
+
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
+    indexes, _ = scipy.signal.find_peaks(averages, height=loudness_offset, prominence=1, distance=10)
     logger.debug(f'loudness offset: {loudness_offset}')
     for i in range(1, len(averages)):
         if averages[i] > averages[i - 1] + loudness_offset:
             hits.append(i)
     if args.plot:
         plt.plot(averages, '.-')
-        plt.title('averages in detect hits')
+        plt.title('Average amplitude of frequency bins in signal')
+        plt.xlabel('Time in frames')
+        plt.ylabel('Mean Amplitude')
+
         plt.show()
-    # print(hits)
+    print(f'hits {hits}')
+    print(f'scipy {indexes}')
+    # print(type(indexes))
     return hits, averages_not_cutoff
+    return indexes.tolist(), averages_not_cutoff
 
 
 def find_cutoffs(freq_list):
@@ -235,7 +244,8 @@ def pitch_track_raw(args, logging=False):
         logger.debug(f'fs/fft {fs/fft_size}')
 
     overlap_fac = 0.5
-    loudness_factor = 0.5  # determines senitivity off hit detection
+    loudness_factor = 0.4  # determines senitivity off hit detection
+
 
     hop_size = np.int32(np.floor(fft_size * (1 - overlap_fac)))
     pad_end_size = fft_size  # the last segment can overlap the end of the data array by no more than one window size

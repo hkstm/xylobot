@@ -2,7 +2,7 @@ from tkinter.ttk import Combobox
 from controll.ControlManager import ControlManager
 from controll.SongManager import Note
 
-connectedtosetup = False
+connectedtosetup = True
 
 import os
 import ast

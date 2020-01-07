@@ -24,11 +24,11 @@ class HitManager:
     def hit(self):
         for p in self.positions:
             self.sendToArduino(p)
-            print('tempo: ', self.tempo)
+            # print('tempo: ', self.tempo)
             time.sleep(self.tempo)
 
     def calculatePath(self, note, speed='', power=''):
-        print('[*] calculating path...')
+        # print('[*] calculating path...')
         self.positions = []
         if power == '':
             power = self.POWER
@@ -40,8 +40,8 @@ class HitManager:
             speed = 0.1
 
         h = None
-
-        print('target: ', self.targetPosition, ' current: ', self.currentPosition)
+        #
+        # print('target: ', self.targetPosition, ' current: ', self.currentPosition)
         if self.targetPosition.x == self.currentPosition.x:
             print('Same key is to be hit')
             h = self.snh
@@ -62,17 +62,17 @@ class HitManager:
 
         lastPos = None
 
-        print('Points: ')
+        # print('Points: ')
         for p in h.getPath():
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)
                 p.z = round(p.z, 2)
                 pos = ik.getAngles(p)
-                print('pos: ', pos)
+                # print('pos: ', pos)
                 lastPos = p
                 self.positions.append(Position(pos[0], pos[1], pos[2]))
-                print(p)
+                # print(p)
             except Warning as w:
                 print(w)
                 self.setCurrent(self.currentPosition)

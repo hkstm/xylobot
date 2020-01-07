@@ -39,8 +39,8 @@ class Hit:
             self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
             self.left = False
 
-        print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
-              self.speed, ' power: ', self.power)
+        #print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
+              # self.speed, ' power: ', self.power)
 
     def getPath(self):
         return self.path
@@ -230,13 +230,13 @@ class QuadraticHit(Hit):
                  (self.offset_target.x ** 2 - ((self.offset_midpoint.x ** 2) * self.ratio))
         self.b = ((self.offset_midpoint.z - self.offset_origin.z) - (self.offset_midpoint.x ** 2 * self.a)) / \
                  self.offset_midpoint.x
-        print('Quadratic parameters - a: ', self.a, ' b: ', self.b, ' c: ', self.c)
+        # print('Quadratic parameters - a: ', self.a, ' b: ', self.b, ' c: ', self.c)
 
     def generateOffset(self):
         self.offset_target = Point(self.target.x - self.origin.x, 0, self.target.z)
         self.offset_midpoint = Point(self.midpoint.x - self.origin.x, 0, self.midpoint.z)
         self.offset_origin = Point(0, 0, self.target.z)
-        print('Offset - origin: ', self.offset_origin, ' midpoint: ', self.offset_midpoint, ' target: ', self.offset_target)
+        # print('Offset - origin: ', self.offset_origin, ' midpoint: ', self.offset_midpoint, ' target: ', self.offset_target)
 
 
 

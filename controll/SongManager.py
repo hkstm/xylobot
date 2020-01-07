@@ -47,7 +47,7 @@ class SongManager:
             self.hm.setTempo(song.getTempo())
             for note in song.getNotes():
                 try:
-                    print('[*] Playing note: ', note)
+                    #print('[*] Playing note: ', note)
                     self.hit(note)
                     delay.sleep(note.delay)
                 except Warning as w:
@@ -79,6 +79,7 @@ class SongManager:
         self.hm.hit()
 
     def add(self, name, tempo, notes):
+        self.songs = []
         newnotes = []
         for note in notes:
             newnote = next((x for x in self.notecoords if x.key == note.key), None)
