@@ -17,10 +17,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.collections import PolyCollection
 from scipy import signal
 
-from controll.ControlManager import ControlManager
-from controll.SongManager import Note
+from control.ControlManager import ControlManager
+from control.SongManager import Note
 from signalprocessing.SignalParser import add_arguments
-from signalprocessing.custompitchtracking import pitch_track_raw
+from signalprocessing.SignalTrack import pitch_track_raw
 
 spectogram3dtest = False
 flatnesstest = True
@@ -130,7 +130,7 @@ if recordaudioflag:
     executiontime_p = []
     controlmanager = ControlManager()
 
-    import controll.TestControl as tc
+    import control.TestControl as tc
 
     controlmanager.setNoteCoordinates(tc.coords)
 
@@ -166,7 +166,7 @@ if not recordaudioflag:
 
 # controlmanager = ControlManager()
 #
-# import controll.TestControl as tc
+# import control.TestControl as tc
 #
 # controlmanager.setNoteCoordinates(tc.coords)
 # sequence_test = generate_random_sequence(seq_length_test, min_delay_test, max_delay_test)

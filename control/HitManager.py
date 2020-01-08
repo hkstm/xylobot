@@ -1,5 +1,5 @@
 import IK as ik
-from controll.Hit import *
+from control.Hit import *
 from Point import Point
 from Position import Position
 

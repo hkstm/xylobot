@@ -1,7 +1,7 @@
 import logging
 import os
 import numpy as np
-import scipy
+from scipy.signal import find_peaks
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 
@@ -152,7 +152,7 @@ def detect_hits(result_not_cutoff, loudness_factor, args, freq_list):
     hits = []
 
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
-    indexes, _ = scipy.signal.find_peaks(averages, height=loudness_offset, prominence=1, distance=10)
+    indexes, _ = find_peaks(averages, height=loudness_offset, prominence=1, distance=10)
     logger.debug(f'loudness offset: {loudness_offset}')
     for i in range(1, len(averages)):
         if averages[i] > averages[i - 1] + loudness_offset:
