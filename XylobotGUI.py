@@ -74,8 +74,7 @@ class XylobotGUI:
 
     def update_sim(self):
         self.idx_direction = 0
-        self.directions = [-30, -15, 0, 15, 30,
-                           0]  # theses three arrays are sequences of goal self.directions and angles
+        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.direction = 0
@@ -95,7 +94,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         self.simu_xylo.update_joint_angles(self.direction, self.lower_joint_angle, self.upper_joint_angle)
         details = self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,
-                                             goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, 1)
+                                             goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, seconds=1)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]

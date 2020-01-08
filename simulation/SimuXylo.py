@@ -260,8 +260,8 @@ class SimuXylo:
                     seconds):
         biv = birds_eye_view
         sv = side_view
-        print(f'direction:{self.direction}')
-        print(f'goal_direction:{goal_direction}')
+        # print(f'direction:{self.direction}')
+        # print(f'goal_direction:{goal_direction}')
         sleep_time = seconds / abs(goal_direction - self.direction)
         width = birds_eye_view.winfo_screenwidth() / 3
         height = birds_eye_view.winfo_screenheight() / 2
