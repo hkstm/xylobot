@@ -1,5 +1,5 @@
 import math
-from SimuVector import SimuVector
+from .SimuVector import SimuVector
 
 
 class SimuKey:
