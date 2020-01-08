@@ -1,6 +1,6 @@
 import serial
 import IK as ik
-import delayexample as delay
+import time
 from Point import Point
 from Position import Position
 from control.HitManager import HitManager

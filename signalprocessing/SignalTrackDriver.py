@@ -1,7 +1,7 @@
 import argparse
 from types import SimpleNamespace
 
-from SignalParser import add_arguments
+from SignalArgParser import add_arguments
 from SignalTrack import pitch_track
 
 parser = argparse.ArgumentParser(description="Custom Pitch")

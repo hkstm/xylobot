@@ -4,7 +4,7 @@ import Point
 import Position
 import computervision.Grid as Grid
 import IK as ik
-import delayexample as delay
+import time
 from Point import Point
 from Position import Position
 
@@ -35,7 +35,7 @@ speed = 20
 def play(list):
     for i in list:
         print('[*] Playing note: ', i)
-        delay.sleep(i.delay)
+        time.sleep(i.delay)
         hitkey(i.key)
 
 #   Takes a string c6, d6, e6, f6, g6, a6, b6, c7

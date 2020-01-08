@@ -19,7 +19,7 @@ from scipy import signal
 
 from control.ControlManager import ControlManager
 from control.SongManager import Note
-from signalprocessing.SignalParser import add_arguments
+from signalprocessing.SignalArgParser import add_arguments
 from signalprocessing.SignalTrack import pitch_track_raw
 
 spectogram3dtest = False

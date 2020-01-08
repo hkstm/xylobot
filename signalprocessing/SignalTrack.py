@@ -5,7 +5,7 @@ from scipy.signal import find_peaks
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 
-"""use PitchtrackingDriver.py to run"""
+"""use SignalTrackDriver.py to run"""
 
 def dummy():
     print('dummy method')

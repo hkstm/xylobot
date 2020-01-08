@@ -1,4 +1,4 @@
-import delayexample as delay
+import time
 from Point import Point
 
 
@@ -49,7 +49,7 @@ class SongManager:
                 try:
                     #print('[*] Playing note: ', note)
                     self.hit(note)
-                    delay.sleep(note.delay)
+                    time.sleep(note.delay)
                 except Warning as w:
                     print(w)
                     pass
