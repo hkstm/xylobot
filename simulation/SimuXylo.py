@@ -90,7 +90,7 @@ class SimuXylo:
             self.previousConstructedKeyLoc.x += self.DISTANCEBETWEENMIDPOINTS * self.CM_TOPIX_MULTIPLIER_X
             newKey = SimuKey(color, newKeyLoc, 0, self.previousConstructedKeyHeight * self.CM_TOPIX_MULTIPLIER_X,
                              self.WIDTH * self.CM_TOPIX_MULTIPLIER_X)
-            print('previousconstructedkeyheight: ', self.previousConstructedKeyHeight)
+            # print(f'previousconstructedkeyheight: {self.previousConstructedKeyHeight}')
             self.previousConstructedKeyHeight -= self.HEIGHT_DIFF
 
             self.keys.append(newKey)

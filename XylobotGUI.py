@@ -4,7 +4,7 @@ if connectedtosetup:
 
 from simulation.SimuVector import SimuVector
 from simulation.SimuXylo import SimuXylo
-from signalprocessing.SignalTrack import pitch_track
+from signalprocessing.SignalTrack import pitch_track_wrap
 from control.ControlManager import ControlManager
 from control.SongManager import Note
 
@@ -218,7 +218,7 @@ class XylobotGUI:
             'fftsize': self.fft_entry_text.get(),
             'topindex': 1
         }
-        keys_and_times, img = pitch_track(SimpleNamespace(**argsdict))
+        keys_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
         # print(keys_and_times)
         # temp = full_align(keys_and_times)
         # print(temp)
