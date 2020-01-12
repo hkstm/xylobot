@@ -1,7 +1,7 @@
 from .SimuVector import SimuVector
 from .SimuKey import SimuKey
 # from XylobotGUI import screen_factor
-from win32api import GetSystemMetrics
+import tkinter as tk
 import math
 import time
 import itertools
@@ -9,6 +9,12 @@ import itertools
 biv = None
 sv = None
 
+def get_screensize():
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+    return screen_width, screen_height
 
 class SimuXylo:
     # CM!
@@ -44,8 +50,10 @@ class SimuXylo:
         self.xylophone_height = 10
         self.keywidth = self.multiplier * 2
 
-        self.height = GetSystemMetrics(1) * screen_factor  # only works on windows with 1 screen I think
-        self.width = GetSystemMetrics(0) * screen_factor  # only works on windows with 1 screen I think
+        screen_width, screen_height = get_screensize()
+        self.width = screen_width * screen_factor  # only works on windows with 1 screen I think
+        self.height = screen_height * screen_factor  # only works on windows with 1 screen I think
+
 
         self.division = self.multiplier * 1
         self.top = self.height / 2 - self.multiplier * 5.53

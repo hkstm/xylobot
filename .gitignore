@@ -1,4 +1,5 @@
-
+venv/
+__pycache__/
 *.xml
 *.iml
 *.au
@@ -6,8 +7,6 @@
 *.pyc
 *.avi
 *.pyc
-
-__pycache__/
-*.pyc
 *.wav
 *.csv
+*.png
