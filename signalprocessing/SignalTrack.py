@@ -83,6 +83,8 @@ def stft(fft_size, data, pad_end_size, total_segments, hop_size, args):
 def convert_idx_to_time(time_list, idx):
     return time_list[idx]
 
+def convert_idxlist_to_timelist(time_list, idxlist):
+    return [convert_idx_to_time(time_list, x) for x in idxlist]
 
 def detect_pitch(magnitudes, freq_list, args):
     n = args.topindex
@@ -101,36 +103,36 @@ def find_key(pitch):
                 return pitches_ranges[i][1]
 
 
-def detect_hits(result_not_cutoff, loudness_factor, args, freq_list):
+def detect_hits(result_not_cutoff, loudness_factor, args, freq_list, time_list):
     result = process_results(result_not_cutoff, freq_list)
-    averages = []
-    averages_not_cutoff = []
     max_magn = -1
-    for i, bins in enumerate(result):
+    mean_amp = [np.average(bins) for bins in result]
+    median_amp = [np.median(bins) for bins in result]
+    mean_amp_notcutoff = [np.average(bins) for bins in result_not_cutoff]
+    for bins in result:
         if np.average(bins) > max_magn:
             max_magn = np.average(bins)
-        averages.append(np.average(bins))
-    for i, bins in enumerate(result_not_cutoff):
-        averages_not_cutoff.append(np.average(bins))
-
     hits = []
 
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
-    indexes, _ = find_peaks(averages, height=loudness_offset, prominence=1, distance=2)
-    logger.debug(f'loudness offset: {loudness_offset}')
-    for i in range(1, len(averages)):
-        if averages[i] > averages[i - 1] + loudness_offset:
+    indexes, _ = find_peaks(mean_amp, threshold=None, height=loudness_offset, prominence=loudness_offset, distance=2)
+    logger.debug(f'loudnessoffset:\t{loudness_offset}')
+    for i in range(1, len(mean_amp)):
+        if mean_amp[i] > mean_amp[i - 1] + loudness_offset:
             hits.append(i)
     if args.plot:
-        plt.plot(averages, '.-')
+        plt.plot(mean_amp, '.-')
         plt.title('Average amplitude of frequency bins in signal')
         plt.xlabel('Time in frames')
         plt.ylabel('Mean Amplitude')
         plt.show()
-    logger.debug(f'hits:\t{hits}')
-    logger.debug(f'scipy:\t{indexes.tolist()}')
-    # return hits, averages_not_cutoff
-    return indexes.tolist(), averages_not_cutoff
+    # logger.debug(f'hits:\t{hits}')
+    # logger.debug(f'scipy:\t{indexes.tolist()}')
+    scipy_times = convert_idxlist_to_timelist(time_list, indexes.tolist())
+    logger.debug(f'scipy_times:\t{scipy_times}')
+    logger.debug(f'mean_amp:\t{[mean_amp[idx] for idx in indexes]}')
+    logger.debug(f'median_amp:\t{[median_amp[idx] for idx in indexes]}')
+    return indexes.tolist(), mean_amp_notcutoff
 
 
 def find_cutoffs(freq_list):
@@ -201,10 +203,10 @@ def pitch_track_calc(args, is_logging=False):
     fft_size = int(args.fftsize)
 
     if is_logging:
-        logger.debug(f' path: {sound_file_path}')
-        logger.debug(fs)
-        logger.debug(fft_size)
-        logger.debug(f'fs/fft {fs / fft_size}')
+        logger.debug(f'path:\t{sound_file_path}')
+        logger.debug(f'fs:\t\t{fs}')
+        logger.debug(f'fftsize:\t{fft_size}')
+        logger.debug(f'fs/fft:\t\t{fs / fft_size}')
 
     overlap_fac = 0.5
     loudness_factor = 0.4  # determines senitivity off hit detection
@@ -222,7 +224,7 @@ def pitch_track_calc(args, is_logging=False):
     result = stft(data=data, fft_size=fft_size, pad_end_size=pad_end_size, total_segments=total_segments,
                   hop_size=hop_size, args=args)
 
-    hits_cutoff, averages = detect_hits(result, loudness_factor, args, freq_list)
+    hits_cutoff, averages = detect_hits(result, loudness_factor, args, freq_list, time_list)
     results_cutoff = process_results(result, freq_list)
     key_and_times = []
     freq_and_times = []
