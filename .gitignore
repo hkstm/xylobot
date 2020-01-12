@@ -4,3 +4,6 @@
 *.au
 *.aup
 computervision/trackoutput.avi
+*.pyc
+*.csv
+*.wav
