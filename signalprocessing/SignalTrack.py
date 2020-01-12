@@ -115,7 +115,7 @@ def detect_hits(result_not_cutoff, loudness_factor, args, freq_list, time_list):
     hits = []
 
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
-    indexes, _ = find_peaks(mean_amp, threshold=None, height=loudness_offset, prominence=loudness_offset, distance=2)
+    indexes, _ = find_peaks(mean_amp, threshold=None, height=loudness_offset, prominence=loudness_offset, distance=3)
     logger.debug(f'loudnessoffset:\t{loudness_offset}')
     for i in range(1, len(mean_amp)):
         if mean_amp[i] > mean_amp[i - 1] + loudness_offset:
@@ -129,9 +129,9 @@ def detect_hits(result_not_cutoff, loudness_factor, args, freq_list, time_list):
     # logger.debug(f'hits:\t{hits}')
     # logger.debug(f'scipy:\t{indexes.tolist()}')
     scipy_times = convert_idxlist_to_timelist(time_list, indexes.tolist())
-    logger.debug(f'scipy_times:\t{scipy_times}')
-    logger.debug(f'mean_amp:\t{[mean_amp[idx] for idx in indexes]}')
-    logger.debug(f'median_amp:\t{[median_amp[idx] for idx in indexes]}')
+    logger.debug(f'scipy_times:\t{[round(x, 2) for x in scipy_times]}')
+    logger.debug(f'mean_amp:\t{[round(mean_amp[idx], 2) for idx in indexes]}')
+    logger.debug(f'median_amp:\t{[round(median_amp[idx], 2) for idx in indexes]}')
     return indexes.tolist(), mean_amp_notcutoff
 
 
@@ -186,7 +186,7 @@ def pitch_track_wrap(args_dict):
 
     # !!! FINAL RESULT !!!
 
-    logger.info(f'final keys and time {key_and_times}')
+    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in key_and_times]}')
     if args.guiplot:
         return key_and_times, plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest',
                                          aspect='auto',
