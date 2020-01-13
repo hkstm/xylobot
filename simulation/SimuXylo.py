@@ -274,7 +274,9 @@ class SimuXylo:
         width = birds_eye_view.winfo_screenwidth() / 3
         height = birds_eye_view.winfo_screenheight() / 2
         bottom = height / 2 + self.multiplier * 5.53
-        base = bottom + self.multiplier * self.distance - 110.6
+        self.base = bottom + self.multiplier * self.distance - 110.6
+        # base = bottom + self.multiplier * self.distance - 110.6
+
         left = width / 2 - self.multiplier * 11 - self.division / 2
         s_line = side_view.find_withtag("s_line")
         b_line = birds_eye_view.find_withtag("b_line")
@@ -470,7 +472,7 @@ class SimuXylo:
         width = biv.winfo_screenwidth() / 3
         height = biv.winfo_screenheight() / 2
         bottom = height / 2 + self.multiplier * 5.53
-        base = bottom + self.multiplier * self.distance - 110.6
+        self.base = bottom + self.multiplier * self.distance - 110.6
         left = width / 2 - self.multiplier * 11 - self.division / 2
         s_line = sv.find_withtag("s_line")
         b_line = biv.find_withtag("b_line")
