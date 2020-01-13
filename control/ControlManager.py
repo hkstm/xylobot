@@ -1,8 +1,4 @@
 import serial
-import IK as ik
-import time
-from Point import Point
-from Position import Position
 from control.HitManager import HitManager
 from control.SongManager import SongManager
 

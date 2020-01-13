@@ -1,4 +1,4 @@
-import control.Control as c
+import Control as c
 #from control.ControlManager import ControlManager
 import random
 from Note import Note

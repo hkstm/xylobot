@@ -1,9 +1,5 @@
-import serial
-import time
 import Point
 import Position
-import computervision.Grid as Grid
-import IK as ik
 import time
 from Point import Point
 from Position import Position
@@ -92,7 +88,7 @@ def setCurrent(point):
     global currentPoint
     currentPoint = point
     global currentPosition
-    curPosAngles = ik.getAngles(point)
+    curPosAngles = IK.getAngles(point)
     currentPosition = Position(curPosAngles[0], curPosAngles[1], curPosAngles[2])
     print('[*] Setting angles for new current position ', currentPosition)
 
@@ -140,7 +136,7 @@ def getPath(point, speed):
     curpos = currentPosition
     print('[*] Getting angles for current position ', curpos)
     #curpos = ik.getAngles(currentPosition)
-    posAngles = ik.getAngles(point)
+    posAngles = IK.getAngles(point)
     pos = Position(posAngles[0], posAngles[1], posAngles[2])
     print('[*] Getting angles for target position ', pos)
 

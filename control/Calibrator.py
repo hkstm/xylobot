@@ -1,21 +1,18 @@
-import time
-
 try:
-    from control import Control as Control
+    import Control as Control
 except:
     import control as Control
 
 from Point import Point as Point
 from Position import Position as Position
-import IK as ik
 import computervision.Grid as Grid
-import math
+
 
 def calibrate(cm):
     discoveredPoints = []
 
     currentPoint = Point(12, 23, 12)
-    currentPos = ik.getAngles(currentPoint)
+    currentPos = IK.getAngles(currentPoint)
     #control.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
     cm.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
 
@@ -93,8 +90,8 @@ def find(cm, key, currentPoint):
 def moveTo(cm, point, currentPoint, rang = 100):
     #currentPoint.y -= 3
     print(" CURRENT POINT EQUALS ", currentPoint)
-    c = ik.getAngles(currentPoint)
-    c2 = ik.getAngles(point)
+    c = IK.getAngles(currentPoint)
+    c2 = IK.getAngles(point)
     p = Position(c[0],c[1],c[2])
     g = Position(c2[0],c2[1],c2[2])
     m0dif = g.m0-p.m0

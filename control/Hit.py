@@ -1,9 +1,5 @@
-import time
-
 from Point import Point
-from Position import Position
 import math
-import IK as ik
 
 ACCURACY_COEFF = 100
 

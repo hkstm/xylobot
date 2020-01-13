@@ -1,10 +1,5 @@
-from Position import Position
-from control.ControlManager import ControlManager
 from Point import Point
-from control.Kinematics import Kinematics
 from control.SongManager import Note
-from control.Hit import QuadraticHit
-import IK as ik
 
 import random
 

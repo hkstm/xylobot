@@ -1,4 +1,3 @@
-import IK as ik
 from control.Hit import *
 from Point import Point
 from Position import Position
