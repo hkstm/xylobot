@@ -60,6 +60,7 @@ class XylobotGUI:
 
         self.simu_xylo = SimuXylo(0)
         self.simu_xylo.update_base()
+
         self.side_view.create_rectangle(self.simu_xylo.get_side_view_rectangle(), fill="blue")
 
         self.birds_eye_view.create_line(self.simu_xylo.get_b_line(),
