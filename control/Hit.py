@@ -1,4 +1,4 @@
-from Point import Point
+from .Point import Point
 import math
 
 ACCURACY_COEFF = 100

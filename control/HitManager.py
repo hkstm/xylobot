@@ -1,6 +1,6 @@
 from control.Hit import *
-from Point import Point
-from Position import Position
+from .Point import Point
+from .Position import Position
 
 
 class HitManager:
