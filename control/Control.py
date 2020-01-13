@@ -1,10 +1,8 @@
-import Point
-import Position
 import time
-from Point import Point
-from Position import Position
+from .Point import Point
+from .Position import Position
 
-currentPosition = Position(21,57,-51)
+currentPosition = Position(21, 57, -51)
 currentPoint = None
 
 baudRate = 9600

@@ -230,11 +230,14 @@ def pitch_track_calc(args, is_logging=False):
     freq_and_times = []
     for hit_idx in hits_cutoff:
         pitch = 0
-        if hit_idx <= len(results_cutoff):
-            pitch = detect_pitch(results_cutoff[hit_idx+1], freq_list_cutoff, args)
-        else:
+        if hit_idx == len(results_cutoff) - 1:
             pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff, args)
-        key_and_times.append((find_key(pitch), convert_idx_to_time(time_list, hit_idx)))
+        elif hit_idx < len(results_cutoff) - 1:
+            pitch = detect_pitch(results_cutoff[hit_idx+1], freq_list_cutoff, args)
+            if (find_key(pitch) is None) and (hit_idx < len(results_cutoff) - 2):
+                pitch = detect_pitch(results_cutoff[hit_idx+2], freq_list_cutoff, args)
+        key = find_key(pitch)
+        key_and_times.append((key, convert_idx_to_time(time_list, hit_idx)))
         freq_and_times.append((pitch, convert_idx_to_time(time_list, hit_idx)))
         if is_logging:
             pass

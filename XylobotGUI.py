@@ -82,7 +82,7 @@ class XylobotGUI:
         self.lower_joint_angle = 160
         self.upper_joint_angle = 210
 
-        self.simlooping = False
+        self.is_simlooping = False
 
         self.update_sim_loop()
         # self.window.after(self.delay, self.update_sim_loop)
@@ -101,9 +101,12 @@ class XylobotGUI:
         self.upper_joint_angle = details[2]
         self.idx_direction += 1
         if self.idx_direction == len(self.directions):
-            self.simlooping = False
-        if self.simlooping:
+            self.is_simlooping = False
+        if self.is_simlooping:
             self.window.after(self.delay, self.update_sim_loop)
+
+    def check_tonalquality(self):
+        self.is_checktonalquality
 
     def move_simulation_robot(self, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle):
         # TODO: calculate how long the movement should take based on the time the robot takes
