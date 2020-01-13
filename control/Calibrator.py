@@ -3,8 +3,9 @@ try:
 except:
     import control as Control
 
-from Point import Point as Point
-from Position import Position as Position
+from .Point import Point as Point
+from .Position import Position as Position
+import IK
 import computervision.Grid as Grid
 
 
