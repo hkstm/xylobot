@@ -26,7 +26,8 @@ def calibrate(cm):
     # control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
     keyList = Grid.generateList()
-    keyList[0].x = 10.25
+    #self.updateCenterpointsImage()
+    keyList[0].x = 9
     keyList[0].y = 23
     keyList[0].z = height
 
