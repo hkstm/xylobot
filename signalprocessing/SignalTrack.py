@@ -197,12 +197,12 @@ def pitch_track_wrap(args_dict):
     return key_and_times
 
 
-def find_pitch_recursively(results, freq_list, args, idx, offset, threshold=1):
+def find_pitch_recursively(results, freq_list, args, idx, offset, timestep, threshold=1.0):
     if find_key(detect_pitch(results[idx + offset], freq_list, args)) is None and idx + offset < len(
-            results) and offset < threshold:
-        return find_pitch_recursively(results, freq_list, args, idx, (offset + 1), threshold)
+            results) and offset * timestep < threshold:
+        return find_pitch_recursively(results, freq_list, args, idx, (offset + 1), timestep, threshold)
     else:
-        return find_key(detect_pitch(results[idx + offset], freq_list, args))
+        return detect_pitch(results[idx + offset], freq_list, args)
 
 
 def pitch_track_calc(args, is_logging=False):
@@ -228,6 +228,7 @@ def pitch_track_calc(args, is_logging=False):
 
     freq_list = freq_axis(fft_size, fs)
     time_list = time_axis(total_segments, t_max)
+    timestep = time_list[1]
     low_index_cutoff, upper_index_cutoff = find_cutoffs(freq_list)
     freq_list_cutoff = freq_list[low_index_cutoff:upper_index_cutoff]
 
@@ -239,15 +240,9 @@ def pitch_track_calc(args, is_logging=False):
     key_and_times = []
     freq_and_times = []
     for hit_idx in hits_cutoff:
+        pitchwindow = 20  # trying to find a pitch in 20 ms window from hit
         pitch = find_pitch_recursively(results=results_cutoff, freq_list=freq_list_cutoff, args=args, idx=hit_idx,
-                                       offset=0)
-
-        if hit_idx == len(results_cutoff) - 1:
-            pitch = detect_pitch(results_cutoff[hit_idx + 0], freq_list_cutoff, args)
-        elif hit_idx < len(results_cutoff) - 1:
-            pitch = detect_pitch(results_cutoff[hit_idx + 1], freq_list_cutoff, args)
-            if (find_key(pitch) is None) and (hit_idx < len(results_cutoff) - 2):
-                pitch = detect_pitch(results_cutoff[hit_idx + 2], freq_list_cutoff, args)
+                                       offset=1, timestep=timestep, threshold=pitchwindow/1000)
         key = find_key(pitch)
         key_and_times.append((key, convert_idx_to_time(time_list, hit_idx)))
         freq_and_times.append((pitch, convert_idx_to_time(time_list, hit_idx)))
