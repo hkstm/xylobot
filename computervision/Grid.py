@@ -1,4 +1,4 @@
-import computervision.EwanCV.getSides as getSides
+import computervision.EwanCV.newEllipse as getSides
 import computervision.getMallet as getMallet
 import computervision.CenterPoint as CP
 list = []
