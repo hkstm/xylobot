@@ -83,8 +83,10 @@ def stft(fft_size, data, pad_end_size, total_segments, hop_size, args):
 def convert_idx_to_time(time_list, idx):
     return time_list[idx]
 
+
 def convert_idxlist_to_timelist(time_list, idxlist):
     return [convert_idx_to_time(time_list, x) for x in idxlist]
+
 
 def detect_pitch(magnitudes, freq_list, args):
     n = args.topindex
@@ -195,6 +197,14 @@ def pitch_track_wrap(args_dict):
     return key_and_times
 
 
+def find_pitch_recursively(results, freq_list, args, idx, offset, threshold=1):
+    if find_key(detect_pitch(results[idx + offset], freq_list, args)) is None and idx + offset < len(
+            results) and offset < threshold:
+        return find_pitch_recursively(results, freq_list, args, idx, (offset + 1), threshold)
+    else:
+        return find_key(detect_pitch(results[idx + offset], freq_list, args))
+
+
 def pitch_track_calc(args, is_logging=False):
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
     sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
@@ -229,13 +239,15 @@ def pitch_track_calc(args, is_logging=False):
     key_and_times = []
     freq_and_times = []
     for hit_idx in hits_cutoff:
-        pitch = 0
+        pitch = find_pitch_recursively(results=results_cutoff, freq_list=freq_list_cutoff, args=args, idx=hit_idx,
+                                       offset=0)
+
         if hit_idx == len(results_cutoff) - 1:
-            pitch = detect_pitch(results_cutoff[hit_idx], freq_list_cutoff, args)
+            pitch = detect_pitch(results_cutoff[hit_idx + 0], freq_list_cutoff, args)
         elif hit_idx < len(results_cutoff) - 1:
-            pitch = detect_pitch(results_cutoff[hit_idx+1], freq_list_cutoff, args)
+            pitch = detect_pitch(results_cutoff[hit_idx + 1], freq_list_cutoff, args)
             if (find_key(pitch) is None) and (hit_idx < len(results_cutoff) - 2):
-                pitch = detect_pitch(results_cutoff[hit_idx+2], freq_list_cutoff, args)
+                pitch = detect_pitch(results_cutoff[hit_idx + 2], freq_list_cutoff, args)
         key = find_key(pitch)
         key_and_times.append((key, convert_idx_to_time(time_list, hit_idx)))
         freq_and_times.append((pitch, convert_idx_to_time(time_list, hit_idx)))
