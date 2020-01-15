@@ -138,7 +138,7 @@ class XylobotGUI:
         self.simu_xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
         self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
 
-    def play_button(self, key, event=None):
+    def play_btn(self, key, event=None):
         self.update_log(f'playing: {key}')
         # #TODO REMOVE THIS TESTER:
         # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
@@ -168,8 +168,8 @@ class XylobotGUI:
                 self.update_log(f'Calibration failed: {e}')
                 Calibrator.destroyWindows()
 
-    def record_clip(self):
-        self.record_clip_button_clicked = True
+    def start_recordclip(self):
+        self.recordclip_btn_isclicked = True
         self.p = pyaudio.PyAudio()  # Create an interface to
         self.update_log('Started recording')
         self.stream = self.p.open(format=self.sample_format,
@@ -178,19 +178,19 @@ class XylobotGUI:
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.frames = []  # Initialize array to store frames
-        self.update_recording()
+        self.do_recordclip()
 
-    def update_recording(self):
-        self.update_log(f'Updating recording, record button clicked {self.record_clip_button_clicked}')
-        if self.record_clip_button_clicked:
+    def do_recordclip(self):
+        self.update_log(f'Updating recording, record button clicked {self.recordclip_btn_isclicked}')
+        if self.recordclip_btn_isclicked:
             data = self.stream.read(self.chunk)
             self.frames.append(data)
-            self.window.after(self.delay_audio, self.update_recording)
+            self.window.after(self.delay_audio, self.do_recordclip)
 
-    def stop_recording(self):
+    def stop_recordclip(self):
         self.update_log('Trying to stop recording')
 
-        self.record_clip_button_clicked = False
+        self.recordclip_btn_isclicked = False
 
         self.stream.stop_stream()
         self.stream.close()
@@ -275,7 +275,7 @@ class XylobotGUI:
             key_and_times, _, _, _, _, _, _, _, _, _, _, _, _, _ = pitch_track_calc(fs=self.fs, data=numpydata,
                                                                                     fft_size=int(self.fft_entry_text.get()), is_plotting=False,
                                                                                     is_logging=False, topindex=1,
-                                                                                    window='hanning', amp_thresh=float(self.amp_thresh_entry_text.get()))
+                                                                                    window='hanning', amp_thresh=float(self.ampthresh_entry_text.get()))
             print(key_and_times)
             self.window.after(self.delay_audio, self.do_pitchcheck())
 
@@ -338,27 +338,27 @@ class XylobotGUI:
         color_list = ['blue', 'green', 'yellow', 'orange', 'red', 'purple', 'white', 'blue']
         for i, key in enumerate(key_list):
             Button(window, text=key_list[i].upper(), bg=color_list[i], relief=RAISED,
-                   command=partial(self.play_button, key)).grid(row=5, column=(2 + i),
-                                                                sticky=NSEW, ipadx=(
+                   command=partial(self.play_btn, key)).grid(row=5, column=(2 + i),
+                                                             sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
-            self.window.bind(f'q', partial(self.play_button, key))
+            self.window.bind(f'q', partial(self.play_btn, key))
 
         self.sequence_entry_text = StringVar()
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
                                                                                         sticky=NSEW)
-        self.calibrate_button = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
-                                                                                                    columnspan=4,
-                                                                                                    rowspan=2,
-                                                                                                    sticky=NSEW)
+        self.calibrate_btn = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
+                                                                                                 columnspan=4,
+                                                                                                 rowspan=2,
+                                                                                                 sticky=NSEW)
         self.fft_entry_text = StringVar()
         self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
         self.fft_entry.grid(row=6, column=6, columnspan=2, sticky=NSEW)
         self.fft_entry_text.set('512')
 
-        self.amp_thresh_entry_text = StringVar()
-        self.amp_thresh_entry = Entry(window, textvariable=self.amp_thresh_entry_text)
+        self.ampthresh_entry_text = StringVar()
+        self.amp_thresh_entry = Entry(window, textvariable=self.ampthresh_entry_text)
         self.amp_thresh_entry.grid(row=6, column=8, columnspan=2, sticky=NSEW)
-        self.amp_thresh_entry_text.set('100')
+        self.ampthresh_entry_text.set('100')
 
         self.hitmethodsvar = StringVar()
         self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly',
@@ -366,21 +366,21 @@ class XylobotGUI:
         self.hitmethodsbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
         self.hitmethodsbox.grid(row=7, column=6, columnspan=4, sticky=NSEW)
 
-        self.record_button = Button(window, text="Record Clip", command=self.record_clip).grid(row=8, column=2,
+        self.record_btn = Button(window, text="Record Clip", command=self.start_recordclip).grid(row=8, column=2,
+                                                                                                 rowspan=2,
+                                                                                                 columnspan=2,
+                                                                                                 sticky=NSEW)
+        self.stop_btn = Button(window, text="Stop Recording", command=self.stop_recordclip).grid(row=8, column=4,
+                                                                                                 rowspan=2,
+                                                                                                 columnspan=2,
+                                                                                                 sticky=NSEW)
+        self.analyse_btn = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=8, column=6,
                                                                                                rowspan=2,
                                                                                                columnspan=2,
                                                                                                sticky=NSEW)
-        self.stop_button = Button(window, text="Stop Recording", command=self.stop_recording).grid(row=8, column=4,
-                                                                                                   rowspan=2,
-                                                                                                   columnspan=2,
-                                                                                                   sticky=NSEW)
-        self.analyse_button = Button(window, text="Analyse Clip", command=self.analyse_clip).grid(row=8, column=6,
-                                                                                                  rowspan=2,
-                                                                                                  columnspan=2,
-                                                                                                  sticky=NSEW)
-        self.run_button = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
-                                                                                              rowspan=2,
-                                                                                              columnspan=2, sticky=NSEW)
+        self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
+                                                                                           rowspan=2,
+                                                                                           columnspan=2, sticky=NSEW)
         self.window.protocol('WM_DELETE_WINDOW', self.close_gui)
         self.update_log('Initialized window')
 
@@ -399,7 +399,7 @@ class XylobotGUI:
         # After it is called once, the update method will be automatically called every delay milliseconds
         self.delay = 10
 
-        self.record_clip_button_clicked = False
+        self.recordclip_btn_isclicked = False
         self.is_pitchchecking = False
 
         self.update_vid()
