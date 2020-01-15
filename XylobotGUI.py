@@ -5,6 +5,7 @@ if connectedtosetup:
 from simulation.SimuVector import SimuVector
 from simulation.SimuXylo import SimuXylo
 from signalprocessing.SignalTrack import pitch_track_wrap
+from signalprocessing.SignalTrack import pitch_track_calc
 from control.ControlManager import ControlManager
 from control.SongManager import Note
 
@@ -19,7 +20,9 @@ from types import SimpleNamespace
 import pyaudio
 import wave
 import matplotlib.pyplot as plt
+import numpy as np
 import datetime
+import time
 import math
 
 import PIL.Image
@@ -27,6 +30,8 @@ import PIL.ImageTk
 import cv2
 
 screen_factor = 0.9
+
+
 class XylobotGUI:
 
     def init_window(self):
@@ -75,7 +80,8 @@ class XylobotGUI:
 
     def update_sim(self):
         self.idx_direction = 0
-        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
+        self.directions = [-30, -15, 0, 15, 30,
+                           0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.direction = 0
@@ -104,9 +110,6 @@ class XylobotGUI:
             self.is_simlooping = False
         if self.is_simlooping:
             self.window.after(self.delay, self.update_sim_loop)
-
-    def check_tonalquality(self):
-        self.is_checktonalquality
 
     def move_simulation_robot(self, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle):
         # TODO: calculate how long the movement should take based on the time the robot takes
@@ -142,8 +145,9 @@ class XylobotGUI:
         # self.xylo.goodRotate(30)
         # updateXyloDrawing(self.xylo,self.birds_eye_view)
         # self.move_Simulation_Robot(20,180,220)
-        ############3
+        ############
         if connectedtosetup:
+            self.do_pitchcheck()
             # control.hitkey(key)
             self.cm.hit(Note(key, 0.8), 'uniform')
 
@@ -174,14 +178,14 @@ class XylobotGUI:
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.frames = []  # Initialize array to store frames
-        self.updaterecording()
+        self.update_recording()
 
-    def updaterecording(self):
+    def update_recording(self):
         self.update_log(f'Updating recording, record button clicked {self.record_clip_button_clicked}')
         if self.record_clip_button_clicked:
             data = self.stream.read(self.chunk)
             self.frames.append(data)
-            self.window.after(self.delay_audio, self.updaterecording)
+            self.window.after(self.delay_audio, self.update_recording)
 
     def stop_recording(self):
         self.update_log('Trying to stop recording')
@@ -190,7 +194,6 @@ class XylobotGUI:
 
         self.stream.stop_stream()
         self.stream.close()
-        # Terminate the PortAudio interface
         self.p.terminate()
 
         self.update_log('Finished recording')
@@ -246,9 +249,43 @@ class XylobotGUI:
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
         if connectedtosetup:
+            self.do_pitchcheck()
             self.cm.addSong('test', 20, note_list)
             self.cm.play()
             # Control.play(note_list)
+
+    def start_pitchcheck(self):
+        self.is_pitchchecking = True
+        self.p = pyaudio.PyAudio()  # Create an interface to
+        self.update_log('Starting checking tonal quality')
+        self.stream = self.p.open(format=self.sample_format,
+                                  channels=self.channels,
+                                  rate=self.fs,
+                                  frames_per_buffer=self.chunk,
+                                  input=True)
+        self.numpyframes = []  # Initialize array to store frames
+        self.starttime = time.time()
+        self.do_pitchcheck()
+
+    def do_pitchcheck(self):
+        if self.is_pitchchecking:
+            data = self.stream.read(self.chunk)
+            self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
+            numpydata = np.hstack(self.numpyframes)
+            key_and_times, _, _, _, _, _, _, _, _, _, _, _, _, _ = pitch_track_calc(fs=self.fs, data=numpydata,
+                                                                                    fft_size=int(self.fft_entry_text.get()), is_plotting=False,
+                                                                                    is_logging=False, topindex=1,
+                                                                                    window='hanning', amp_thresh=float(self.amp_thresh_entry_text.get()))
+            print(key_and_times)
+            self.window.after(self.delay_audio, self.do_pitchcheck())
+
+    def stop_pitchcheck(self):
+        self.update_log('Trying to stop checking tonal quality')
+        self.is_pitchchecking = False
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
+        self.update_log('Stopped checking tonal quality')
 
     def close_gui(self):
         self.window.destroy()
@@ -315,8 +352,13 @@ class XylobotGUI:
                                                                                                     sticky=NSEW)
         self.fft_entry_text = StringVar()
         self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
-        self.fft_entry.grid(row=6, column=6, columnspan=4, sticky=NSEW)
-        self.fft_entry_text.set("2048")
+        self.fft_entry.grid(row=6, column=6, columnspan=2, sticky=NSEW)
+        self.fft_entry_text.set('512')
+
+        self.amp_thresh_entry_text = StringVar()
+        self.amp_thresh_entry = Entry(window, textvariable=self.amp_thresh_entry_text)
+        self.amp_thresh_entry.grid(row=6, column=8, columnspan=2, sticky=NSEW)
+        self.amp_thresh_entry_text.set('100')
 
         self.hitmethodsvar = StringVar()
         self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly',
@@ -358,6 +400,8 @@ class XylobotGUI:
         self.delay = 10
 
         self.record_clip_button_clicked = False
+        self.is_pitchchecking = False
+
         self.update_vid()
         self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)

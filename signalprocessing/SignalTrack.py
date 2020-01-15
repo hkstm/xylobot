@@ -52,14 +52,14 @@ def fft(x):
     return X.ravel()
 
 
-def stft(fft_size, data, pad_end_size, total_segments, hop_size, args):
-    if args.window == 'bartlett':
+def stft(fft_size, data, pad_end_size, total_segments, hop_size, argwindow):
+    if argwindow == 'bartlett':
         window = np.bartlett(fft_size)
-    elif args.window == 'blackman':
+    elif argwindow == 'blackman':
         window = np.blackman(fft_size)
-    elif args.window == 'hamming':
+    elif argwindow == 'hamming':
         window = np.hamming(fft_size)
-    elif args.window == 'hanning':
+    elif argwindow == 'hanning':
         window = np.hanning(fft_size)
     else:
         window = None
@@ -88,8 +88,8 @@ def convert_idxlist_to_timelist(time_list, idxlist):
     return [convert_idx_to_time(time_list, x) for x in idxlist]
 
 
-def detect_pitch(magnitudes, freq_list, args):
-    n = args.topindex
+def detect_pitch(magnitudes, freq_list, topindex=1):
+    n = topindex
     indices = np.argpartition(magnitudes, -n)[-n:]
     # logger.debug(f'indices {indices}')
     return freq_list[min(indices)]
@@ -105,7 +105,7 @@ def find_key(pitch):
                 return pitches_ranges[i][1]
 
 
-def detect_hits(result_not_cutoff, loudness_factor, args, freq_list, time_list):
+def detect_hits(result_not_cutoff, loudness_factor, is_plotting, freq_list, time_list):
     result = process_results(result_not_cutoff, freq_list)
     max_magn = -1
     mean_amp = [np.average(bins) for bins in result]
@@ -122,7 +122,7 @@ def detect_hits(result_not_cutoff, loudness_factor, args, freq_list, time_list):
     for i in range(1, len(mean_amp)):
         if mean_amp[i] > mean_amp[i - 1] + loudness_offset:
             hits.append(i)
-    if args.plot:
+    if is_plotting:
         plt.plot(mean_amp, '.-')
         plt.title('Average amplitude of frequency bins in signal')
         plt.xlabel('Time in frames')
@@ -177,7 +177,7 @@ def pitch_track_wrap(args_dict):
         logger.addHandler(logging.StreamHandler())
     logger.info("Starting script")
 
-    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_calc(
+    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_wav(
         args, is_logging=True)
     if args.plot:
         plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
@@ -197,23 +197,27 @@ def pitch_track_wrap(args_dict):
     return key_and_times
 
 
-def find_pitch_recursively(results, freq_list, args, idx, offset, timestep, threshold=1.0):
-    if find_key(detect_pitch(results[idx + offset], freq_list, args)) is None and idx + offset < len(
-            results) and offset * timestep < threshold:
-        return find_pitch_recursively(results, freq_list, args, idx, (offset + 1), timestep, threshold)
+def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, threshold=0.2):
+    if idx + offset < len(results):
+        if find_key(detect_pitch(results[idx + offset], freq_list, topindex)) is None and offset * timestep < threshold:
+            return find_pitch_recursively(results, freq_list, topindex, idx, (offset + 1), timestep, threshold)
+        else:
+            return detect_pitch(results[idx + offset], freq_list, topindex)
     else:
-        return detect_pitch(results[idx + offset], freq_list, args)
+        return -1
 
 
-def pitch_track_calc(args, is_logging=False):
+def pitch_track_wav(args, is_logging=False):
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
     sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
     fs, data = wavfile.read(sound_file_path)
-
-    fft_size = int(args.fftsize)
-
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')
+    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window)
+
+
+def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning', amp_thresh=0):
+    if is_logging:
         logger.debug(f'fs:\t\t{fs}')
         logger.debug(f'fftsize:\t{fft_size}')
         logger.debug(f'fs/fft:\t\t{fs / fft_size}')
@@ -233,22 +237,23 @@ def pitch_track_calc(args, is_logging=False):
     freq_list_cutoff = freq_list[low_index_cutoff:upper_index_cutoff]
 
     result = stft(data=data, fft_size=fft_size, pad_end_size=pad_end_size, total_segments=total_segments,
-                  hop_size=hop_size, args=args)
+                  hop_size=hop_size, argwindow=window)
 
-    hits_cutoff, averages = detect_hits(result, loudness_factor, args, freq_list, time_list)
+    hits_cutoff, averages = detect_hits(result, loudness_factor, is_plotting, freq_list, time_list)
     results_cutoff = process_results(result, freq_list)
     key_and_times = []
     freq_and_times = []
     for hit_idx in hits_cutoff:
-        pitchwindow = 20  # trying to find a pitch in 20 ms window from hit
-        pitch = find_pitch_recursively(results=results_cutoff, freq_list=freq_list_cutoff, args=args, idx=hit_idx,
-                                       offset=1, timestep=timestep, threshold=pitchwindow/1000)
-        key = find_key(pitch)
-        key_and_times.append((key, convert_idx_to_time(time_list, hit_idx)))
-        freq_and_times.append((pitch, convert_idx_to_time(time_list, hit_idx)))
-        if is_logging:
-            pass
-            # logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
+        if averages[hit_idx] > amp_thresh:
+            pitchwindow = 20  # trying to find a pitch in 20 ms window from hit
+            pitch = find_pitch_recursively(results=results_cutoff, freq_list=freq_list_cutoff, topindex=topindex, idx=hit_idx,
+                                           offset=1, timestep=timestep, threshold=(pitchwindow/1000))
+            key = find_key(pitch)
+            key_and_times.append((key, convert_idx_to_time(time_list, hit_idx)))
+            freq_and_times.append((pitch, convert_idx_to_time(time_list, hit_idx)))
+            if is_logging:
+                pass
+                # logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
 
     results_transposed = np.transpose(results_cutoff)
     return key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times

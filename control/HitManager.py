@@ -1,7 +1,9 @@
 from control.Hit import *
 from .Point import Point
 from .Position import Position
+import IK as ik
 
+import time
 
 class HitManager:
     POWER = 5
@@ -24,6 +26,7 @@ class HitManager:
         for p in self.positions:
             self.sendToArduino(p)
             # print('tempo: ', self.tempo)
+
             time.sleep(self.tempo)
 
     def calculatePath(self, note, speed='', power=''):
