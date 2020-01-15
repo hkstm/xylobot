@@ -32,6 +32,8 @@ import cv2
 
 from signalprocessing.custompitchtracking import pitch_track
 
+from threading import Thread
+
 
 class XylobotGUI:
 
@@ -259,21 +261,31 @@ class XylobotGUI:
             self.cm.hit(Note(key, 0.8), 'uniform')
 
     # TODO call right method, calibrator needs to be restructured
+    def calibrateThread(self, arg):
+        newNotes = Calibrator.calibrate(self, self.cm)
+        self.update_log(f'Calibration successful with: {newNotes}')
+        print('Calibration successful with: ', newNotes)
+        # controll.setNotes(newNotes)
+        self.cm.setNoteCoordinates(newNotes)
+        self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
+        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
+
     def calibrate(self):
         if connectedtosetup:
             self.update_log('Started calibration')
             try:
-                newNotes = Calibrator.calibrate(self.cm)
-                self.update_log(f'Calibration successful with: {newNotes}')
-                print('Calibration successful with: ', newNotes)
-                # controll.setNotes(newNotes)
-                self.cm.setNoteCoordinates(newNotes)
-                self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
-                self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
+                # thread = Thread(target =self.calibrateThread, args=(10, ))
+                # thread.start()
+                # thread.join()
+                self.calibrateThread(10)
             except Exception as e:
                 print(e)
                 self.update_log(f'Calibration failed: {e}')
                 Calibrator.destroyWindows()
+
+    def updateCenterpointsImage(self):
+        self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
+        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
 
     def record_clip(self):
         self.record_clip_button_clicked = True

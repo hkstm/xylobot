@@ -9,15 +9,21 @@ from Point import Point as Point
 from Position import Position as Position
 import IK as ik
 import computervision.Grid as Grid
+import numpy as np
 import math
+Coefficient = 1
 
-def calibrate(cm):
+FIRST = True
+
+
+
+
+
+def calibrate(gui, cm):
+    global Coefficient
     discoveredPoints = []
 
-    currentPoint = Point(12, 23, 12)
-    currentPos = ik.getAngles(currentPoint)
-    #controll.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
-    cm.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+
 
     #height = Control.getZ()
     height = 12
@@ -27,9 +33,10 @@ def calibrate(cm):
     # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
     # controll.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
-    keyList = Grid.generateList()
-    #self.updateCenterpointsImage()
-    keyList[0].x = 9
+    keyList = Grid.generateList(gui)
+    gui.updateCenterpointsImage()
+
+    keyList[0].x = 11
     keyList[0].y = 23
     keyList[0].z = height
 
@@ -61,39 +68,88 @@ def calibrate(cm):
     keyList[7].y = 23
     keyList[7].z = height
 
+
+
+
+    if (Grid.Swapped()):
+        print("Keylist swapped in calibrator, starting right")
+        Coefficient = -1
+        # keyList2 = keyList
+
+        # for j in range(0, 7):
+        #     i = 7-j
+        #     keyList2[i] = keyList[j]
+        for k in keyList:
+            print(k.key, " xyz = ", k.x, " ", k.y, "  ", k.z)
+        print("Coefficient: ", Coefficient)
+
+        keyList = np.flip(keyList, 0)
+        #keyList = keyList2
+
+        for k in keyList:
+            print(k.key, " xyz = ", k.x, " ", k.y, "  ", k.z)
+        print("Coefficient: ", Coefficient)
+
+
+
+    # controll.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+    #cm.sendToArduino(Position(currentPos[0], currentPos[1], 0))
+
+    currentPoint = Point(0, keyList[0].y, keyList[0].z)
+    t = ik.getAngles(currentPoint)
+    moveToPos(cm, Position(t[0], t[1], t[2]), Position(0,0,0), 1000)
+
+    currentPoint = Point(keyList[0].x, keyList[0].y, keyList[0].z)
+    r = ik.getAngles(currentPoint)
+    moveToPos(cm, Position(r[0], r[1], r[2]), Position(t[0],t[1],t[2]), 1000)
+
+
+
+
     for k in keyList:
+        print("Current Key XYZ = " , k.x , "  " , k.y , "  " , k.z)
         #currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
-        newx, newy, newz, currentPoint = find(cm, k, currentPoint)
+        newx, newy, newz, currentPoint = find(gui, cm, k, currentPoint)
         #discoveredPoints.append([newx, newy, height])
         discoveredPoints.append(Point(newx, newy, height))
         i = 0
         while i < len(keyList):
             keyList[i].y = newy
-            keyList[i].x = newx - 12/6.75
+            keyList[i].x = newx - (12/6.75 * Coefficient)
             i += 1
     return discoveredPoints
 
-def find(cm, key, currentPoint):
+def find(gui, cm, key, currentPoint):
+    global Coefficient
+    oldPoint = currentPoint
     currentPoint = moveTo(cm, Point(key.x,key.y,key.z), currentPoint)
     offset = Grid.getOffset(key)
-    error = 5
-    stepsize = 0.05
-    while abs(offset[0]) > error or abs(offset[1] > error):
-        print(key.key," Px & y are: ", key.px, " ", key.py)
-        print(" Offsets are: ", offset[0], " ", offset[1])
-        print(" Keys are at: ", key.x, " ", key.y)
-        if abs(offset[0])>error:
-            key.x -= offset[0]*stepsize
-        if abs(offset[1])>error:
-            key.y -= offset[1]*stepsize
-        currentPoint = moveTo(cm, Point(key.x, key.y, key.z), currentPoint)
-        offset = Grid.getOffset(key, (key.px, key.py))
-    print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
-    return key.x, key.y, key.z, currentPoint
+    print("offsets: ", offset[0], offset[1])
+    if offset is (None, None):
+        moveTo(cm, oldPoint, currentPoint)
+        return find(gui, cm, Point(key.x - (12/6.75 * Coefficient), key.y, key.z), oldPoint)
+    else:
+        error = 5
+        stepsize = 0.05
+        while abs(offset[0]) > error or abs(offset[1] > error):
+            print(key.key," Px & y are: ", key.px, " ", key.py)
+            print(" Offsets are: ", offset[0], " ", offset[1])
+            print(" Keys are at: ", key.x, " ", key.y)
+            if abs(offset[0])>error:
+                key.x -= offset[0]*stepsize #* Coefficient
+            if abs(offset[1])>error:
+                key.y -= offset[1]*stepsize
+            currentPoint = moveTo(cm, Point(key.x, key.y, key.z), currentPoint)
+            offset = Grid.getOffset(key, (key.px, key.py))
+        print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
+        gui.update_log(f'KEYFOUND  {key.x}, {key.y}, {key.z} With px, py and malletx, mallety : ", {key.px}, {key.py}, {key.px + offset[0]}, {key.py + offset[1]}')
+        return key.x, key.y, key.z, currentPoint
 
 def moveTo(cm, point, currentPoint, rang = 100):
     #currentPoint.y -= 3
-    print(" CURRENT POINT EQUALS ", currentPoint)
+    #currentPoint.x -= 3
+    print(" CURRENT POINT EQUALS ", currentPoint.x, currentPoint.y, currentPoint.z)
+    print(" POINT EQUALS ", point.x, point.y, point.z)
     c = ik.getAngles(currentPoint)
     c2 = ik.getAngles(point)
     p = Position(c[0],c[1],c[2])
@@ -111,8 +167,31 @@ def moveTo(cm, point, currentPoint, rang = 100):
     currentPoint = point
     return currentPoint
 
+def moveToPos(cm, pos, currentPos, rang = 100):
+    #currentPoint.y -= 3
+    #currentPoint.x -= 3
+    print(" CURRENT POINT EQUALS ", currentPos.m0, currentPos.m1, currentPos.m2)
+    print(" POINT EQUALS ", pos.m0, pos.m1, pos.m2)
+
+    p = currentPos
+    g = pos
+    m0dif = g.m0-p.m0
+    m1dif = g.m1-p.m1
+    m2dif = g.m2-p.m2
+
+    for i in range(1, rang):
+        temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
+        #controll.sendToArduino(temp)
+        cm.sendToArduino(temp)
+
+
+    currentPoint = pos
+    return currentPoint
+
 def destroyWindows():
+    global Coefficient
     Grid.destroyWindows()
+    Coefficient = 1
     print("Windows destroyed")
 
 if __name__ == '__main__':

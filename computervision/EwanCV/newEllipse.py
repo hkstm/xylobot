@@ -10,7 +10,7 @@ finalObj = None
 bready = False
 b2ready = False
 finalObj2 = None
-Swapped = False
+swapped = False
 list = []
 boundarycenterleft = None
 boundarycenterright = None
@@ -18,8 +18,8 @@ boundarycenterright = None
 def run():
     width = int(cap.get(3))
     height = int(cap.get(4))
-    global finalObj, DONE, bready, b2ready, finalObj2, list, Swapped, boundarycenterleft, boundarycenterright
-    Swapped = False
+    global finalObj, DONE, bready, b2ready, finalObj2, list, swapped, boundarycenterleft, boundarycenterright
+    swapped = False
     #bready = False
     #b2ready = False
     while(DONE == False):
@@ -59,12 +59,25 @@ def run():
 
 #Crop image
         if bready:
-            offset = int(finalObj[1][0]) + 370
+            print("bready x: ", int(finalObj[0][0]))
+            if int(finalObj[0][0]) > int(width/2):
+                offsetright = int(width/2)
+                offset = 0
+            else:
+                offset = int(finalObj[0][0]) + 370
+                offsetright = 640
         elif b2ready:
-            offset = int(finalObj2[1][0]) + 370
+            print("b2ready x: ", int(finalObj2[0][0]))
+            if int(finalObj2[0][0]) > int(width/2):
+                offsetright = int(width/2)
+                offset = 0
+            else:
+                offset = int(finalObj2[0][0]) + 370
+                offsetright = 640
         else:
             offset = 420
-        crop = frame[0:height, offset:640]
+            offsetright = 640
+        crop = frame[0:height, offset:offsetright]
         cv2.imshow('crop', crop)
 #Change to hsv, find black mask, reduce noise using morphology
         hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
@@ -107,7 +120,7 @@ def run():
             cv2.circle(frame, (int(finalObj2[0][0]), int(finalObj2[0][1])), 1, (0, 0, 255), 3)
             boundarycenterright = (int(finalObj2[0][0]), int(finalObj2[0][1]))
         if b2ready and bready and (abs(int(finalObj2[0][0]) - int(finalObj[0][0])) > 100 or abs(int(finalObj2[0][1]) - int(finalObj[0][1])) > 100):
-            Swapped = False
+            swapped = False
             if ((int(finalObj2[0][0]) - int(finalObj[0][0])) < 0):#CHECK WITH RHYS
                 boundarycenterleft = (int(finalObj2[0][0]), int(finalObj2[0][1]))
                 boundarycenterright = (int(finalObj[0][0]), int(finalObj[0][1]))
@@ -115,7 +128,7 @@ def run():
                 temp = finalObj
                 finalObj = finalObj2
                 finalObj2 = temp
-                Swapped = True
+                swapped = True
             lineThickness = 2
             cv2.line(frame, (int(finalObj[0][0]), int(finalObj[0][1])), (int(finalObj2[0][0]), int(finalObj2[0][1])), (0, 255, 0), lineThickness)
             cv2.circle(frame, (int(finalObj[0][0] + (1 / 9) * (finalObj2[0][0] - finalObj[0][0])), int((finalObj[0][1] + (1 / 9) * (finalObj2[0][1] - finalObj[0][1])))), 1,(0, 0, 255), 3)
@@ -133,15 +146,15 @@ def run():
             cv2.circle(frame, (int(finalObj[0][0] + (8 / 9) * (finalObj2[0][0] - finalObj[0][0])),
                                int((finalObj[0][1] + (8 / 9) * (finalObj2[0][1] - finalObj[0][1])))), 1, (0, 0, 255), 3)
             #print(" List Found")
-            if Swapped: #CHECK WITH RHYS
-                createList2(int(finalObj[0][0]), int(finalObj[1][0]), int(finalObj[0][1]), int(finalObj[1][1]))
+            if swapped: #CHECK WITH RHYS
+                createList2(int(finalObj[0][0]), int(finalObj2[0][0]), int(finalObj[0][1]), int(finalObj2[0][1]))
             else:
-                createList1(int(finalObj[0][0]), int(finalObj[1][0]), int(finalObj[0][1]), int(finalObj[1][1]))
+                createList1(int(finalObj[0][0]), int(finalObj2[0][0]), int(finalObj[0][1]), int(finalObj2[0][1]))
 
 
-            cv2.imwrite('Xylobot\centerpoints.jpg', frame)
-            #print('Printed')
-            #DONE = True
+            cv2.imwrite('centerpoints.jpg', frame)
+            print('Image saved')
+            DONE = True
 
         cv2.imshow('frame', frame)
         k = cv2.waitKey(5) & 0xFF
@@ -150,12 +163,17 @@ def run():
     cap.release()
     cv2.destroyAllWindows()
 
+def Swapped():
+    global swapped
+    return swapped
 
 def getList():
+    global list
     return list
 
 def createList1(blackcx, black2cx, blackcy, black2cy):
-    print(" LIST CERATED 1")
+    global list
+    print(" LIST CERATED NORMAL")
     list.append(CenterPoint("c6", int(blackcx + (8 / 9) * (black2cx - blackcx)),
                             int(blackcy + (8 / 9) * (black2cy - blackcy)), 0, 0, 0))
     list.append(
@@ -174,21 +192,22 @@ def createList1(blackcx, black2cx, blackcy, black2cy):
         CenterPoint("a6", int(blackcx + (3 / 9) * (black2cx - blackcx)), int(blackcy + (3 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
     list.append(
-        CenterPoint("b7", int(blackcx + (2 / 9) * (black2cx - blackcx)), int(blackcy + (2 / 9) * (black2cy - blackcy)),
+        CenterPoint("b6", int(blackcx + (2 / 9) * (black2cx - blackcx)), int(blackcy + (2 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
     list.append(
         CenterPoint("c7", int(blackcx + (1 / 9) * (black2cx - blackcx)), int(blackcy + (1 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
 
 def createList2(blackcx, black2cx, blackcy, black2cy):
-    print(" LIST CERATED 2")
+    global list
+    print(" LIST CERATED SWAPPED")
     list.append(CenterPoint("c7", int(blackcx + (8 / 9) * (black2cx - blackcx)),
                             int(blackcy + (8 / 9) * (black2cy - blackcy)), 0, 0, 0))
     list.append(
         CenterPoint("b6", int(blackcx + (7 / 9) * (black2cx - blackcx)), int(blackcy + (7 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
     list.append(
-        CenterPoint("ba6", int(blackcx + (6 / 9) * (black2cx - blackcx)), int(blackcy + (6 / 9) * (black2cy - blackcy)),
+        CenterPoint("a6", int(blackcx + (6 / 9) * (black2cx - blackcx)), int(blackcy + (6 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
     list.append(
         CenterPoint("g6", int(blackcx + (5 / 9) * (black2cx - blackcx)), int(blackcy + (5 / 9) * (black2cy - blackcy)),
@@ -200,7 +219,7 @@ def createList2(blackcx, black2cx, blackcy, black2cy):
         CenterPoint("f6", int(blackcx + (3 / 9) * (black2cx - blackcx)), int(blackcy + (3 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
     list.append(
-        CenterPoint("d7", int(blackcx + (2 / 9) * (black2cx - blackcx)), int(blackcy + (2 / 9) * (black2cy - blackcy)),
+        CenterPoint("d6", int(blackcx + (2 / 9) * (black2cx - blackcx)), int(blackcy + (2 / 9) * (black2cy - blackcy)),
                     0, 0, 0))
     list.append(
         CenterPoint("c6", int(blackcx + (1 / 9) * (black2cx - blackcx)), int(blackcy + (1 / 9) * (black2cy - blackcy)),

@@ -4,9 +4,11 @@ from collections import deque
 import imutils
 
 cap = None
+counter = 0
 
 def run(previous_coordinates, boundarycenterleft, boundarycenterright):
-    global cap
+    global cap, counter
+    counter = 0
     cap = cv2.VideoCapture(1)
 
     width = int(cap.get(3))
@@ -49,6 +51,10 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
             cap.release()
             cv2.destroyAllWindows()
             return ((x, y), radius)
+        elif counter > 40:
+            return ((None, None), None)
+        previous_coordinates = (None, None)
+        counter += 1
     #writer.release()
     cap.release()
     cv2.destroyAllWindows()
@@ -61,7 +67,7 @@ def colorDetection(frame, prec, bcl, bcr):
 
     hsv = cv2.cvtColor(framecopy, cv2.COLOR_BGR2HSV)
     lower_black = numpy.array([0, 0, 0])
-    upper_black = numpy.array([190, 255, 30])
+    upper_black = numpy.array([100, 255, 30])
     mask = cv2.inRange(hsv, lower_black, upper_black)
     mask = cv2.bitwise_not(mask)
     res= cv2.bitwise_and(frameoriginal, frameoriginal, mask=mask)
@@ -104,14 +110,20 @@ def drawCircle(cnts, frame, prec, bcl, bcr):
                 continue
             if prec == (None, None):
                 prec = ((x,y), radius)[0]
-            print("prec: ", prec)
-            print("newc ", ((x,y), radius)[0])
-            if 60 > radius > 10 and (bcl[0] + 5 < ((x, y), radius)[0][0] < bcr[0] - 5): # and (abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)
+            #print("prec: ", prec)
+            #print("newc ", ((x,y), radius)[0])
+            # print("x difference: ", abs(((x, y), radius)[0][0] - prec[0]))
+            # print("y difference: ", abs(((x, y), radius)[0][1] - prec[1]))
+            # print("radius in bounds? ", 30 > radius > 10, " radius: ", radius)
+            # print("not outside? ", bcl[0], bcr[0])
+            if 30 > radius > 10 and (bcl[0] + 40 < ((x, y), radius)[0][0] < bcr[0] - 40): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
                 cv2.circle(frame, (int(x), int(y)), int(radius),
                            (0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                cv2.imshow("mallet frame", frame)
+                cv2.waitKey(500)
                 return frame, ((x, y), radius)
     print("No mallet detected")
     cv2.imshow('frame', frame)
