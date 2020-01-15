@@ -147,7 +147,7 @@ class XylobotGUI:
         # self.move_Simulation_Robot(20,180,220)
         ############
         if connectedtosetup:
-            self.do_pitchcheck()
+            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
             self.cm.hit(Note(key, 0.8), 'uniform')
 
@@ -172,7 +172,7 @@ class XylobotGUI:
         self.recordclip_btn_isclicked = True
         self.p = pyaudio.PyAudio()  # Create an interface to
         self.update_log('Started recording')
-        self.stream = self.p.open(format=self.sample_format,
+        self.stream = self.p.open(format=self.sampleformat,
                                   channels=self.channels,
                                   rate=self.fs,
                                   frames_per_buffer=self.chunk,
@@ -205,7 +205,7 @@ class XylobotGUI:
         print(os.path.abspath(filename))
         wf = wave.open(os.path.abspath(filename), 'wb')
         wf.setnchannels(self.channels)
-        wf.setsampwidth(self.p.get_sample_size(self.sample_format))
+        wf.setsampwidth(self.p.get_sample_size(self.sampleformat))
         wf.setframerate(self.fs)
         wf.writeframes(b''.join(self.frames))
         wf.close()
@@ -249,25 +249,24 @@ class XylobotGUI:
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
         if connectedtosetup:
-            self.do_pitchcheck()
+            self.start_pitchcheck(notelist=note_list)
             self.cm.addSong('test', 20, note_list)
             self.cm.play()
             # Control.play(note_list)
 
-    def start_pitchcheck(self):
+    def start_pitchcheck(self, notelist):
         self.is_pitchchecking = True
         self.p = pyaudio.PyAudio()  # Create an interface to
         self.update_log('Starting checking tonal quality')
-        self.stream = self.p.open(format=self.sample_format,
+        self.stream = self.p.open(format=self.sampleformat,
                                   channels=self.channels,
                                   rate=self.fs,
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
-        self.starttime = time.time()
-        self.do_pitchcheck()
+        self.do_pitchcheck(notelist)
 
-    def do_pitchcheck(self):
+    def do_pitchcheck(self, notelist):
         if self.is_pitchchecking:
             data = self.stream.read(self.chunk)
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
@@ -356,8 +355,8 @@ class XylobotGUI:
         self.fft_entry_text.set('512')
 
         self.ampthresh_entry_text = StringVar()
-        self.amp_thresh_entry = Entry(window, textvariable=self.ampthresh_entry_text)
-        self.amp_thresh_entry.grid(row=6, column=8, columnspan=2, sticky=NSEW)
+        self.ampthresh_entry = Entry(window, textvariable=self.ampthresh_entry_text)
+        self.ampthresh_entry.grid(row=6, column=8, columnspan=2, sticky=NSEW)
         self.ampthresh_entry_text.set('100')
 
         self.hitmethodsvar = StringVar()
@@ -413,7 +412,7 @@ class XylobotGUI:
 
         self.delay_audio = 1
         self.chunk = 1024  # Record in chunks of 1024 samples
-        self.sample_format = pyaudio.paInt16  # 16 bits per sample
+        self.sampleformat = pyaudio.paInt16  # 16 bits per sample
         self.channels = 1
         self.fs = 44100  # Record at 44100 samples per second
         self.frames = []  # Initialize array to store frames

@@ -3,13 +3,14 @@ from .Point import Point
 
 
 class Note:
-    def __init__(self, key, delay=0.0, coords=''):
+    def __init__(self, key, delay=0.0, coords='', intensity=1000):
         self.key = key
         self.delay = delay
         self.coords = coords
+        self.intensity = intensity
 
     def __str__(self):
-        return "Note: {}, delay: {}, coords: {}".format(self.key, self.delay, self.coords)
+        return f"Note: {self.key}, delay: {self.delay}, coords: {self.coords}, intensity: {self.intensity}"
 
 
 class Song:
