@@ -1,7 +1,7 @@
 from control.Hit import *
 from .Point import Point
 from .Position import Position
-import IK as ik
+import .IK as ik
 
 import time
 
