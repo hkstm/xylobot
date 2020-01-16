@@ -232,6 +232,7 @@ for i in range(amount_of_runs_test):
     key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_wav(
         SimpleNamespace(**argsdict))
     endtime = time.process_time()
+    print(f'data type {type(data)}')
     print(f'timeres {time_resolution(time_list)}')
     print(f'pitches{pitches}')
     print(f'{key_and_times}')
