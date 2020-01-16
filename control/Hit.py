@@ -1,7 +1,7 @@
 from .Point import Point
 import math
 
-ACCURACY_COEFF = 100
+ACCURACY_COEFF = 50
 
 class Hit:
     def __init__(self, ser, xyloheight):
@@ -51,13 +51,15 @@ class SameNoteHit(Hit):
         while self.z <= self.prehit_height:
             i = i + self.speed + (i / ACCURACY_COEFF)
             self.z = self.origin.z + i
-            self.path.append(Point(self.origin.x, self.origin.y, self.z))
+            if self.z >= self.hit_height:
+                self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
         i = 0
         while self.z >= self.hit_height:
             i = i + self.speed + (i / ACCURACY_COEFF)
             self.z = self.prehit_height - i
-            self.path.append(Point(self.origin.x, self.origin.y, self.z))
+            if self.z >= self.hit_height:
+                self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
 
 class RightAngledTriangularHit(Hit):
@@ -77,27 +79,31 @@ class RightAngledTriangularHit(Hit):
         if self.left:
             i = 0
             while self.x < self.target.x:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed# + (i / ACCURACY_COEFF)
+                self.speed = self.speed + 0.5
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z-5))
 
             j = 0
             while self.z > self.target.z:
-                j = j + self.speed + (j / ACCURACY_COEFF)
+                j = j + self.speed# + (j / ACCURACY_COEFF)
+                self.speed = self.speed + 0.5
                 self.z = self.target.z - j
                 self.path.append(Point(self.target.x, self.target.y, self.z))
         else:
             i = 0
             while self.x > self.target.x:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed# + (i / ACCURACY_COEFF)
+                self.speed = self.speed + 0.5
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
 
             j = 0
             while self.z > self.target.z:
-                j = j + self.speed + (j / ACCURACY_COEFF)
+                j = j + self.speed# + (j / ACCURACY_COEFF)
+                self.speed = self.speed + 0.5
                 self.z = self.midpoint.z - j
                 self.path.append(Point(self.target.x, self.target.y, self.z))
 
@@ -205,17 +211,21 @@ class QuadraticHit(Hit):
         if self.left:
             i = 0
             while self.x < self.offset_target.x:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed# + (i / ACCURACY_COEFF)
+                self.speed = self.speed + 0.1
                 self.x = self.offset_origin.x + i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
-                self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
+                if self.z >= self.hit_height:
+                    self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
         else:
             i = 0
             while self.x > self.offset_target.x:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed# + (i / ACCURACY_COEFF)
+                self.speed = self.speed + 0.1
                 self.x = self.offset_origin.x - i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
-                self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
+                if self.z >= self.hit_height:
+                    self.path.append(Point(self.origin.x + self.x, self.origin.y, self.z))
 
 
     def getFunction(self):
@@ -226,13 +236,79 @@ class QuadraticHit(Hit):
                  (self.offset_target.x ** 2 - ((self.offset_midpoint.x ** 2) * self.ratio))
         self.b = ((self.offset_midpoint.z - self.offset_origin.z) - (self.offset_midpoint.x ** 2 * self.a)) / \
                  self.offset_midpoint.x
-        # print('Quadratic parameters - a: ', self.a, ' b: ', self.b, ' c: ', self.c)
+        #print('Quadratic parameters - a: ', self.a, ' b: ', self.b, ' c: ', self.c)
 
     def generateOffset(self):
         self.offset_target = Point(self.target.x - self.origin.x, 0, self.target.z)
         self.offset_midpoint = Point(self.midpoint.x - self.origin.x, 0, self.midpoint.z)
         self.offset_origin = Point(0, 0, self.target.z)
         # print('Offset - origin: ', self.offset_origin, ' midpoint: ', self.offset_midpoint, ' target: ', self.offset_target)
+
+class ForwardCinematicHit(Hit):
+
+    def calculatePath(self, curpos, pos, speed):
+        # TO_DO
+
+        x0 = curpos[0]
+        x1 = pos[0]
+        z0 = curpos[1]
+        z1 = pos[1]
+        y0 = curpos[2]
+        y1 = pos[2]
+
+        xpath = []
+        ypath = []
+        zpath = []
+        path = []
+        if x1 > x0:
+            ymid = y0 - 10
+            zmid = z0 + 20
+        else:
+            ymid = y0 - 10
+            zmid = z0 + 20
+
+        if x1 - x0 == 0:
+            zmid = z0 + 20
+            ymid = y0 + 10  # power
+            for i in range(0, speed):
+                x = x0 + (i + 1) * ((x1 - x0) / speed)
+
+                if i < speed / 2:
+                    y = y0 + (i + 1) * ((ymid - y0) / speed)
+                    z = z0 + (i + 1) * (zmid - z0) / speed
+                else:
+                    y = y0 + (i + 1) * ((y1 - ymid) / speed)
+                    z = zmid + (i + 1) * (z1 - zmid) / speed
+                xpath.append(x)
+                ypath.append(y)
+                zpath.append(z)
+        else:
+            a = (y1 - y0) / (x1 - x0)
+            b = y0 - a * x0
+
+            #if DEBUG == 2:
+
+            for i in range(0, speed):
+                x = x0 + (i + 1) * ((x1 - x0) / speed)
+
+                xpath.append(x)
+
+
+                if i < speed / 2:
+                    y = y0 + (i + 1) * (ymid - y0) / speed
+                    z = z0 + (i + 1) * (zmid - z0) / speed
+                else:
+                    y = ymid + (i + 1) * (y1 - ymid) / speed
+                    z = zmid + (i + 1) * (z1 - zmid) / speed
+                ypath.append(y)
+                zpath.append(z)
+                #if DEBUG == 2:
+
+        path.append(xpath)
+        path.append(ypath)
+        path.append(zpath)
+
+        return path
 
 
 

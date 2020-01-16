@@ -1,3 +1,5 @@
+import copy
+
 from control.Hit import *
 from .Point import Point
 from .Position import Position
@@ -20,27 +22,28 @@ class HitManager:
         self.lh = None
         self.snh = SameNoteHit(ser, xyloheight)
         self.positions = []
-        self.hittype = 'quadratic'
+        self.hittype = 'triangle 2'
         self.tempo = 0.1
 
     def hit(self):
         for p in self.positions:
+            print('- Position: ', p)
             self.sendToArduino(p)
-            # print('tempo: ', self.tempo)
 
             time.sleep(self.tempo)
 
     def calculatePath(self, note, speed='', power=''):
-        # print('[*] calculating path...')
+        print('[*] calculating path...')
         self.positions = []
         if power == '':
             power = self.POWER
 
         self.targetPosition = note.coords
         distance = math.fabs(self.targetPosition.x - self.currentPosition.x)
-        speed = distance / 40
-        if distance == 0:
-            speed = 0.1
+        speed = 0.5
+        #speed = distance / 10
+        #if distance == 0:
+        #    speed = 0.5
 
         h = None
         #
@@ -67,6 +70,7 @@ class HitManager:
 
         # print('Points: ')
         for p in h.getPath():
+            print('- Point: ', p)
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)
@@ -89,6 +93,16 @@ class HitManager:
             self.setCurrent(self.targetPosition)
         else:
             self.setCurrent(lastPos)
+
+        # Hit the note, go up and hit harder down
+        try:
+            hitpos = copy.deepcopy(self.positions[-1])
+            hitpos.m1 = hitpos.m1 + 10
+            hitpos.m2 = hitpos.m2 - 10
+            self.positions.append(hitpos)
+        except Exception:
+            print('Position list is empty')
+
         pos = ik.getAngles(Point(self.currentPosition.x, self.currentPosition.y, 13.5))
         self.positions.append(Position(pos[0], pos[1], pos[2]))
 
