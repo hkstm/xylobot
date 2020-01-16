@@ -51,7 +51,7 @@ def run():
             if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
                 finalObj = Obj
                 bready = True
-            elif (size[0] > 16 and size[0] < 25 and size[1] > 150 and size[1] < 200):
+            elif (size[0] > 15 and size[0] < 25 and size[1] > 150 and size[1] < 200):
                 finalObj2 = Obj
                 b2ready = True
 
@@ -107,7 +107,7 @@ def run():
             if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
                 finalObj = Obj2
                 bready = True
-            elif (size[0] > 16 and size[0] < 25 and size[1] > 150 and size[1] < 200):
+            elif (size[0] > 15 and size[0] < 25 and size[1] > 150 and size[1] < 200):
                 finalObj2 = Obj2
                 b2ready = True
         

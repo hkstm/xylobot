@@ -116,14 +116,14 @@ def drawCircle(cnts, frame, prec, bcl, bcr):
             # print("y difference: ", abs(((x, y), radius)[0][1] - prec[1]))
             # print("radius in bounds? ", 30 > radius > 10, " radius: ", radius)
             # print("not outside? ", bcl[0], bcr[0])
-            if 30 > radius > 10 and (bcl[0] + 40 < ((x, y), radius)[0][0] < bcr[0] - 40): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
+            if 40 > radius > 10 and (bcl[0] + 40 < ((x, y), radius)[0][0] < bcr[0] - 40): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
                 cv2.circle(frame, (int(x), int(y)), int(radius),
                            (0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                cv2.imshow("mallet frame", frame)
-                cv2.waitKey(500)
+                # cv2.imshow("mallet frame", frame)
+                # cv2.waitKey(500)
                 return frame, ((x, y), radius)
     print("No mallet detected")
     cv2.imshow('frame', frame)

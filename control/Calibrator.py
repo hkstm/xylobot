@@ -1,11 +1,11 @@
 try:
-    import Control as Control
+    from control import Control as Control
 except:
-    import control as Control
+    import Control as Control
 
 from .Point import Point as Point
 from .Position import Position as Position
-import IK
+# import IK
 from . import IK as ik
 import computervision.Grid as Grid
 
@@ -15,12 +15,12 @@ Coefficient = 1
 
 FIRST = True
 
-
+lastPointV = None
 
 
 
 def calibrate(gui, cm):
-    global Coefficient
+    global Coefficient, lastPointV
     discoveredPoints = []
 
 
@@ -33,8 +33,8 @@ def calibrate(gui, cm):
     # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
     # control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
-    keyList = Grid.generateList(gui)
-    gui.updateCenterpointsImage()
+    keyList = Grid.generateList()
+    #gui.updateCenterpointsImage()
 
     keyList[0].x = 11
     keyList[0].y = 23
@@ -92,16 +92,16 @@ def calibrate(gui, cm):
 
 
 
-    # controll.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
+    # control.sendToArduino(Position(currentPos[0], currentPos[1], currentPos[2]))
     #cm.sendToArduino(Position(currentPos[0], currentPos[1], 0))
 
     currentPoint = Point(0, keyList[0].y, keyList[0].z)
     t = ik.getAngles(currentPoint)
-    moveToPos(cm, Position(t[0], t[1], t[2]), Position(0,0,0), 1000)
+    moveToPos(cm, Position(t[0], t[1], t[2]), Position(0,0,0), 500)
 
     currentPoint = Point(keyList[0].x, keyList[0].y, keyList[0].z)
     r = ik.getAngles(currentPoint)
-    moveToPos(cm, Position(r[0], r[1], r[2]), Position(t[0],t[1],t[2]), 1000)
+    moveToPos(cm, Position(r[0], r[1], r[2]), Position(t[0],t[1],t[2]), 200)
 
 
 
@@ -109,26 +109,28 @@ def calibrate(gui, cm):
     for k in keyList:
         print("Current Key XYZ = " , k.x , "  " , k.y , "  " , k.z)
         #currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
-        newx, newy, newz, currentPoint = find(gui, cm, k, currentPoint)
+        newx, newy, newz, currentPoint = find(cm, k, currentPoint)
         #discoveredPoints.append([newx, newy, height])
         discoveredPoints.append(Point(newx, newy, height))
         i = 0
+        print("Key: ", k,"  ", lastPointV.m0, " ", lastPointV.m1," ",lastPointV.m2)
         while i < len(keyList):
             keyList[i].y = newy
             keyList[i].x = newx - (12/6.75 * Coefficient)
             i += 1
     return discoveredPoints
 
-def find(gui, cm, key, currentPoint):
+def find(cm, key, currentPoint):
     global Coefficient
     oldPoint = currentPoint
     currentPoint = moveTo(cm, Point(key.x,key.y,key.z), currentPoint)
     offset = Grid.getOffset(key)
     print("offsets: ", offset[0], offset[1])
-    if offset is (None, None):
-        moveTo(cm, oldPoint, currentPoint)
-        return find(gui, cm, Point(key.x - (12/6.75 * Coefficient), key.y, key.z), oldPoint)
-    else:
+    #if offset is (None, None):
+        # moveTo(cm, oldPoint, currentPoint)
+        # return find(cm, Point(key.x - (12/6.75 * Coefficient), key.y, key.z), oldPoint)
+    #else:
+    try:
         error = 5
         stepsize = 0.05
         while abs(offset[0]) > error or abs(offset[1] > error):
@@ -142,10 +144,15 @@ def find(gui, cm, key, currentPoint):
             currentPoint = moveTo(cm, Point(key.x, key.y, key.z), currentPoint)
             offset = Grid.getOffset(key, (key.px, key.py))
         print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
-        gui.update_log(f'KEYFOUND  {key.x}, {key.y}, {key.z} With px, py and malletx, mallety : ", {key.px}, {key.py}, {key.px + offset[0]}, {key.py + offset[1]}')
+        #gui.update_log(f'KEYFOUND  {key.x}, {key.y}, {key.z} With px, py and malletx, mallety : ", {key.px}, {key.py}, {key.px + offset[0]}, {key.py + offset[1]}')
         return key.x, key.y, key.z, currentPoint
+    except Exception as e:
+        print(e)
+        currentPoint = moveTo(cm, Point(key.x - (12/6.75 * Coefficient), key.y - (12/6.75 * Coefficient), key.z), oldPoint)
+        return find(cm, key, currentPoint)
 
 def moveTo(cm, point, currentPoint, rang = 100):
+    global lastPointV
     #currentPoint.y -= 3
     #currentPoint.x -= 3
     print(" CURRENT POINT EQUALS ", currentPoint.x, currentPoint.y, currentPoint.z)
@@ -160,6 +167,7 @@ def moveTo(cm, point, currentPoint, rang = 100):
 
     for i in range(1, rang):
         temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
+        lastPointV = temp
         #control.sendToArduino(temp)
         cm.sendToArduino(temp)
 
@@ -181,7 +189,7 @@ def moveToPos(cm, pos, currentPos, rang = 100):
 
     for i in range(1, rang):
         temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
-        #controll.sendToArduino(temp)
+        #control.sendToArduino(temp)
         cm.sendToArduino(temp)
 
 

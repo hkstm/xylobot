@@ -9,11 +9,11 @@ def Swapped():
     print("Swapped: ", isSwapped)
     return isSwapped
 
-def generateList(gui):
+def generateList():
     global isSwapped
     print(" Generating LIst")
     getSides.run()
-    gui.updateCenterpointsImage()
+    #gui.updateCenterpointsImage()
     list = getSides.getList()
     return list
 
