@@ -1,5 +1,6 @@
 import logging
 import os
+import math
 import numpy as np
 from scipy.signal import find_peaks
 from scipy.io import wavfile
@@ -117,7 +118,9 @@ def detect_hits(result_not_cutoff, loudness_factor, is_plotting, freq_list, time
     hits = []
 
     loudness_offset = max_magn * loudness_factor  # kinda arbitrary needs to be something to distinguish between index where no hit has taken place and beginning of hit
-    indexes, _ = find_peaks(mean_amp, threshold=None, height=loudness_offset, prominence=loudness_offset, distance=3)
+    # indexes, _ = find_peaks(mean_amp, threshold=None, height=loudness_offset, prominence=loudness_offset, distance=3)
+    indexes, _ = find_peaks(mean_amp, prominence=loudness_offset)
+
     logger.debug(f'loudnessoffset:\t{loudness_offset}')
     for i in range(1, len(mean_amp)):
         if mean_amp[i] > mean_amp[i - 1] + loudness_offset:
@@ -141,11 +144,11 @@ def find_cutoffs(freq_list):
     low_index_cutoff = -1
     upper_index_cutoff = -1
     for i, val in enumerate(freq_list):
-        if val > 900:
+        if val > int(pitches_ranges[0][0]):
             low_index_cutoff = i
             break
     for i in range(len(freq_list)):
-        if freq_list[len(freq_list) - 1 - i] < 2300:
+        if freq_list[len(freq_list) - 1 - i] < math.ceil(pitches_ranges[len(pitches_ranges)-1][0]):
             upper_index_cutoff = len(freq_list) - 1 - i
             break
     return low_index_cutoff, upper_index_cutoff
@@ -209,7 +212,7 @@ def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, 
 
 def pitch_track_wav(args, is_logging=False):
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
-    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
+    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}.wav')
     fs, data = wavfile.read(sound_file_path)
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')
