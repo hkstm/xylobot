@@ -18,7 +18,6 @@ def get_screensize():
 
 class SimuXylo:
     # CM!
-
     def getConversions(self):
         return 0, self.CM_TOPIX_X_OFFSET, self.CM_TOPIX_Y_OFFSET
 
@@ -31,7 +30,7 @@ class SimuXylo:
 
         self.COLORS = ["blue", "green", "yellow", "orange", "red", "purple", "white", "pink"]
         self.multi = 12
-        self.CM_TOPIX_MULTIPLIER_X = self.multi
+        self.CM_TOPIX_MULTIPLIER_X = -self.multi
         self.CM_TOPIX_MULTIPLIER_Y = -self.multi
         self.CM_TOPIX_X_OFFSET = 266
         self.CM_TOPIX_Y_OFFSET = 400
@@ -67,14 +66,18 @@ class SimuXylo:
         self.createKeys()
         self.goodRotate(0)
         self.setXyloMidpoint(SimuVector(0, 10, 0), cm=True)
-        # for key in self.keys:
-        # self.draw_square(key.getPoints(),key.getColor())
 
-        midp = self.getXyloMidpoint()
+
+        #midp = self.getXyloMidpoint()
 
     # self.canvas.create_line(0, 0,midp.x,midp.y, fill="pink", width=10, joinstyle=ROUND)
     # print('cenx: ', self.CENTER_X)
     # print('ceny: ', self.CENTER_Y)
+
+    def draw_square(self, points, color="red"):
+        # print('square should be drawn!:')
+        # print(np.matrix(points))
+        self.canvas.create_polygon(points, fill=color)
 
     def getKeys(self):
         return self.keys
@@ -92,7 +95,7 @@ class SimuXylo:
                              self.WIDTH * self.CM_TOPIX_MULTIPLIER_X)
             # print(f'previousconstructedkeyheight: {self.previousConstructedKeyHeight}')
             self.previousConstructedKeyHeight -= self.HEIGHT_DIFF
-
+            print('keyloc: ', newKeyLoc.getX())
             self.keys.append(newKey)
 
     # def draw_square(self, points, color="red"):
@@ -266,16 +269,34 @@ class SimuXylo:
 
     def fill_canvas(self, birds_eye_view, side_view, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,
                     seconds):
+
+        print("CALLED FILL_CANVAS")
+        ###TODO HERE WE CONVERT ANGLES!!
+        goal_direction = -goal_direction
+        goal_lower_joint_angle = 90+goal_lower_joint_angle
+        goal_upper_joint_angle = goal_lower_joint_angle+ goal_upper_joint_angle
+        ################################
+
+
         biv = birds_eye_view
         sv = side_view
         # print(f'direction:{self.direction}')
         # print(f'goal_direction:{goal_direction}')
-        sleep_time = seconds / abs(goal_direction - self.direction)
-        width = birds_eye_view.winfo_screenwidth() / 3
+        sleep_time = 0.01
+        if(goal_direction-self.direction)!=0:
+            sleep_time = seconds / abs(goal_direction - self.direction)
+
+        ###TODO CHANGED WIDTH FOR TESTING
+        width = birds_eye_view.winfo_screenwidth() / 3 - 400
         height = birds_eye_view.winfo_screenheight() / 2
         bottom = height / 2 + self.multiplier * 5.53
+        ##########
         self.base = bottom + self.multiplier * self.distance - 110.6
         # base = bottom + self.multiplier * self.distance - 110.6
+
+
+
+
 
         left = width / 2 - self.multiplier * 11 - self.division / 2
         s_line = side_view.find_withtag("s_line")
@@ -283,16 +304,16 @@ class SimuXylo:
         s_mallet = side_view.find_withtag("s_mallet")
         b_mallet = birds_eye_view.find_withtag("b_mallet")
 
-        keys = self.getKeys()
-        for key in keys:
-            color = key.getColor()
-            thiskey = birds_eye_view.find_withtag(color)
-            pts = key.getPoints()
-            # for tuplee in pts:
-            # 	for pt in tuplee:
-            # 		print(pt)
-            # birds_eye_view.coords(thiskey,(pts[0][0],pts[0][1]),(pts[1][0],pts[1][1]),(pts[2][0],pts[2][1]),(pts[3][0],pts[3][1]))
-            birds_eye_view.coords(thiskey, *flatten(pts))
+        # keys = self.getKeys()
+        # for key in keys:
+        #     color = key.getColor()
+        #     thiskey = birds_eye_view.find_withtag(color)
+        #     pts = key.getPoints()
+        #     # for tuplee in pts:
+        #     # 	for pt in tuplee:
+        #     # 		print(pt)
+        #     # birds_eye_view.coords(thiskey,(pts[0][0],pts[0][1]),(pts[1][0],pts[1][1]),(pts[2][0],pts[2][1]),(pts[3][0],pts[3][1]))
+        #     birds_eye_view.coords(thiskey, *flatten(pts))
 
         done = False
         while not done:
@@ -415,43 +436,43 @@ class SimuXylo:
                                      (self.arm_width / (2 * self.multiplier)) * math.sin(
                                  math.radians(self.upper_joint_angle - 90))))
             time.sleep(sleep_time)
-            if ((width / 2 + self.multiplier * (
-                    self.distance + self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.cos(
-                math.radians(self.direction)) +
-                    (self.upper_arm_length + self.mallet_length) * math.cos(math.radians(self.upper_joint_angle)) * math.cos(
-                math.radians(self.direction)) +
-                    (self.arm_width / (2 * self.multiplier)) * math.cos(
-                math.radians(self.upper_joint_angle - 90))) >= width / 2 - self.multiplier * 5.53) &
-                    (width / 2 + self.multiplier * (
-                            self.distance + self.lower_arm_length * math.cos(
-                        math.radians(self.lower_joint_angle)) * math.cos(
-                        math.radians(self.direction)) +
-                            (self.upper_arm_length + self.mallet_length) * math.cos(
-                        math.radians(self.upper_joint_angle)) * math.cos(
-                        math.radians(self.direction)) +
-                            (self.arm_width / (2 * self.multiplier)) * math.cos(
-                        math.radians(self.upper_joint_angle - 90))) <= width / 2 + self.multiplier * 5.53) &
-                    (width / 2 + self.multiplier * (
-                            self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.sin(
-                        math.radians(self.direction)) +
-                            (self.upper_arm_length + self.mallet_length) * math.cos(
-                        math.radians(self.upper_joint_angle)) * math.sin(math.radians(self.direction)) -
-                            (self.arm_width / (2 * self.multiplier)) * math.sin(
-                        math.radians(self.direction - 90))) <= left + 7 * (self.keywidth + self.division) + self.keywidth) &
-                    (width / 2 + self.multiplier * (
-                            self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.sin(
-                        math.radians(self.direction)) +
-                            (self.upper_arm_length + self.mallet_length) * math.cos(
-                        math.radians(self.upper_joint_angle)) * math.sin(math.radians(self.direction)) -
-                            (self.arm_width / (2 * self.multiplier)) * math.sin(
-                        math.radians(self.direction - 90))) >= left + 0 * (self.keywidth + self.division)) &
-                    (height - self.multiplier * (
-                            self.base_length + self.lower_arm_length * math.sin(
-                        math.radians(self.lower_joint_angle)) +
-                            (self.upper_arm_length + self.mallet_length) * math.sin(math.radians(self.upper_joint_angle)) +
-                            (self.arm_width / (2 * self.multiplier)) * math.sin(
-                        math.radians(self.upper_joint_angle - 90))) >= height - self.multiplier * self.xylophone_height)):
-                done = True
+            # if ((width / 2 + self.multiplier * (
+            #         self.distance + self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.cos(
+            #     math.radians(self.direction)) +
+            #         (self.upper_arm_length + self.mallet_length) * math.cos(math.radians(self.upper_joint_angle)) * math.cos(
+            #     math.radians(self.direction)) +
+            #         (self.arm_width / (2 * self.multiplier)) * math.cos(
+            #     math.radians(self.upper_joint_angle - 90))) >= width / 2 - self.multiplier * 5.53) &
+            #         (width / 2 + self.multiplier * (
+            #                 self.distance + self.lower_arm_length * math.cos(
+            #             math.radians(self.lower_joint_angle)) * math.cos(
+            #             math.radians(self.direction)) +
+            #                 (self.upper_arm_length + self.mallet_length) * math.cos(
+            #             math.radians(self.upper_joint_angle)) * math.cos(
+            #             math.radians(self.direction)) +
+            #                 (self.arm_width / (2 * self.multiplier)) * math.cos(
+            #             math.radians(self.upper_joint_angle - 90))) <= width / 2 + self.multiplier * 5.53) &
+            #         (width / 2 + self.multiplier * (
+            #                 self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.sin(
+            #             math.radians(self.direction)) +
+            #                 (self.upper_arm_length + self.mallet_length) * math.cos(
+            #             math.radians(self.upper_joint_angle)) * math.sin(math.radians(self.direction)) -
+            #                 (self.arm_width / (2 * self.multiplier)) * math.sin(
+            #             math.radians(self.direction - 90))) <= left + 7 * (self.keywidth + self.division) + self.keywidth) &
+            #         (width / 2 + self.multiplier * (
+            #                 self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.sin(
+            #             math.radians(self.direction)) +
+            #                 (self.upper_arm_length + self.mallet_length) * math.cos(
+            #             math.radians(self.upper_joint_angle)) * math.sin(math.radians(self.direction)) -
+            #                 (self.arm_width / (2 * self.multiplier)) * math.sin(
+            #             math.radians(self.direction - 90))) >= left + 0 * (self.keywidth + self.division)) &
+            #         (height - self.multiplier * (
+            #                 self.base_length + self.lower_arm_length * math.sin(
+            #             math.radians(self.lower_joint_angle)) +
+            #                 (self.upper_arm_length + self.mallet_length) * math.sin(math.radians(self.upper_joint_angle)) +
+            #                 (self.arm_width / (2 * self.multiplier)) * math.sin(
+            #             math.radians(self.upper_joint_angle - 90))) >= height - self.multiplier * self.xylophone_height)):
+            #     done = True
             side_view.update_idletasks()
             birds_eye_view.update_idletasks()
         return self.direction, self.lower_joint_angle, self.upper_joint_angle
@@ -486,19 +507,19 @@ class SimuXylo:
             print(color)
             thiskey = birds_eye_view.find_withtag(color)
             pts = key.getPoints()
-            # for tuplee in pts:
-            # 	for pt in tuplee:
-            # 		print(pt)
-            # birds_eye_view.coords(thiskey,(pts[0][0],pts[0][1]),(pts[1][0],pts[1][1]),(pts[2][0],pts[2][1]),(pts[3][0],pts[3][1]))
-            # np.print(flatten(pts))
-            # newpts = flatten(pts)
-            # for item in newpts:
-            # 	print(item)
+            #for tuplee in pts:
+            	#for pt in tuplee:
+            		#print(pt)
+            birds_eye_view.coords(thiskey,pts[0][0],pts[0][1],pts[1][0],pts[1][1],pts[2][0],pts[2][1],pts[3][0],pts[3][1])
+            #np.print(flatten(pts))
+            #newpts = flatten(pts)
+            #for item in newpts:
+            	#print(item)
 
             birds_eye_view.coords(thiskey, *flatten(pts))
             # birds_eye_view.coords(thiskey, *newpts)
 
-            print(key.getKeyMidpoint().y)
+            print(key.getKeyMidpoint().x)
             print(key.getPoints()[0])
             birds_eye_view.update_idletasks()
 
@@ -508,6 +529,132 @@ class SimuXylo:
         # offsets = xylo.getConversions()
         # birds_eye_view.create_line(midpp.x, midpp.y, offsets[1],offsets[2])
 
+    def setRobotAnglesUpdate(self, direction, lower_joint_angle, upper_joint_anlge, birds_eye_view, side_view):
+        ###TODO HERE WE CONVERT ANGLES!!
+        direction = -direction
+        lower_joint_angle = 90 + lower_joint_angle
+        ################################
+
+
+        # print(f'direction:{self.direction}')
+        # print(f'goal_direction:{goal_direction}')
+        #sleep_time = seconds / abs(goal_direction - self.direction)
+        ###TODO CHANGED WIDTH FOR TESTING
+        width = birds_eye_view.winfo_screenwidth() / 3 - 400
+        height = birds_eye_view.winfo_screenheight() / 2
+        bottom = height / 2 + self.multiplier * 5.53
+        ##########
+        self.base = bottom + self.multiplier * self.distance - 110.6
+        # base = bottom + self.multiplier * self.distance - 110.6
+
+        left = width / 2 - self.multiplier * 11 - self.division / 2
+        s_line = side_view.find_withtag("s_line")
+        b_line = birds_eye_view.find_withtag("b_line")
+        s_mallet = side_view.find_withtag("s_mallet")
+        b_mallet = birds_eye_view.find_withtag("b_mallet")
+
+        birds_eye_view.coords(b_line, width / 2, self.base,
+                              width / 2, self.base,
+                              width / 2 + self.multiplier * self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.sin(math.radians(self.direction)),
+                              self.base + self.multiplier * (
+                                      self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.cos(
+                                  math.radians(self.direction))),
+                              width / 2 + self.multiplier * (
+                                      self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.sin(
+                                  math.radians(self.direction)) +
+                                      self.upper_arm_length * math.cos(
+                                  math.radians(self.upper_joint_angle)) * math.sin(
+                                  math.radians(self.direction))),
+                              self.base + self.multiplier * (
+                                      self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.cos(
+                                  math.radians(self.direction)) +
+                                      self.upper_arm_length * math.cos(
+                                  math.radians(self.upper_joint_angle)) * math.cos(
+                                  math.radians(self.direction))))
+        side_view.coords(s_line, width / 2 + self.multiplier * (self.distance), height,
+                         width / 2 + self.multiplier * (self.distance), height - self.multiplier * self.base_length,
+                         width / 2 + self.multiplier * (
+                                 self.distance + self.lower_arm_length * math.cos(
+                             math.radians(self.lower_joint_angle)) * math.cos(
+                             math.radians(self.direction))),
+                         height - self.multiplier * (
+                                 self.base_length + self.lower_arm_length * math.sin(
+                             math.radians(self.lower_joint_angle))),
+                         width / 2 + self.multiplier * (
+                                 self.distance + self.lower_arm_length * math.cos(
+                             math.radians(self.lower_joint_angle)) * math.cos(
+                             math.radians(self.direction)) +
+                                 self.upper_arm_length * math.cos(math.radians(self.upper_joint_angle)) * math.cos(
+                             math.radians(self.direction))),
+                         height - self.multiplier * (
+                                 self.base_length + self.lower_arm_length * math.sin(
+                             math.radians(self.lower_joint_angle)) +
+                                 self.upper_arm_length * math.sin(math.radians(self.upper_joint_angle))))
+        birds_eye_view.coords(b_mallet, width / 2 + self.multiplier * (
+                self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.sin(
+            math.radians(self.direction)) +
+                self.upper_arm_length * math.cos(math.radians(self.upper_joint_angle)) * math.sin(
+            math.radians(self.direction)) -
+                (self.arm_width / (2 * self.multiplier)) * math.sin(math.radians(self.direction - 90))),
+                              self.base + self.multiplier * (
+                                      self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.cos(
+                                  math.radians(self.direction)) +
+                                      self.upper_arm_length * math.cos(
+                                  math.radians(self.upper_joint_angle)) * math.cos(
+                                  math.radians(self.direction)) -
+                                      (self.arm_width / (2 * self.multiplier)) * math.cos(
+                                  math.radians(self.direction - 90))),
+                              width / 2 + self.multiplier * (
+                                      self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.sin(
+                                  math.radians(self.direction)) +
+                                      (self.upper_arm_length + self.mallet_length) * math.cos(
+                                  math.radians(self.upper_joint_angle)) * math.sin(math.radians(self.direction)) -
+                                      (self.arm_width / (2 * self.multiplier)) * math.sin(
+                                  math.radians(self.direction - 90))),
+                              self.base + self.multiplier * (
+                                      self.lower_arm_length * math.cos(
+                                  math.radians(self.lower_joint_angle)) * math.cos(
+                                  math.radians(self.direction)) +
+                                      (self.upper_arm_length + self.mallet_length) * math.cos(
+                                  math.radians(self.upper_joint_angle)) * math.cos(math.radians(self.direction)) -
+                                      (self.arm_width / (2 * self.multiplier)) * math.cos(
+                                  math.radians(self.direction - 90))))
+        side_view.coords(s_mallet, width / 2 + self.multiplier * (
+                self.distance + self.lower_arm_length * math.cos(math.radians(self.lower_joint_angle)) * math.cos(
+            math.radians(self.direction)) +
+                self.upper_arm_length * math.cos(math.radians(self.upper_joint_angle)) * math.cos(
+            math.radians(self.direction)) +
+                (self.arm_width / (2 * self.multiplier)) * math.cos(math.radians(self.upper_joint_angle - 90))),
+                         height - self.multiplier * (
+                                 self.base_length + self.lower_arm_length * math.sin(
+                             math.radians(self.lower_joint_angle)) +
+                                 self.upper_arm_length * math.sin(math.radians(self.upper_joint_angle)) +
+                                 (self.arm_width / (2 * self.multiplier)) * math.sin(
+                             math.radians(self.upper_joint_angle - 90))),
+                         width / 2 + self.multiplier * (
+                                 self.distance + self.lower_arm_length * math.cos(
+                             math.radians(self.lower_joint_angle)) * math.cos(
+                             math.radians(self.direction)) +
+                                 (self.upper_arm_length + self.mallet_length) * math.cos(
+                             math.radians(self.upper_joint_angle)) * math.cos(math.radians(self.direction)) +
+                                 (self.arm_width / (2 * self.multiplier)) * math.cos(
+                             math.radians(self.upper_joint_angle - 90))),
+                         height - self.multiplier * (
+                                 self.base_length + self.lower_arm_length * math.sin(
+                             math.radians(self.lower_joint_angle)) +
+                                 (self.upper_arm_length + self.mallet_length) * math.sin(
+                             math.radians(self.upper_joint_angle)) +
+                                 (self.arm_width / (2 * self.multiplier)) * math.sin(
+                             math.radians(self.upper_joint_angle - 90))))
+        side_view.update_idletasks()
+        birds_eye_view.update_idletasks()
+        #time.sleep(sleep_time)
 
 def flatten(list_of_lists):
     """Flatten one level of nesting"""

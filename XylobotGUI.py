@@ -31,12 +31,16 @@ import PIL.Image
 import PIL.ImageTk
 import cv2
 
+import itertools
+
 screen_factor = 0.9
 
 
 class XylobotGUI:
 
     def init_window(self):
+        self.number = 0
+
         if connectedtosetup:
             self.cm = ControlManager()
 
@@ -65,8 +69,14 @@ class XylobotGUI:
         #                                      left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
         #                                      fill="darkblue")
 
+
         self.simu_xylo = SimuXylo(0)
         self.simu_xylo.update_base()
+
+        keys = self.simu_xylo.getKeys()
+        for key in keys:
+            pts = key.getPoints()
+            self.birds_eye_view.create_polygon(pts, fill=key.getColor(), tags = key.getColor())
 
         self.side_view.create_rectangle(self.simu_xylo.get_side_view_rectangle(), fill="blue")
 
@@ -80,10 +90,15 @@ class XylobotGUI:
         self.side_view.create_line(self.simu_xylo.get_s_mallet(),
                                    fill="grey", width=self.simu_xylo.mallet_width, joinstyle=ROUND, tags="s_mallet")
 
+        self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,0, 0, 0,1)
+
+
+
+
+
     def update_sim(self):
         self.idx_direction = 0
-        self.directions = [-30, -15, 0, 15, 30,
-                           0]  # theses three arrays are sequences of goal self.directions and angles
+        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.direction = 0
@@ -93,9 +108,9 @@ class XylobotGUI:
         self.is_simlooping = False
 
         self.update_sim_loop()
-        # self.window.after(self.delay, self.update_sim_loop)
-        # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
-        # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
+        self.window.after(self.delay, self.update_sim_loop)
+        #calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
+        #calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
     def update_sim_loop(self):
         goal_direction = self.directions[self.idx_direction]
@@ -103,7 +118,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         self.simu_xylo.update_joint_angles(self.direction, self.lower_joint_angle, self.upper_joint_angle)
         details = self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,
-                                             goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, seconds=1)
+                                             goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, seconds=20)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -142,12 +157,19 @@ class XylobotGUI:
 
     def play_btn(self, key, event=None):
         self.update_log(f'playing: {key}')
-        # #TODO REMOVE THIS TESTER:
-        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
-        # self.xylo.goodRotate(30)
-        # updateXyloDrawing(self.xylo,self.birds_eye_view)
-        # self.move_Simulation_Robot(20,180,220)
-        ############
+        #####3#TODO REMOVE THIS TESTER:
+        self.simu_xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+        #self.simu_xylo.goodRotate(30)
+        self.number = self.number + 2
+        print(self.number)
+        self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 0, self.number, 20,0)
+        self.simu_xylo.setXyloMidpoint(SimuVector(0,self.number,11),cm=True)
+        self.simu_xylo.setXyloMidpoint(SimuVector(0,23,11),cm=True)
+
+        self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
+
+        #self.move_Simulation_Robot(20,180,220)
+        ############3
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
@@ -409,7 +431,7 @@ class XylobotGUI:
         self.is_pitchchecking = False
 
         self.update_vid()
-        self.update_sim()
+        #self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
 
