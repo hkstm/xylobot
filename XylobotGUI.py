@@ -1,3 +1,5 @@
+import librosa
+
 connectedtosetup = False
 if connectedtosetup:
     from control import Calibrator
@@ -264,6 +266,7 @@ class XylobotGUI:
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
+        self.numpyframes = []  # Initialize array to store frames
         self.do_pitchcheck(notelist)
 
     def do_pitchcheck(self, notelist):
@@ -271,10 +274,14 @@ class XylobotGUI:
             data = self.stream.read(self.chunk)
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
+            fft_size = int(self.fft_entry_text.get())
             key_and_times, _, _, _, _, _, _, _, _, _, _, _, _, _ = pitch_track_calc(fs=self.fs, data=numpydata,
-                                                                                    fft_size=int(self.fft_entry_text.get()), is_plotting=False,
+                                                                                    fft_size=fft_size, is_plotting=False,
                                                                                     is_logging=False, topindex=1,
                                                                                     window='hanning', amp_thresh=float(self.ampthresh_entry_text.get()))
+            overlap_fac = 0.5
+            flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+
             print(key_and_times)
             self.window.after(self.delay_audio, self.do_pitchcheck())
 

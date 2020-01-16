@@ -1,5 +1,5 @@
 import math
-
+import Position as position
 
 class Point:
     def __init__(self, x, y, z):
@@ -73,7 +73,7 @@ def getAngles(t):
 
         if angleToMotorAngle(b) > 90:
             raise Exception("WRIST ANGLE TOO LARGE (> 90)")
-        if angleToMotorAngle(b) < 0:
+        if angleToMotorAngle(b) < -90:
             raise Exception("WRIST ANGLE IS NEGATIVE")
 
         cos_a1 = ((ELBOW ** 2) + (dist2Target ** 2) - (WRIST ** 2)) / (2 * ELBOW * dist2Target)
@@ -102,7 +102,7 @@ def getAngles(t):
 
         if angleToMotorAngle(a)*-1 < -90:
             raise Exception("ELBOW ANGLE TOO LARGE (> -90)")
-        if angleToMotorAngle(a)*-1 > 0:
+        if angleToMotorAngle(a)*-1 > 90:
             raise Exception("ELBOW ANGLE IS NEGATIVE")
 
         setActualPos(t)
@@ -114,7 +114,7 @@ def getAngles(t):
         return [c, angleToMotorAngle(a)*-1, angleToMotorAngle(b)]
         #return [-1*c, angleToMotorAngle(a) * 1, -1*angleToMotorAngle(b)]
     except Exception as e:
-        raise Warning("[!] OUT OF REACH - ", e)
+        raise Warning(t.x, t.y, t.z, " [!] OUT OF REACH - ", e)
 
 #   def getCoordinates(position):
 #       m0 = position.m0

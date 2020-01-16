@@ -4,11 +4,16 @@ import computervision.CenterPoint as CP
 list = []
 #list of key centers
 
+def Swapped():
+    isSwapped = getSides.Swapped()
+    print("Swapped: ", isSwapped)
+    return isSwapped
 
-
-def generateList():
+def generateList(gui):
+    global isSwapped
     print(" Generating LIst")
     getSides.run()
+    gui.updateCenterpointsImage()
     list = getSides.getList()
     return list
 
@@ -20,7 +25,9 @@ def getOffset(key, previous_coordinates = (None, None)):
         yoffset = mallet[0][1]-key.py
     except:
         print("Mallet not found")
-        return None
+        return (None, None)
+    print("xoffset: ", xoffset)
+    print("yoffset: ", yoffset)
     return(xoffset, yoffset)
 
 def destroyWindows():

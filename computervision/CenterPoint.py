@@ -9,5 +9,7 @@ class CenterPoint:
         self.y = y
         self.z = z
 
+        print(key, px, py, x, y, z)
+
     def __str__(self):
         return self.key + ' ' + str(self.delay)
