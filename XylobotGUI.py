@@ -1,6 +1,7 @@
 import librosa
 
-connectedtosetup = False
+connectedtosetup = True
+print("connected to setup: ", connectedtosetup)
 if connectedtosetup:
     from control import Calibrator
 
@@ -158,9 +159,12 @@ class XylobotGUI:
         if connectedtosetup:
             self.update_log('Started calibration')
             try:
-                newNotes = Calibrator.calibrate(self.cm)
-                self.update_log(f'Calibration successful with: {newNotes}')
-                print('Calibration successful with: ', newNotes)
+                newNotes = Calibrator.calibrate(self, self.cm)
+                print('Calibration successful with: ')
+                for note in newNotes:
+                    print(note.x, note.y)
+                    self.update_log(f'{note.x}, {note.y}')
+                self.update_log(f'Calibration successful with:')
                 # control.setNotes(newNotes)
                 self.cm.setNoteCoordinates(newNotes)
                 self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
