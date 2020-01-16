@@ -5,31 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import wave
 import math
-
-pitches = dict([
-    (987.8, 'b5'),
-    (1047, 'c6'),
-    (1175, 'd6'),
-    (1319, 'e6'),
-    (1397, 'f6'),
-    (1568, 'g6'),
-    (1760, 'a6'),
-    (1976, 'b6'),
-    (2093, 'c7'),
-    (2349, 'd7'),
-])
-
-pitches_ranges = [
-    (1017.4, 'b5'),
-    (1111, 'c6'),
-    (1247, 'd6'),
-    (1358, 'e6'),
-    (1482.5, 'f6'),
-    (1664, 'g6'),
-    (1868, 'a6'),
-    (2034.5, 'b6'),
-    (2221, 'c7'),
-]
+from .PitchesData import pitches, pitches_ranges
 
 
 def find_key(pitch):

@@ -1,7 +1,9 @@
-import IK as ik
-from controll.Hit import *
-from Point import Point
-from Position import Position
+from control.Hit import *
+from .Point import Point
+from .Position import Position
+from . import IK as ik
+
+import time
 
 
 class HitManager:
@@ -25,6 +27,7 @@ class HitManager:
         for p in self.positions:
             self.sendToArduino(p)
             # print('tempo: ', self.tempo)
+
             time.sleep(self.tempo)
 
     def calculatePath(self, note, speed='', power=''):
@@ -81,7 +84,7 @@ class HitManager:
 
             # Readjust the height
 
-        #self.setCurrent(self.targetPosition)
+        # self.setCurrent(self.targetPosition)
         if lastPos is None:
             self.setCurrent(self.targetPosition)
         else:
@@ -120,5 +123,3 @@ class HitManager:
             self.tempo = tempo / (10 ** 2.5)
         if tempo <= 10:
             self.tempo = tempo / (10 ** 2)
-
-

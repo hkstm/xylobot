@@ -1,10 +1,6 @@
 import serial
-import IK as ik
-import delayexample as delay
-from Point import Point
-from Position import Position
-from controll.HitManager import HitManager
-from controll.SongManager import SongManager
+from control.HitManager import HitManager
+from control.SongManager import SongManager
 
 
 class ControlManager:

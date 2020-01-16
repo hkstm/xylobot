@@ -1,14 +1,14 @@
-import time
-
 try:
-    from controll import Control as Control
+    import Control as Control
 except:
-    import controll as Control
+    import control as Control
 
-from Point import Point as Point
-from Position import Position as Position
-import IK as ik
+from .Point import Point as Point
+from .Position import Position as Position
+import IK
+from . import IK as ik
 import computervision.Grid as Grid
+
 import numpy as np
 import math
 Coefficient = 1
@@ -27,11 +27,11 @@ def calibrate(gui, cm):
 
     #height = Control.getZ()
     height = 12
-    #controll.sendToArduino(Position(0,0,0))
+    #control.sendToArduino(Position(0,0,0))
     cm.sendToArduino(Position(0,0,0))
 
     # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
-    # controll.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
+    # control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
     keyList = Grid.generateList(gui)
     gui.updateCenterpointsImage()
@@ -160,7 +160,7 @@ def moveTo(cm, point, currentPoint, rang = 100):
 
     for i in range(1, rang):
         temp = Position(p.m0 + m0dif/rang*i, p.m1 + m1dif/rang*i, p.m2 + m2dif/rang*i)
-        #controll.sendToArduino(temp)
+        #control.sendToArduino(temp)
         cm.sendToArduino(temp)
 
 

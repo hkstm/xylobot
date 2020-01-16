@@ -1,6 +1,6 @@
 from Point import Point
-from controll.SongManager import Note
-from controll.ControlManager import ControlManager
+from control.SongManager import Note
+from control.ControlManager import ControlManager
 import time
 
 

@@ -1,0 +1,5 @@
+PyAudio might not work in Python 3.7+ on Windows
+It should work on 3.6
+In Python 3.7 on Windows 10 it can be installed by doing:
+pip install pipwin
+pipwin install pyaudio

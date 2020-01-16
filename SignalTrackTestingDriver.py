@@ -17,10 +17,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.collections import PolyCollection
 from scipy import signal
 
-from controll.ControlManager import ControlManager
-from controll.SongManager import Note
-from signalprocessing.SignalParser import add_arguments
-from signalprocessing.custompitchtracking import pitch_track_raw
+from control.ControlManager import ControlManager
+from control.SongManager import Note
+from signalprocessing.SignalArgParser import add_arguments
+from signalprocessing.SignalTrack import pitch_track_wav
 
 spectogram3dtest = False
 flatnesstest = True
@@ -130,7 +130,7 @@ if recordaudioflag:
     executiontime_p = []
     controlmanager = ControlManager()
 
-    import controll.TestControl as tc
+    import control.TestControl as tc
 
     controlmanager.setNoteCoordinates(tc.coords)
 
@@ -166,7 +166,7 @@ if not recordaudioflag:
 
 # controlmanager = ControlManager()
 #
-# import controll.TestControl as tc
+# import control.TestControl as tc
 #
 # controlmanager.setNoteCoordinates(tc.coords)
 # sequence_test = generate_random_sequence(seq_length_test, min_delay_test, max_delay_test)
@@ -229,9 +229,10 @@ for i in range(amount_of_runs_test):
             'topindex': args.topindex,
         }
     starttime = time.process_time()
-    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_raw(
+    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_wav(
         SimpleNamespace(**argsdict))
     endtime = time.process_time()
+    print(f'data type {type(data)}')
     print(f'timeres {time_resolution(time_list)}')
     print(f'pitches{pitches}')
     print(f'{key_and_times}')

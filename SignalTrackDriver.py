@@ -1,14 +1,14 @@
 import argparse
 from types import SimpleNamespace
 
-from signalprocessing.SignalParser import add_arguments
-from signalprocessing.custompitchtracking import pitch_track
+from signalprocessing.SignalArgParser import add_arguments
+from signalprocessing.SignalTrack import pitch_track_wrap
 
 parser = argparse.ArgumentParser(description="Custom Pitch")
 parser = add_arguments(parser)
 args = parser.parse_args()
 
-keys_and_times = pitch_track(args)
+keys_and_times = pitch_track_wrap(args)
 
 # this is all redundant but shows usage when not using CLI arguments
 

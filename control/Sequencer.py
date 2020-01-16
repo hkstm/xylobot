@@ -1,5 +1,5 @@
-import controll.Control as c
-#from controll.ControlManager import ControlManager
+import Control as c
+#from control.ControlManager import ControlManager
 import random
 from Note import Note
 

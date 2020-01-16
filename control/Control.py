@@ -1,14 +1,8 @@
-import serial
 import time
-import Point
-import Position
-import computervision.Grid as Grid
-import IK as ik
-import delayexample as delay
-from Point import Point
-from Position import Position
+from .Point import Point
+from .Position import Position
 
-currentPosition = Position(21,57,-51)
+currentPosition = Position(21, 57, -51)
 currentPoint = None
 
 baudRate = 9600
@@ -35,7 +29,7 @@ speed = 20
 def play(list):
     for i in list:
         print('[*] Playing note: ', i)
-        delay.sleep(i.delay)
+        time.sleep(i.delay)
         hitkey(i.key)
 
 #   Takes a string c6, d6, e6, f6, g6, a6, b6, c7
@@ -92,7 +86,7 @@ def setCurrent(point):
     global currentPoint
     currentPoint = point
     global currentPosition
-    curPosAngles = ik.getAngles(point)
+    curPosAngles = IK.getAngles(point)
     currentPosition = Position(curPosAngles[0], curPosAngles[1], curPosAngles[2])
     print('[*] Setting angles for new current position ', currentPosition)
 
@@ -140,7 +134,7 @@ def getPath(point, speed):
     curpos = currentPosition
     print('[*] Getting angles for current position ', curpos)
     #curpos = ik.getAngles(currentPosition)
-    posAngles = ik.getAngles(point)
+    posAngles = IK.getAngles(point)
     pos = Position(posAngles[0], posAngles[1], posAngles[2])
     print('[*] Getting angles for target position ', pos)
 

@@ -1,6 +1,7 @@
 import math
-from SimuVector import SimuVector
-import numpy as np
+from .SimuVector import SimuVector
+
+
 class SimuKey:
 
     WIDTH = 50

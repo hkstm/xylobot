@@ -55,7 +55,6 @@
 
 #=====================================
 #import Serial as Serial
-import IK as ik
 
 import ArduinoProxy as proxy
 
@@ -146,8 +145,8 @@ def hit(target):
     #print('Midpoint: ', midpoint)
     #sendToArduino(str(round(midpoint[0], 2)) + "," + str(round(midpoint[1],2)) + "," + str(round(midpoint[2],2)) + "\n")
     #time.sleep(1)
-    target = ik.Point(target[0], target[1], target[2])
-    coords = ik.getAngles(target)
+    target = IK.Point(target[0], target[1], target[2])
+    coords = IK.getAngles(target)
     sendToArduino(str(round(coords[0], 2)) + "," + str(round(coords[1],2)) + "," + str(round(coords[2],2)) + "\n")
     proxy.tryToSendToArduino(coords)
 
