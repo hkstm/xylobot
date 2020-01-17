@@ -38,6 +38,9 @@ class Hit:
         #print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
               # self.speed, ' power: ', self.power)
 
+    def setHeight(self, height):
+        self.hit_height = height
+
     def getPath(self):
         return self.path
 

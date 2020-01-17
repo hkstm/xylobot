@@ -9,9 +9,13 @@ import time
 
 
 class HitManager:
+    maxpower = 5
     POWER = 5
+    XYLO_HEIGHT = 12.5
 
-    def __init__(self, ser, xyloheight):
+
+    def __init__(self, ser):
+        xyloheight = self.XYLO_HEIGHT
         self.ser = ser
         self.currentPosition = Point(0, 23, 13)
         self.targetPosition = None
@@ -24,7 +28,7 @@ class HitManager:
         self.positions = []
         self.hittype = 'triangle 2'
         self.tempo = 0.1
-        # self.height = xyloheight
+        self.height = xyloheight
 
     def hit(self):
         for p in self.positions:
@@ -34,6 +38,8 @@ class HitManager:
             time.sleep(self.tempo)
 
     def calculatePath(self, note, speed='', power=''):
+        xyloheight = self.XYLO_HEIGHT
+
         print('[*] calculating path...')
         self.positions = []
         if power == '':
@@ -67,7 +73,16 @@ class HitManager:
             if self.hittype == 'uniform':
                 h = self.uh
 
+        global POWER, maxpower
+        if note.key is 'c6' or note.key is 'c7':
+            h.setHeight(xyloheight + 0.6*maxpower/POWER)
+        if note.key is 'd6' or note.key is 'b6':
+            h.setHeight(xyloheight + 0.3*maxpower/POWER)
+        if note.key is 'e6' or note.key is 'a6':
+            h.setHeight(xyloheight + 0.1*maxpower/POWER)
+
         h.set(self.currentPosition, self.targetPosition, speed, power)
+
         h.calculatePath()
 
         lastPos = None
