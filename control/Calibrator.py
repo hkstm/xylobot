@@ -14,7 +14,8 @@ import math
 Coefficient = 1
 
 FIRST = True
-
+stepsize = 0.07
+error = 5
 lastPointV = None
 
 
@@ -27,6 +28,7 @@ def calibrate(gui, cm):
 
     #height = Control.getZ()
     height = 12
+    hitHeight = 14
     #control.sendToArduino(Position(0,0,0))
     cm.sendToArduino(Position(0,0,0))
 
@@ -36,7 +38,7 @@ def calibrate(gui, cm):
     keyList = Grid.generateList()
     #gui.updateCenterpointsImage()
 
-    keyList[0].x = 11
+    keyList[0].x = 9
     keyList[0].y = 23
     keyList[0].z = height
 
@@ -64,7 +66,7 @@ def calibrate(gui, cm):
     keyList[6].y = 23
     keyList[6].z = height
 
-    keyList[7].x = -9.7
+    keyList[7].x = -7
     keyList[7].y = 23
     keyList[7].z = height
 
@@ -111,7 +113,7 @@ def calibrate(gui, cm):
         #currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
         newx, newy, newz, currentPoint = find(cm, k, currentPoint)
         #discoveredPoints.append([newx, newy, height])
-        discoveredPoints.append(Point(newx, newy, height))
+        discoveredPoints.append(Point(newx, newy, hitHeight))
         i = 0
         print("Key: ", k,"  ", lastPointV.m0, " ", lastPointV.m1," ",lastPointV.m2)
         while i < len(keyList):
@@ -131,8 +133,8 @@ def find(cm, key, currentPoint):
         # return find(cm, Point(key.x - (12/6.75 * Coefficient), key.y, key.z), oldPoint)
     #else:
     try:
-        error = 5
-        stepsize = 0.05
+        global error
+        global stepsize
         while abs(offset[0]) > error or abs(offset[1] > error):
             print(key.key," Px & y are: ", key.px, " ", key.py)
             print(" Offsets are: ", offset[0], " ", offset[1])

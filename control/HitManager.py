@@ -24,6 +24,7 @@ class HitManager:
         self.positions = []
         self.hittype = 'triangle 2'
         self.tempo = 0.1
+        # self.height = xyloheight
 
     def hit(self):
         for p in self.positions:
@@ -38,9 +39,11 @@ class HitManager:
         if power == '':
             power = self.POWER
 
+
+
         self.targetPosition = note.coords
         distance = math.fabs(self.targetPosition.x - self.currentPosition.x)
-        speed = 0.5
+        speed = 2
         #speed = distance / 20
         #if distance == 0:
         #    speed = 0.1
@@ -96,16 +99,16 @@ class HitManager:
             self.setCurrent(lastPos)
 
         # Hit the note, go up and hit harder down
-        try:
-            hitpos = copy.deepcopy(self.positions[-1])
-            hitpos.m1 = hitpos.m1 - 10
-            hitpos.m2 = hitpos.m2 + 10
-            self.positions.append(hitpos)
-        except Exception:
-            print('Position list is empty')
+        # try:
+        #     hitpos = copy.deepcopy(self.positions[-1])
+        #     hitpos.m1 = hitpos.m1 - 5
+        #     hitpos.m2 = hitpos.m2 + 10
+        #     self.positions.append(hitpos)
+        # except Exception:
+        #     print('Position list is empty')
 
-        pos = ik.getAngles(Point(self.currentPosition.x, self.currentPosition.y, 13.5))
-        self.positions.append(Position(pos[0], pos[1], pos[2]))
+        # pos = ik.getAngles(Point(self.currentPosition.x, self.currentPosition.y, 13.5))
+        # self.positions.append(Position(pos[0], pos[1], pos[2]))
 
     def sendToArduino(self, pos):
         string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'

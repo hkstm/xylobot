@@ -153,7 +153,7 @@ class XylobotGUI:
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), 'uniform')
+            self.cm.hit(Note(key, 0.8), 'triangle 2')
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
@@ -272,7 +272,7 @@ class XylobotGUI:
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
         self.numpyframes = []  # Initialize array to store frames
-        self.do_pitchcheck(notelist)
+        #self.do_pitchcheck(notelist)
 
     def do_pitchcheck(self, notelist):
         if self.is_pitchchecking:

@@ -27,15 +27,16 @@ class TestComponents:
         Point(-14, 23, 14),
         Point(-18, 23, 14),
     ]
+
     coords = [
-        Point(10.25, 23, 12),
-        Point(7.29, 23, 12),
-        Point(3.71, 23, 12),
-        Point(1.01, 23, 12),
-        Point(-1.6, 23, 12),
-        Point(-5.05, 23, 12),
-        Point(-8.5, 23, 12),
-        Point(-10.2, 23, 12)
+        Point(10.74, 23.08, 12),
+        Point(7.64, 21.63, 12),
+        Point(4.37, 21.17, 12),
+        Point(1.22, 21.17, 12),
+        Point(-1.35, 21.17, 12),
+        Point(-5.05, 22.21, 12),
+        Point(-8.28, 23.09, 12),
+        Point(-12.14, 23.97, 12)
     ]
     delay = 0.3
     notes = [
@@ -60,17 +61,17 @@ class Experiments:
 
     def run(self):
         self.testHitAngles()
-        self.testBounds()
+        #self.testBounds()
 
     def testHitAngles(self):
-        for note in self.getNotesFromSequence('000444777'):
+        for note in self.getNotesFromSequence('01234567'):
             self.cm.hit(note)
 
-        print('[*] Testing hit types')
-        for type in TestComponents.hittypes:
-            print('[*] Hit type: ', type)
-            self.cm.setHitType(type)
-            self.testTempo()
+        #print('[*] Testing hit types')
+        #for type in TestComponents.hittypes:
+        #    print('[*] Hit type: ', type)
+        #    self.cm.setHitType(type)
+        #    self.testTempo()
 
         #self.cm.setHitType('glissando')
         #self.cm.play()

@@ -1,7 +1,7 @@
 from .Point import Point
 import math
 
-SPEED_COEFF = 1
+SPEED_COEFF = 0
 
 class Hit:
     def __init__(self, ser, xyloheight):
@@ -48,7 +48,7 @@ class SameNoteHit(Hit):
 
     def calculatePath(self):
         i = 0
-        while self.z <= self.prehit_height:
+        while self.z <= self.hit_height:
             i = i + self.speed# + (i / SPEED_COEFF)
             self.speed = self.speed + SPEED_COEFF
             self.z = self.origin.z + i
@@ -56,7 +56,7 @@ class SameNoteHit(Hit):
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
         i = 0
-        while self.z >= self.prehit_height:
+        while self.z >= self.hit_height:
             i = i + self.speed# + (i / SPEED_COEFF)
             self.speed = self.speed + SPEED_COEFF
             self.z = self.prehit_height - i
@@ -74,11 +74,12 @@ class RightAngledTriangularHit(Hit):
     def getFunction(self):
         self.slope = (self.midpoint.z - self.target.z) / math.fabs(self.target.x - self.origin.x)
         self.b = self.midpoint.z - self.slope * self.origin.x
-        #print('slope: ', self.slope, ' b: ', self.b)
+        print('slope: ', self.slope, ' b: ', self.b)
 
     def calculatePath(self):
         self.getFunction()
         if self.left:
+            print('Going left')
             i = 0
             while self.x < self.target.x:
                 i = i + self.speed# + (i / SPEED_COEFF)
@@ -87,15 +88,21 @@ class RightAngledTriangularHit(Hit):
                 self.z = self.slope * self.x + self.b
                 if self.z >= self.hit_height:
                     self.path.append(Point(self.x, self.origin.y, self.z-5))
+                # if self.x > self.target.x:
+                #     if len(self.path) > 0:
+                #         self.path.pop()
+                #     self.path.append(Point(self.target.x, self.origin.y, self.z-5))
 
-            #j = 0
-            #while self.z > self.target.z:
-            #    j = j + self.speed# + (j / SPEED_COEFF)
-            #    self.speed = self.speed + SPEED_COEFF
-            #    self.z = self.target.z - j
-            #    if self.z >= self.hit_height:
-            #        self.path.append(Point(self.target.x, self.target.y, self.z))
+            # j = 0
+            # while self.z > self.target.z:
+            #     j = j + 4# + (j / SPEED_COEFF)
+            #     self.z = self.target.z - j
+            #     if self.z >= self.hit_height:
+            #         self.path.append(Point(self.target.x, self.target.y, self.z))
+            self.path.append(Point(self.target.x, self.target.y, self.target.z))
+
         else:
+            print('Going right')
             i = 0
             while self.x > self.target.x:
                 i = i + self.speed# + (i / SPEED_COEFF)
@@ -104,14 +111,19 @@ class RightAngledTriangularHit(Hit):
                 self.z = self.slope * (self.target.x + i) + self.b
                 if self.z >= self.hit_height:
                     self.path.append(Point(self.x, self.origin.y, self.z))
+                # if self.x < self.target.x:
+                #     if len(self.path) > 0:
+                #         self.path.pop()
+                #     self.path.append(Point(self.target.x, self.origin.y, self.z-5))
 
-            #j = 0
-            #while self.z > self.target.z:
-            #    j = j + self.speed# + (j / SPEED_COEFF)
-            #    self.speed = self.speed + SPEED_COEFF
-            #    self.z = self.midpoint.z - j
-            #    if self.z >= self.hit_height:
-            #        self.path.append(Point(self.target.x, self.target.y, self.z))
+            # j = 0
+            # while self.z > self.target.z:
+            #     j = j + 4# + (j / SPEED_COEFF)
+            #     self.z = self.midpoint.z - j
+            #     if self.z > self.hit_height:
+            #         self.path.append(Point(self.target.x, self.target.y, self.z))
+
+            self.path.append(Point(self.target.x, self.target.y, self.target.z))
 
 
 class TriangularHit(Hit):

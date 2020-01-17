@@ -4,7 +4,7 @@ from control.SongManager import SongManager
 
 
 class ControlManager:
-    XYLO_HEIGHT = 14
+    XYLO_HEIGHT = 12.5
 
     def __init__(self):
         self.ser = self.initArduino(9600, "COM3")
