@@ -41,14 +41,15 @@ class HitManager:
         self.targetPosition = note.coords
         distance = math.fabs(self.targetPosition.x - self.currentPosition.x)
         speed = 0.5
-        #speed = distance / 10
+        #speed = distance / 20
         #if distance == 0:
-        #    speed = 0.5
+        #    speed = 0.1
 
         h = None
         #
-        # print('target: ', self.targetPosition, ' current: ', self.currentPosition)
-        if self.targetPosition.x == self.currentPosition.x:
+        print('target: ', self.targetPosition, ' current: ', self.currentPosition)
+        #if self.targetPosition.x == self.currentPosition.x:
+        if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
             print('Same key is to be hit')
             h = self.snh
         else:
@@ -97,8 +98,8 @@ class HitManager:
         # Hit the note, go up and hit harder down
         try:
             hitpos = copy.deepcopy(self.positions[-1])
-            hitpos.m1 = hitpos.m1 + 10
-            hitpos.m2 = hitpos.m2 - 10
+            hitpos.m1 = hitpos.m1 - 10
+            hitpos.m2 = hitpos.m2 + 10
             self.positions.append(hitpos)
         except Exception:
             print('Position list is empty')

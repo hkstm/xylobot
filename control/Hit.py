@@ -1,7 +1,7 @@
 from .Point import Point
 import math
 
-ACCURACY_COEFF = 50
+SPEED_COEFF = 1
 
 class Hit:
     def __init__(self, ser, xyloheight):
@@ -49,14 +49,16 @@ class SameNoteHit(Hit):
     def calculatePath(self):
         i = 0
         while self.z <= self.prehit_height:
-            i = i + self.speed + (i / ACCURACY_COEFF)
+            i = i + self.speed# + (i / SPEED_COEFF)
+            self.speed = self.speed + SPEED_COEFF
             self.z = self.origin.z + i
             if self.z >= self.hit_height:
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
         i = 0
-        while self.z >= self.hit_height:
-            i = i + self.speed + (i / ACCURACY_COEFF)
+        while self.z >= self.prehit_height:
+            i = i + self.speed# + (i / SPEED_COEFF)
+            self.speed = self.speed + SPEED_COEFF
             self.z = self.prehit_height - i
             if self.z >= self.hit_height:
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
@@ -72,40 +74,44 @@ class RightAngledTriangularHit(Hit):
     def getFunction(self):
         self.slope = (self.midpoint.z - self.target.z) / math.fabs(self.target.x - self.origin.x)
         self.b = self.midpoint.z - self.slope * self.origin.x
-        print('slope: ', self.slope, ' b: ', self.b)
+        #print('slope: ', self.slope, ' b: ', self.b)
 
     def calculatePath(self):
         self.getFunction()
         if self.left:
             i = 0
             while self.x < self.target.x:
-                i = i + self.speed# + (i / ACCURACY_COEFF)
-                self.speed = self.speed + 0.5
+                i = i + self.speed# + (i / SPEED_COEFF)
+                self.speed = self.speed + SPEED_COEFF
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
-                self.path.append(Point(self.x, self.origin.y, self.z-5))
+                if self.z >= self.hit_height:
+                    self.path.append(Point(self.x, self.origin.y, self.z-5))
 
-            j = 0
-            while self.z > self.target.z:
-                j = j + self.speed# + (j / ACCURACY_COEFF)
-                self.speed = self.speed + 0.5
-                self.z = self.target.z - j
-                self.path.append(Point(self.target.x, self.target.y, self.z))
+            #j = 0
+            #while self.z > self.target.z:
+            #    j = j + self.speed# + (j / SPEED_COEFF)
+            #    self.speed = self.speed + SPEED_COEFF
+            #    self.z = self.target.z - j
+            #    if self.z >= self.hit_height:
+            #        self.path.append(Point(self.target.x, self.target.y, self.z))
         else:
             i = 0
             while self.x > self.target.x:
-                i = i + self.speed# + (i / ACCURACY_COEFF)
-                self.speed = self.speed + 0.5
+                i = i + self.speed# + (i / SPEED_COEFF)
+                self.speed = self.speed + SPEED_COEFF
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
-                self.path.append(Point(self.x, self.origin.y, self.z))
+                if self.z >= self.hit_height:
+                    self.path.append(Point(self.x, self.origin.y, self.z))
 
-            j = 0
-            while self.z > self.target.z:
-                j = j + self.speed# + (j / ACCURACY_COEFF)
-                self.speed = self.speed + 0.5
-                self.z = self.midpoint.z - j
-                self.path.append(Point(self.target.x, self.target.y, self.z))
+            #j = 0
+            #while self.z > self.target.z:
+            #    j = j + self.speed# + (j / SPEED_COEFF)
+            #    self.speed = self.speed + SPEED_COEFF
+            #    self.z = self.midpoint.z - j
+            #    if self.z >= self.hit_height:
+            #        self.path.append(Point(self.target.x, self.target.y, self.z))
 
 
 class TriangularHit(Hit):
@@ -126,7 +132,7 @@ class TriangularHit(Hit):
         if self.left:
             i = 0
             while self.x < self.midpoint.x:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed + (i / SPEED_COEFF)
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
@@ -134,14 +140,14 @@ class TriangularHit(Hit):
             self.getFunction(False)
             j = 0
             while self.x < self.target.x:
-                j = j + self.speed + (j / ACCURACY_COEFF)
+                j = j + self.speed + (j / SPEED_COEFF)
                 self.x = self.midpoint.x + j
                 self.z = self.slope * self.x + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
         else:
             i = 0
             while self.x > self.midpoint.x:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed + (i / SPEED_COEFF)
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
@@ -149,7 +155,7 @@ class TriangularHit(Hit):
             self.getFunction(False)
             j = 0
             while self.x > self.target.x:
-                j = j + self.speed + (j / ACCURACY_COEFF)
+                j = j + self.speed + (j / SPEED_COEFF)
                 self.x = self.midpoint.x - j
                 self.z = self.slope * (self.midpoint.x + j) + self.b
                 self.path.append(Point(self.x, self.origin.y, self.z))
@@ -163,37 +169,37 @@ class UniformHit(Hit):
         if self.left:
             i = 0
             while self.z < self.midpoint.z - 1:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed + (i / SPEED_COEFF)
                 self.z = self.origin.z + i
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
             j = 0
             while self.x < self.target.x - 1:
-                j = j + self.speed + (j / ACCURACY_COEFF)
+                j = j + self.speed + (j / SPEED_COEFF)
                 self.x = self.origin.x + j
                 self.path.append(Point(self.x, self.origin.y, self.midpoint.z))
 
             k = 0
             while self.z > self.target.z + 1:
-                k = k + self.speed + (k / ACCURACY_COEFF)
+                k = k + self.speed + (k / SPEED_COEFF)
                 self.z = self.midpoint.z - k
                 self.path.append(Point(self.target.x, self.origin.y, self.z))
         else:
             i = 0
             while self.z < self.midpoint.z - 1:
-                i = i + self.speed + (i / ACCURACY_COEFF)
+                i = i + self.speed + (i / SPEED_COEFF)
                 self.z = self.origin.z + i
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
 
             j = 0
             while self.x > self.target.x + 1:
-                j = j + self.speed + (j / ACCURACY_COEFF)
+                j = j + self.speed + (j / SPEED_COEFF)
                 self.x = self.origin.x - j
                 self.path.append(Point(self.x, self.origin.y, self.midpoint.z))
 
             k = 0
             while self.z > self.target.z + 1:
-                k = k + self.speed + (k / ACCURACY_COEFF)
+                k = k + self.speed + (k / SPEED_COEFF)
                 self.z = self.midpoint.z - k
                 self.path.append(Point(self.target.x, self.origin.y, self.z))
 
@@ -211,7 +217,7 @@ class QuadraticHit(Hit):
         if self.left:
             i = 0
             while self.x < self.offset_target.x:
-                i = i + self.speed# + (i / ACCURACY_COEFF)
+                i = i + self.speed# + (i / SPEED_COEFF)
                 self.speed = self.speed + 0.1
                 self.x = self.offset_origin.x + i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
@@ -220,7 +226,7 @@ class QuadraticHit(Hit):
         else:
             i = 0
             while self.x > self.offset_target.x:
-                i = i + self.speed# + (i / ACCURACY_COEFF)
+                i = i + self.speed# + (i / SPEED_COEFF)
                 self.speed = self.speed + 0.1
                 self.x = self.offset_origin.x - i
                 self.z = self.x ** 2 * self.a + self.x * self.b + self.c
