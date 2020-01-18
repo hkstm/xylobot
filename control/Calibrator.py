@@ -21,7 +21,7 @@ lastPointV = None
 
 
 def calibrate(gui, cm):
-    global Coefficient, lastPointV
+    global Coefficient, lastPointV, stepsize
     discoveredPoints = []
 
 
@@ -35,7 +35,7 @@ def calibrate(gui, cm):
     # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
     # control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
-    keyList = Grid.generateList()
+    keyList = Grid.generateList(gui)
     #gui.updateCenterpointsImage()
 
     keyList[0].x = 9
@@ -109,6 +109,7 @@ def calibrate(gui, cm):
 
 
     for k in keyList:
+        # stepsize = 0.07
         print("Current Key XYZ = " , k.x , "  " , k.y , "  " , k.z)
         #currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
         newx, newy, newz, currentPoint = find(cm, k, currentPoint)
@@ -123,7 +124,7 @@ def calibrate(gui, cm):
     return discoveredPoints
 
 def find(cm, key, currentPoint):
-    global Coefficient
+    global Coefficient, error, stepsize
     oldPoint = currentPoint
     currentPoint = moveTo(cm, Point(key.x,key.y,key.z), currentPoint)
     offset = Grid.getOffset(key)
@@ -133,8 +134,6 @@ def find(cm, key, currentPoint):
         # return find(cm, Point(key.x - (12/6.75 * Coefficient), key.y, key.z), oldPoint)
     #else:
     try:
-        global error
-        global stepsize
         while abs(offset[0]) > error or abs(offset[1] > error):
             print(key.key," Px & y are: ", key.px, " ", key.py)
             print(" Offsets are: ", offset[0], " ", offset[1])
@@ -150,6 +149,7 @@ def find(cm, key, currentPoint):
         return key.x, key.y, key.z, currentPoint
     except Exception as e:
         print(e)
+        # stepsize = 0.01
         currentPoint = moveTo(cm, Point(key.x - (12/6.75 * Coefficient), key.y - (12/6.75 * Coefficient), key.z), oldPoint)
         return find(cm, key, currentPoint)
 

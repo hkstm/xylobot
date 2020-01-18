@@ -1,8 +1,10 @@
 import librosa
+import queue as Queue
+import threading
 
 
-connectedtosetup = True
-print("connected to setup: ", connectedtosetup)
+connectedtosetup = False
+print("Connected to setup: ", connectedtosetup)
 if connectedtosetup:
     from control import Calibrator
 
@@ -12,7 +14,9 @@ from signalprocessing.SignalTrack import pitch_track_wrap
 from signalprocessing.SignalTrack import pitch_track_calc
 from control.ControlManager import ControlManager
 from control.SongManager import Note
+from computervision import VideoCamera as vc
 
+import Test
 import os
 import ast
 from tkinter import *
@@ -157,23 +161,18 @@ class XylobotGUI:
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
-        if connectedtosetup:
-            self.update_log('Started calibration')
-            try:
-                newNotes = Calibrator.calibrate(self, self.cm)
-                print('Calibration successful with: ')
-                for note in newNotes:
-                    print(note.x, note.y)
-                    self.update_log(f'{note.x}, {note.y}')
-                self.update_log(f'Calibration successful with:')
-                # control.setNotes(newNotes)
-                self.cm.setNoteCoordinates(newNotes)
-                self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
-                self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
-            except Exception as e:
-                print(e)
-                self.update_log(f'Calibration failed: {e}')
-                Calibrator.destroyWindows()
+        self.queue = Queue.Queue()
+        CalibrateThread(self.queue, self).start()
+        self.window.after(100, self.process_queue)
+
+    def process_queue(self):
+        try:
+            msg = self.queue.get(0)
+            print(msg)
+            # Show result of the task if needed
+            # self.prog_bar.stop()
+        except Queue.Empty:
+            self.window.after(100, self.process_queue)
 
     def start_recordclip(self):
         self.recordclip_btn_isclicked = True
@@ -440,7 +439,7 @@ class XylobotGUI:
         ret_bird, frame_bird = self.vid_bird.get_frame()
 
         if ret_bird:
-            self.photo_bird = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_bird))
+            self.photo_bird = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(cv2.cvtColor(frame_bird, cv2.COLOR_BGR2RGB)))
             self.vid_bird_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_bird)
 
         # if not self.vid_source_side == 0:
@@ -451,32 +450,74 @@ class XylobotGUI:
 
         self.window.after(self.delay, self.update_vid)
 
+    def updateCenterpointsImage(self):
+        self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
+        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2,
+                                          image=self.centerpoints_img)
+
+class CalibrateThread(threading.Thread):
+    def __init__(self, queue, gui):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.gui = gui
+    def run(self):
+        print("Connected to setup: ", connectedtosetup)
+        if connectedtosetup:
+            self.gui.update_log('Started calibration')
+            try:
+                newNotes = Calibrator.calibrate(self.gui, self.gui.cm)
+                print('Calibration successful with: ')
+                for note in newNotes:
+                    print(note.x, note.y)
+                    self.gui.update_log(f'{note.x}, {note.y}')
+                self.gui.update_log(f'Calibration successful with:')
+                # control.setNotes(newNotes)
+                self.gui.cm.setNoteCoordinates(newNotes)
+                self.gui.updateCenterpointsImage()
+            except Exception as e:
+                print(e)
+                self.gui.update_log(f'Calibration failed: {e}')
+                Calibrator.destroyWindows()
+        else:
+            Test.run(self.gui)
+        self.queue.put("Task finished")
 
 class CamCapture:
     def __init__(self, width, height, video_source=0, ):
         # Open the video source
-        self.vid = cv2.VideoCapture(video_source)
-        if not self.vid.isOpened():
+        # self.vid = cv2.VideoCapture(video_source)
+        self.vid = vc.NewVideoCamera(video_source)
+        if not self.vid.isOpen():
             raise ValueError("Unable to open video source", video_source)
 
-        self.vid.set(3, width)  # 3 refers to width
-        self.vid.set(4, height)  # 4 refers to height
+        # self.vid.getCap.set(3, width)  # 3 refers to width
+        # self.vid.getCap.set(4, height)  # 4 refers to height
+
+        self.width = int(width)
+        self.height = int(height)
+
+        # self.vid.setDimensions(width, height)
 
     def get_frame(self):
+        # frame = self.vid.getNextFrame()
+        # return frame
         ret = False
-        if self.vid.isOpened():
-            ret, frame = self.vid.read()
+        if self.vid.isOpen():
+            ret, frame = self.vid.getNextFrame()
             if ret:
                 # Return a boolean success flag and the current frame converted to BGR
-                return ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame = cv2.resize(frame, (self.width, self.height))
+                # print((self.width, self.height))
+                return ret, frame
             else:
                 return ret, None
         else:
             return ret, None
 
+
     # Release the video source when the object is destroyed
     def __del__(self):
-        if self.vid.isOpened():
+        if self.vid.isOpen():
             self.vid.release()
 
 

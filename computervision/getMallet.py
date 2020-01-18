@@ -2,17 +2,19 @@ import cv2
 import numpy
 from collections import deque
 import imutils
+from computervision import VideoCamera as vc
 
 cap = None
 counter = 0
 
-def run(previous_coordinates, boundarycenterleft, boundarycenterright):
+def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
     global cap, counter
     counter = 0
-    cap = cv2.VideoCapture(1)
+    cap = gui.vid_bird.vid
 
-    width = int(cap.get(3))
-    height = int(cap.get(4))
+    # width = int(cap.get(3))
+    # height = int(cap.get(4))
+    width, height = cap.getDimensions()
     print(width)
     print(height)
 
@@ -26,7 +28,7 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
     x2 = 480
 
     while (1):
-        _, frame = cap.read()
+        ret, frame = cap.getNextFrame()
         #frame = frame[y1:y2, x1:x2]  # crop frame
 
         mask, res, ((x, y), radius) = colorDetection(frame, previous_coordinates, boundarycenterleft, boundarycenterright)
@@ -48,7 +50,7 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
         if ((x,y))[0] is not None and ((x,y))[1]:
             print(" Mallet ",((x + x1, y + y1), radius))
             #writer.release()
-            cap.release()
+            # cap.release()
             cv2.destroyAllWindows()
             return ((x, y), radius)
         elif counter > 40:
@@ -56,7 +58,7 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
         previous_coordinates = (None, None)
         counter += 1
     #writer.release()
-    cap.release()
+    # cap.release()
     cv2.destroyAllWindows()
 
 

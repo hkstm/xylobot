@@ -2,9 +2,10 @@ import numpy as np
 import cv2
 from computervision import Grid
 from computervision.CenterPoint import CenterPoint
+from computervision import VideoCamera as vc
 
 
-cap = cv2.VideoCapture(1)
+cap = None
 DONE = False
 finalObj = None
 bready = False
@@ -15,15 +16,15 @@ list = []
 boundarycenterleft = None
 boundarycenterright = None
 
-def run():
-    width = int(cap.get(3))
-    height = int(cap.get(4))
-    global finalObj, DONE, bready, b2ready, finalObj2, list, swapped, boundarycenterleft, boundarycenterright
+def run(gui):
+    global finalObj, DONE, bready, b2ready, finalObj2, list, swapped, boundarycenterleft, boundarycenterright, cap
+    cap = gui.vid_bird.vid
+    width, height = cap.getDimensions()
     swapped = False
     #bready = False
     #b2ready = False
     while(DONE == False):
-        ret, frame = cap.read()
+        ret, frame = cap.getNextFrame()
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         cv2.imshow('hsv', hsv)
         lower_black = np.array([0, 0, 0])
@@ -151,7 +152,7 @@ def run():
             else:
                 createList1(int(finalObj[0][0]), int(finalObj2[0][0]), int(finalObj[0][1]), int(finalObj2[0][1]))
 
-
+            frame = cv2.resize(frame, (460, 388))
             cv2.imwrite('centerpoints.jpg', frame)
             print('Image saved')
             DONE = True
@@ -160,7 +161,7 @@ def run():
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break
-    cap.release()
+    #cap.release()
     cv2.destroyAllWindows()
 
 def Swapped():
