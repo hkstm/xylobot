@@ -3,6 +3,7 @@ import cv2
 from computervision import Grid
 from computervision.CenterPoint import CenterPoint
 from computervision import VideoCamera as vc
+import PIL
 
 
 cap = None
@@ -26,11 +27,11 @@ def run(gui):
     while(DONE == False):
         ret, frame = cap.getNextFrame()
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        cv2.imshow('hsv', hsv)
+        # cv2.imshow('hsv', hsv)
         lower_black = np.array([0, 0, 0])
         upper_black = np.array([60, 80, 50])
         mask = cv2.inRange(hsv, lower_black, upper_black)
-        cv2.imshow('original', mask)
+        # cv2.imshow('original', mask)
         kernel = np.ones((2, 2), np.uint8)
         erode = cv2.morphologyEx(mask, cv2.MORPH_ERODE, kernel)
         kernel = np.ones((3, 3), np.uint8)
@@ -40,7 +41,7 @@ def run(gui):
         kernel = np.ones((3, 3), np.uint8)
         dilatemask = cv2.morphologyEx(dilatemask, cv2.MORPH_CLOSE, kernel)
         mask = dilatemask
-        cv2.imshow('blackmask', mask)
+        # cv2.imshow('blackmask', mask)
         blackcnts = cv2.findContours(mask.copy(),
                                      cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
@@ -79,7 +80,7 @@ def run(gui):
             offset = 420
             offsetright = 640
         crop = frame[0:height, offset:offsetright]
-        cv2.imshow('crop', crop)
+        # cv2.imshow('crop', crop)
 #Change to hsv, find black mask, reduce noise using morphology
         hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, lower_black, upper_black)
@@ -157,7 +158,10 @@ def run(gui):
             print('Image saved')
             DONE = True
 
-        cv2.imshow('frame', frame)
+        # cv2.imshow('frame', frame)
+        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+        gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2,
+                                          image=gui.centerpoints_img)
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break

@@ -3,6 +3,7 @@ import numpy
 from collections import deque
 import imutils
 from computervision import VideoCamera as vc
+import PIL
 
 cap = None
 counter = 0
@@ -42,6 +43,10 @@ def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
             #cv2.imshow('Pure Color Detection', res)
         #except:
             #print("Could not print all requested frames")
+
+        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(res, cv2.COLOR_BGR2RGB)))
+        gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2,
+                                          image=gui.centerpoints_img)
 
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
@@ -128,7 +133,7 @@ def drawCircle(cnts, frame, prec, bcl, bcr):
                 # cv2.waitKey(500)
                 return frame, ((x, y), radius)
     print("No mallet detected")
-    cv2.imshow('frame', frame)
+    # cv2.imshow('frame', frame)
     return frame, ((None, None), None)
 
 
