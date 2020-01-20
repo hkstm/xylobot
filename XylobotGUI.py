@@ -4,7 +4,7 @@ import threading
 
 
 connectedtosetup = False
-print("Connected to setup: ", connectedtosetup)
+print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
 
