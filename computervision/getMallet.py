@@ -123,7 +123,11 @@ def drawCircle(cnts, frame, prec, bcl, bcr, mask):
             # print("y difference: ", abs(((x, y), radius)[0][1] - prec[1]))
             # print("radius in bounds? ", 30 > radius > 10, " radius: ", radius)
             # print("not outside? ", bcl[0], bcr[0])
-            if 40 > radius > 10 and (bcl[0] + 40 < ((x, y), radius)[0][0] < bcr[0] - 40): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
+
+            area = cv2.contourArea(c)
+            print("area: ", area)
+
+            if 1000 > area > 100 and (bcl[0] + 30 < ((x, y), radius)[0][0] < bcr[0] - 30): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
                 cv2.circle(frame, (int(x), int(y)), int(radius-1), (255, 255, 255), cv2.FILLED, 8, 0);

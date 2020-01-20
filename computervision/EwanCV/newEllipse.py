@@ -45,17 +45,20 @@ def run(gui):
         blackcnts = cv2.findContours(mask.copy(),
                                      cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
-        if len(blackcnts) > 0:
-            black_area = max(blackcnts, key=cv2.contourArea)
-            Obj = cv2.fitEllipse(black_area)
-            center = Obj[0]
-            size = Obj[1]
-            if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
-                finalObj = Obj
-                bready = True
-            elif (size[0] > 14 and size[0] < 25 and size[1] > 150 and size[1] < 200):
-                finalObj2 = Obj
-                b2ready = True
+        try:
+            if len(blackcnts) > 0:
+                black_area = max(blackcnts, key=cv2.contourArea)
+                Obj = cv2.fitEllipse(black_area)
+                center = Obj[0]
+                size = Obj[1]
+                if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
+                    finalObj = Obj
+                    bready = True
+                elif (size[0] > 14 and size[0] < 25 and size[1] > 150 and size[1] < 200):
+                    finalObj2 = Obj
+                    b2ready = True
+        except Exception as e:
+            continue
 
 #SECOND HALF!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -98,20 +101,23 @@ def run(gui):
         blackcnts = cv2.findContours(mask.copy(),
                                      cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)[-2]
-        if len(blackcnts) > 0:
-            black_area = max(blackcnts, key=cv2.contourArea)
-            Obj2 = cv2.fitEllipse(black_area)
-            angle = Obj[2]
-            center = Obj2[0]
-            size = Obj2[1]
-            center = (center[0] + offset, center[1])
-            Obj2 = (center, size, angle)
-            if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
-                finalObj = Obj2
-                bready = True
-            elif (size[0] > 14 and size[0] < 25 and size[1] > 150 and size[1] < 200):
-                finalObj2 = Obj2
-                b2ready = True
+        try:
+            if len(blackcnts) > 0:
+                black_area = max(blackcnts, key=cv2.contourArea)
+                Obj2 = cv2.fitEllipse(black_area)
+                angle = Obj[2]
+                center = Obj2[0]
+                size = Obj2[1]
+                center = (center[0] + offset, center[1])
+                Obj2 = (center, size, angle)
+                if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
+                    finalObj = Obj2
+                    bready = True
+                elif (size[0] > 14 and size[0] < 25 and size[1] > 150 and size[1] < 200):
+                    finalObj2 = Obj2
+                    b2ready = True
+        except Exception as e:
+            continue
         
         if bready:
             cv2.ellipse(frame, finalObj, (0, 255, 255), 2)
