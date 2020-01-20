@@ -109,7 +109,7 @@ def calibrate(gui, cm):
 
 
     for k in keyList:
-        # stepsize = 0.07
+        stepsize = 0.07
         print("Current Key XYZ = " , k.x , "  " , k.y , "  " , k.z)
         #currentPoint = moveTo(Point(k.x, k.y, k.z + 10), currentPoint)
         newx, newy, newz, currentPoint = find(cm, k, currentPoint)
@@ -149,7 +149,7 @@ def find(cm, key, currentPoint):
         return key.x, key.y, key.z, currentPoint
     except Exception as e:
         print(e)
-        # stepsize = 0.01
+        stepsize = 0.01
         currentPoint = moveTo(cm, Point(key.x - (12/6.75 * Coefficient), key.y - (12/6.75 * Coefficient), key.z), oldPoint)
         return find(cm, key, currentPoint)
 

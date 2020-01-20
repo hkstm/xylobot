@@ -2,6 +2,7 @@ import logging
 import os
 import math
 import numpy as np
+from types import SimpleNamespace
 from scipy.signal import find_peaks
 from scipy.io import wavfile
 from .PitchesData import pitches, pitches_ranges
@@ -180,24 +181,24 @@ def pitch_track_wrap(args_dict):
         logger.addHandler(logging.StreamHandler())
     logger.info("Starting script")
 
-    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_wav(
+    pitchtrackresults = pitch_track_wav(
         args, is_logging=True)
     if args.plot:
-        plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-                   extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
-                           freq_list[upper_index_cutoff]])
+        plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                   extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                           pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
         plt.title('results transposed')
         plt.show()
 
     # !!! FINAL RESULT !!!
-
-    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in key_and_times]}')
+    print(pitchtrackresults.key_and_times)
+    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in pitchtrackresults.key_and_times]}')
     if args.guiplot:
-        return key_and_times, plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest',
+        return pitchtrackresults.key_and_times, plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
                                          aspect='auto',
-                                         extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
-                                                 freq_list[upper_index_cutoff]])
-    return key_and_times
+                                         extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                                                 pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+    return pitchtrackresults.key_and_times
 
 
 def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, threshold=0.2):
@@ -259,4 +260,20 @@ def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, to
                 # logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
 
     results_transposed = np.transpose(results_cutoff)
-    return key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times
+    pitch_track_results_dict = {
+        'key_and_times': key_and_times,
+        'results_transposed': results_transposed,
+        'time_list': time_list,
+        'freq_list': freq_list,
+        'low_index_cutoff': low_index_cutoff,
+        'upper_index_cutoff': upper_index_cutoff,
+        'fft_size': fft_size,
+        'overlap_fac': overlap_fac,
+        'loudness_factor': loudness_factor,
+        'fs': fs,
+        'data': data,
+        'hop_size': hop_size,
+        'averages': averages,
+        'freq_and_times': freq_and_times,
+    }
+    return SimpleNamespace(**pitch_track_results_dict)

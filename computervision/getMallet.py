@@ -44,7 +44,7 @@ def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
         #except:
             #print("Could not print all requested frames")
 
-        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(res, cv2.COLOR_BGR2RGB)))
+        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(cv2.resize(res, (460, 388)), cv2.COLOR_BGR2RGB)))
         gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2,
                                           image=gui.centerpoints_img)
 
@@ -58,7 +58,7 @@ def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
             # cap.release()
             cv2.destroyAllWindows()
             return ((x, y), radius)
-        elif counter > 40:
+        elif counter > 20:
             return ((None, None), None)
         previous_coordinates = (None, None)
         counter += 1
@@ -92,18 +92,18 @@ def colorDetection(frame, prec, bcl, bcr):
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
 
-    #removeSmallAreas(mask, cnts)
-    res[mask == 255] = [255, 255, 255]
+    # res[mask == 255] = [255, 255, 255]
 
 
     #resblur[mask == 255] = [0, 0, 255]
     #cv2.imshow('resblur', resblur)
 
-    res, ((x, y), radius) = drawCircle(cnts, res, prec, bcl, bcr)
+    res, ((x, y), radius) = drawCircle(cnts, res, prec, bcl, bcr, mask)
+    # mask = removeSmallAreas(mask, cnts)
 
     return mask, res, ((x, y), radius)
 
-def drawCircle(cnts, frame, prec, bcl, bcr):
+def drawCircle(cnts, frame, prec, bcl, bcr, mask):
     if len(cnts) > 0:
         # find the largest contour in the mask, then use it to compute the minimum enclosing circle and centroid
         # print("area: ", cv2.contourArea(c))
@@ -123,29 +123,37 @@ def drawCircle(cnts, frame, prec, bcl, bcr):
             # print("y difference: ", abs(((x, y), radius)[0][1] - prec[1]))
             # print("radius in bounds? ", 30 > radius > 10, " radius: ", radius)
             # print("not outside? ", bcl[0], bcr[0])
-            if 40 > radius > 10 and (bcl[0] + 40 < ((x, y), radius)[0][0] < bcr[0] - 40): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
+
+            area = cv2.contourArea(c)
+            print("area: ", area)
+
+            if 1000 > area > 100 and (bcl[0] + 30 < ((x, y), radius)[0][0] < bcr[0] - 30): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
-                cv2.circle(frame, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                cv2.circle(frame, (int(x), int(y)), int(radius-1), (255, 255, 255), cv2.FILLED, 8, 0);
+                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 3)
+                cv2.circle(frame, center, 3, (0, 0, 255), -1)
                 # cv2.imshow("mallet frame", frame)
                 # cv2.waitKey(500)
                 return frame, ((x, y), radius)
     print("No mallet detected")
     # cv2.imshow('frame', frame)
+    frame[mask == 255] = [255, 255, 255]
     return frame, ((None, None), None)
 
 
 def removeSmallAreas(mask, cnts):
     if len(cnts) > 0:
-        for cnt in cnts:
-            c = cv2.contourArea(cnt)
+        for c in cnts:
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            if radius < 10:
-                cv2.drawContours(mask, c, "black")
+            try:
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            except:
+                continue
+            # cnt = cv2.contourArea(c)
+            if 0 < radius < 0:
+                img = cv2.drawContours(img, [c], 0, (255, 255, 255), 3)
     return mask
 
 def destroyWindows():

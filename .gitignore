@@ -10,3 +10,4 @@ __pycache__/
 *.wav
 *.csv
 *.png
+centerpoints.jpg

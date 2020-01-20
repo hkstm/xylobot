@@ -229,19 +229,19 @@ for i in range(amount_of_runs_test):
             'topindex': args.topindex,
         }
     starttime = time.process_time()
-    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_wav(
+    pitchtrack_resNS = pitch_track_wav(
         SimpleNamespace(**argsdict))
     endtime = time.process_time()
-    print(f'data type {type(data)}')
-    print(f'timeres {time_resolution(time_list)}')
-    print(f'pitches{pitches}')
-    print(f'{key_and_times}')
+    print(f'data type {type(pitchtrack_resNS.data)}')
+    print(f'timeres {time_resolution(pitchtrack_resNS.time_list)}')
+    print(f'pitches{pitchtrack_resNS.pitches}')
+    print(f'{pitchtrack_resNS.key_and_times}')
     # print(freq_and_times)
-    print(f'Correct scale: {correctscale(key_and_times)}')
+    print(f'Correct scale: {correctscale(pitchtrack_resNS.key_and_times)}')
     if spectogram3dtest:
         nperseg = 2 ** 12
         noverlap = 2 ** 11
-        f, t, Sxx = signal.spectrogram(data, fs, nperseg=nperseg, noverlap=noverlap)
+        f, t, Sxx = signal.spectrogram(pitchtrack_resNS.data, pitchtrack_resNS.fs, nperseg=nperseg, noverlap=noverlap)
 
         myfilter = (f > 500) & (f < 3000)
 
@@ -264,22 +264,22 @@ for i in range(amount_of_runs_test):
         # noisy_signal = np.multiply(data, noise)
         # noise = np.random.normal(0, 10, len(data))
         # noisy_signal = data + noise
-        flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=hop_size)
+        flatness = librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float), n_fft=pitchtrack_resNS.fft_size, hop_length=pitchtrack_resNS.hop_size)
         # flatness = librosa.feature.spectral_flatness(y=noisy_signal.astype(float), n_fft=fft_size, hop_length=hop_size)
         print(f' mean flatness: {np.mean(flatness)}')
-        normalized = normalize_data(flatness[0], averages)
+        normalized = normalize_data(flatness[0], pitchtrack_resNS.averages)
         normalized_scaled = scale_decibel(normalized)
 
-        plt.plot(time_list, normalized_scaled)
+        plt.plot(pitchtrack_resNS.time_list, normalized_scaled)
         plt.xlabel('Time in seconds')
         plt.ylabel('Noise intensity normalized by signal magnitude')
         plt.title('Flatness')
         plt.show()
 
     if spectogramtest:
-        img = plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-                         extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
-                                 freq_list[upper_index_cutoff]])
+        img = plt.imshow(pitchtrack_resNS.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                         extent=[pitchtrack_resNS.time_list[0], pitchtrack_resNS.time_list[-1], pitchtrack_resNS.freq_list[pitchtrack_resNS.low_index_cutoff],
+                                 pitchtrack_resNS.freq_list[pitchtrack_resNS.upper_index_cutoff]])
         plt.title('Spectogram')
         plt.xlabel('Time in seconds')
         plt.ylabel('Frequency in Hz')
@@ -287,15 +287,15 @@ for i in range(amount_of_runs_test):
 
     if recordaudioflag:
         time_error_seq, key_error_seq = check_correct_hits(actual_seq=convertnote2seq(sequence_test),
-                                                           analyzed_seq=key_and_times)
+                                                           analyzed_seq=pitchtrack_resNS.key_and_times)
         filename_p.append(argsdict['name'])
         run_p.append(i)
         position_p.append(position_test)
         key_error_p.append(key_error_seq)
         time_error_p.append(time_error_seq)
-        length_difference_p.append(len(key_and_times) - len(convertnote2seq(sequence_test)))
+        length_difference_p.append(len(pitchtrack_resNS.key_and_times) - len(convertnote2seq(sequence_test)))
         flatness_p.append(
-            np.mean(librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=hop_size)))
+            np.mean(librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float), n_fft=pitchtrack_resNS.fft_size, hop_length=pitchtrack_resNS.hop_size)))
         fftsize_p.append(argsdict['fftsize'])
         window_p.append(argsdict['window'])
         topindex_p.append(argsdict['topindex'])
@@ -303,10 +303,10 @@ for i in range(amount_of_runs_test):
         min_delay_p.append(min_delay_test)
         max_delay_p.append(max_delay_test)
         hit_method_p.append(hit_method_test)
-        clip_length_p.append(time_list[-1])
+        clip_length_p.append(pitchtrack_resNS.time_list[-1])
         executiontime_p.append(endtime - starttime)
         print(f'actual {convertnote2seq(sequence_test)}')
-        print(f'analyz {key_and_times}')
+        print(f'analyz {pitchtrack_resNS.key_and_times}')
 
 if recordaudioflag:
     df = pd.DataFrame({'Filename': filename_p,
