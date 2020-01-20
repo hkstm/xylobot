@@ -48,28 +48,6 @@ class XylobotGUI:
         self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
         self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
 
-        # self.birds_eye_view.grid(row=0, column=0)
-        # self.side_view.grid(row=0, column=1)
-        # self.pack(fill=BOTH, expand=1)
-
-        # self.birds_eye_view.create_rectangle(left + 0 * (keywidth + division), top + 0 * c,
-        #                                      left + 0 * (keywidth + division) + keywidth, bottom - 0 * c, fill="blue")
-        # self.birds_eye_view.create_rectangle(left + 1 * (keywidth + division), top + 1 * c,
-        #                                      left + 1 * (keywidth + division) + keywidth, bottom - 1 * c, fill="green")
-        # self.birds_eye_view.create_rectangle(left + 2 * (keywidth + division), top + 2 * c,
-        #                                      left + 2 * (keywidth + division) + keywidth, bottom - 2 * c, fill="yellow")
-        # self.birds_eye_view.create_rectangle(left + 3 * (keywidth + division), top + 3 * c,
-        #                                      left + 3 * (keywidth + division) + keywidth, bottom - 3 * c, fill="orange")
-        # self.birds_eye_view.create_rectangle(left + 4 * (keywidth + division), top + 4 * c,
-        #                                      left + 4 * (keywidth + division) + keywidth, bottom - 4 * c, fill="red")
-        # self.birds_eye_view.create_rectangle(left + 5 * (keywidth + division), top + 5 * c,
-        #                                      left + 5 * (keywidth + division) + keywidth, bottom - 5 * c, fill="purple")
-        # self.birds_eye_view.create_rectangle(left + 6 * (keywidth + division), top + 6 * c,
-        #                                      left + 6 * (keywidth + division) + keywidth, bottom - 6 * c, fill="white")
-        # self.birds_eye_view.create_rectangle(left + 7 * (keywidth + division), top + 7 * c,
-        #                                      left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
-        #                                      fill="darkblue")
-
         self.simu_xylo = SimuXylo(0)
         self.simu_xylo.update_base()
 
@@ -144,19 +122,6 @@ class XylobotGUI:
     def set_xylophone_location(self, x, y, z):
         self.simu_xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
         self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
-
-    def play_btn(self, key, event=None):
-        self.update_log(f'playing: {key}')
-        # #TODO REMOVE THIS TESTER:
-        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
-        # self.xylo.goodRotate(30)
-        # updateXyloDrawing(self.xylo,self.birds_eye_view)
-        # self.move_Simulation_Robot(20,180,220)
-        ############
-        if connectedtosetup:
-            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
-            # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), 'triangle 2')
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
@@ -242,7 +207,20 @@ class XylobotGUI:
 
     def update_hitmethods(self, event=None):
         # combobox_event.selection_clear()
-        method = self.hitmethodsvar.get()
+        method = self.hitmethods_text.get()
+
+    def play_btn(self, key, event=None):
+        self.update_log(f'playing: {key}')
+        # #TODO REMOVE THIS TESTER:
+        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+        # self.xylo.goodRotate(30)
+        # updateXyloDrawing(self.xylo,self.birds_eye_view)
+        # self.move_Simulation_Robot(20,180,220)
+        ############
+        if connectedtosetup:
+            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
+            # control.hitkey(key)
+            self.cm.hit(Note(key, 0.8), self.hitmethods_text.get)
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
@@ -262,15 +240,14 @@ class XylobotGUI:
     def start_pitchcheck(self, notelist):
         self.is_pitchchecking = True
         self.p = pyaudio.PyAudio()  # Create an interface to
-        self.update_log('Starting checking tonal quality')
+        self.update_log('Starting pitch checking')
         self.stream = self.p.open(format=self.sampleformat,
                                   channels=self.channels,
                                   rate=self.fs,
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
-        self.numpyframes = []  # Initialize array to store frames
-        #self.do_pitchcheck(notelist)
+        # self.do_pitchcheck(notelist)
 
     def do_pitchcheck(self, notelist):
         if self.is_pitchchecking:
@@ -278,23 +255,26 @@ class XylobotGUI:
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            key_and_times, _, _, _, _, _, _, _, _, _, _, _, _, _ = pitch_track_calc(fs=self.fs, data=numpydata,
-                                                                                    fft_size=fft_size, is_plotting=False,
+            pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata,
+                                                                                    fft_size=fft_size,
+                                                                                    is_plotting=False,
                                                                                     is_logging=False, topindex=1,
-                                                                                    window='hanning', amp_thresh=float(self.ampthresh_entry_text.get()))
+                                                                                    window='hanning', amp_thresh=float(
+                    self.ampthresh_entry_text.get()))
             overlap_fac = 0.5
-            flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+            flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
+                                                         hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
 
-            print(key_and_times)
+            print(pitchtrack_resNS.key_and_times)
             self.window.after(self.delay_audio, self.do_pitchcheck())
 
     def stop_pitchcheck(self):
-        self.update_log('Trying to stop checking tonal quality')
+        self.update_log('Trying to stop pitch checking')
         self.is_pitchchecking = False
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
-        self.update_log('Stopped checking tonal quality')
+        self.update_log('Stopped pitch checking')
 
     def close_gui(self):
         self.window.destroy()
@@ -355,7 +335,7 @@ class XylobotGUI:
                    command=partial(self.play_btn, key)).grid(row=5, column=(2 + i),
                                                              sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
-            self.window.bind(f'{i+1}', partial(self.play_btn, key))
+            self.window.bind(f'{i + 1}', partial(self.play_btn, key))
 
         self.sequence_entry_text = StringVar()
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
@@ -397,14 +377,12 @@ class XylobotGUI:
         self.delay_entry.grid(row=6, column=9, columnspan=1, sticky=NSEW)
         self.delay_entry_text.set('100')
 
-
-
-
-        self.hitmethodsvar = StringVar()
-        self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly',
-                                      values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
-        self.hitmethodsbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
-        self.hitmethodsbox.grid(row=7, column=6, columnspan=4, sticky=NSEW)
+        self.hitmethods_text = StringVar()
+        self.hitmethods_cbbox = Combobox(window, textvariable=self.hitmethods_text, state='readonly',
+                                         values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
+        self.hitmethods_text.set('Triangle 2')
+        self.hitmethods_cbbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
+        self.hitmethods_cbbox.grid(row=7, column=6, columnspan=4, sticky=NSEW)
 
         self.record_btn = Button(window, text="Record Clip", command=self.start_recordclip).grid(row=8, column=2,
                                                                                                  rowspan=2,
@@ -460,8 +438,6 @@ class XylobotGUI:
         self.stream = None
         self.p = None
 
-
-
         self.update_log('Initialized audio recording settings')
         self.update_log('Starting main loop')
         self.window.mainloop()
@@ -471,7 +447,8 @@ class XylobotGUI:
         ret_bird, frame_bird = self.vid_bird.get_frame()
 
         if ret_bird:
-            self.photo_bird = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(cv2.cvtColor(frame_bird, cv2.COLOR_BGR2RGB)))
+            self.photo_bird = PIL.ImageTk.PhotoImage(
+                image=PIL.Image.fromarray(cv2.cvtColor(frame_bird, cv2.COLOR_BGR2RGB)))
             self.vid_bird_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_bird)
 
         # if not self.vid_source_side == 0:
@@ -485,13 +462,15 @@ class XylobotGUI:
     def updateCenterpointsImage(self):
         self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
         self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2,
-                                          image=self.centerpoints_img)
+                                      image=self.centerpoints_img)
+
 
 class CalibrateThread(threading.Thread):
     def __init__(self, queue, gui):
         threading.Thread.__init__(self)
         self.queue = queue
         self.gui = gui
+
     def run(self):
         print("Connected to setup: ", connectedtosetup)
         if connectedtosetup:
@@ -513,6 +492,7 @@ class CalibrateThread(threading.Thread):
         else:
             Test.run(self.gui)
         self.queue.put("Task finished")
+
 
 class CamCapture:
     def __init__(self, width, height, video_source=0, ):
@@ -545,7 +525,6 @@ class CamCapture:
                 return ret, None
         else:
             return ret, None
-
 
     # Release the video source when the object is destroyed
     def __del__(self):
