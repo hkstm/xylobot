@@ -15,6 +15,10 @@ class HitManager:
 
 
     def __init__(self, ser):
+        global maxpower, POWER, XYLO_HEIGHT
+        maxpower = 5
+        POWER = 5
+        XYLO_HEIGHT = 12.5
         xyloheight = self.XYLO_HEIGHT
         self.ser = ser
         self.currentPosition = Point(0, 23, 13)

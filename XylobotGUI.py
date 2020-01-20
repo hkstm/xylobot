@@ -492,6 +492,7 @@ class CalibrateThread(threading.Thread):
         else:
             Test.run(self.gui)
         self.queue.put("Task finished")
+        self.queue = None
 
 
 class CamCapture:

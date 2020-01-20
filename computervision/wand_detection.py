@@ -36,7 +36,7 @@ def run():
 
     while (1):
         _, frame = cap.read()
-        frame = frame[y1:y2, x1:x2]  # crop frame
+        # frame = frame[y1:y2, x1:x2]  # crop frame
 
         if use_color_detection_also is True:
             mask, res = colorDetection(frame)

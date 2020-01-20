@@ -53,7 +53,7 @@ def run(gui):
             if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
                 finalObj = Obj
                 bready = True
-            elif (size[0] > 15 and size[0] < 25 and size[1] > 150 and size[1] < 200):
+            elif (size[0] > 14 and size[0] < 25 and size[1] > 150 and size[1] < 200):
                 finalObj2 = Obj
                 b2ready = True
 
@@ -109,7 +109,7 @@ def run(gui):
             if (size[0] > 16 and size[0] < 25 and size[1] > 100 and size[1] < 130):
                 finalObj = Obj2
                 bready = True
-            elif (size[0] > 15 and size[0] < 25 and size[1] > 150 and size[1] < 200):
+            elif (size[0] > 14 and size[0] < 25 and size[1] > 150 and size[1] < 200):
                 finalObj2 = Obj2
                 b2ready = True
         
@@ -153,13 +153,12 @@ def run(gui):
             else:
                 createList1(int(finalObj[0][0]), int(finalObj2[0][0]), int(finalObj[0][1]), int(finalObj2[0][1]))
 
-            frame = cv2.resize(frame, (460, 388))
-            cv2.imwrite('centerpoints.jpg', frame)
+            cv2.imwrite('centerpoints.jpg', cv2.resize(frame, (460, 388)))
             print('Image saved')
             DONE = True
 
         # cv2.imshow('frame', frame)
-        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(cv2.resize(frame, (460, 388)), cv2.COLOR_BGR2RGB)))
         gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2,
                                           image=gui.centerpoints_img)
         k = cv2.waitKey(5) & 0xFF
