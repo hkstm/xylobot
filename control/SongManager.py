@@ -7,7 +7,7 @@ class Note:
         self.key = key
         self.delay = delay
         self.coords = coords
-        self.intensity = intensity
+        self.intensity = intensity  # velocity
 
     def __str__(self):
         return f"Note: {self.key}, delay: {self.delay}, coords: {self.coords}, intensity: {self.intensity}"

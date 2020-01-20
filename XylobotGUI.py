@@ -2,9 +2,8 @@ import librosa
 import queue as Queue
 import threading
 
-
 connectedtosetup = False
-print("Connected to setup: ", connectedtosetup)
+print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
 
@@ -20,7 +19,7 @@ import Test
 import os
 import ast
 from tkinter import *
-from tkinter.ttk import Combobox
+from tkinter.ttk import Combobox, Style
 from tkinter.filedialog import askopenfilename
 from functools import partial
 from types import SimpleNamespace
@@ -302,6 +301,11 @@ class XylobotGUI:
         exit()
 
     def __init__(self, window, window_title, vid_source_bird=0, vid_source_side=0):
+        # self.style = Style()
+        # print(self.style.theme_use())
+        #
+        # print(self.style.theme_names())
+        # self.style.theme_use('alt')
         self.window = window
         self.window.title(window_title)
         self.window.iconbitmap('data/amsterdam.ico')
@@ -358,17 +362,43 @@ class XylobotGUI:
                                                                                         sticky=NSEW)
         self.calibrate_btn = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
                                                                                                  columnspan=4,
-                                                                                                 rowspan=2,
+                                                                                                 rowspan=1,
                                                                                                  sticky=NSEW)
+
+        self.fft_label = Label(window, text="FFT Size:", relief=RIDGE)
+        self.fft_label.grid(row=7, column=2, columnspan=1, sticky=NSEW)
+
         self.fft_entry_text = StringVar()
         self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
-        self.fft_entry.grid(row=6, column=6, columnspan=2, sticky=NSEW)
+        self.fft_entry.grid(row=7, column=3, columnspan=1, sticky=NSEW)
         self.fft_entry_text.set('512')
+
+        self.ampthresh_label = Label(window, text="Amp Thresh:", relief=RIDGE)
+        self.ampthresh_label.grid(row=7, column=4, columnspan=1, sticky=NSEW)
 
         self.ampthresh_entry_text = StringVar()
         self.ampthresh_entry = Entry(window, textvariable=self.ampthresh_entry_text)
-        self.ampthresh_entry.grid(row=6, column=8, columnspan=2, sticky=NSEW)
+        self.ampthresh_entry.grid(row=7, column=5, columnspan=1, sticky=NSEW)
         self.ampthresh_entry_text.set('100')
+
+        self.intensity_label = Label(window, text="Intensity:", relief=RIDGE)
+        self.intensity_label.grid(row=6, column=6, columnspan=1, sticky=NSEW)
+
+        self.intensity_entry_text = StringVar()
+        self.intensity_entry = Entry(window, textvariable=self.intensity_entry_text)
+        self.intensity_entry.grid(row=6, column=7, columnspan=1, sticky=NSEW)
+        self.intensity_entry_text.set('512')
+
+        self.delay_label = Label(window, text="some parameter:", relief=RIDGE)
+        self.delay_label.grid(row=6, column=8, columnspan=1, sticky=NSEW)
+
+        self.delay_entry_text = StringVar()
+        self.delay_entry = Entry(window, textvariable=self.delay_entry_text)
+        self.delay_entry.grid(row=6, column=9, columnspan=1, sticky=NSEW)
+        self.delay_entry_text.set('100')
+
+
+
 
         self.hitmethodsvar = StringVar()
         self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly',
@@ -429,6 +459,8 @@ class XylobotGUI:
         self.frames = []  # Initialize array to store frames
         self.stream = None
         self.p = None
+
+
 
         self.update_log('Initialized audio recording settings')
         self.update_log('Starting main loop')
