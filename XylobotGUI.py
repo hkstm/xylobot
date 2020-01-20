@@ -2,7 +2,7 @@ import librosa
 import queue as Queue
 import threading
 
-connectedtosetup = False
+connectedtosetup = True
 print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
@@ -492,6 +492,7 @@ class CalibrateThread(threading.Thread):
         else:
             Test.run(self.gui)
         self.queue.put("Task finished")
+        self.queue = None
 
 
 class CamCapture:
@@ -533,4 +534,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
