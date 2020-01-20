@@ -355,7 +355,7 @@ class XylobotGUI:
                    command=partial(self.play_btn, key)).grid(row=5, column=(2 + i),
                                                              sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
-            self.window.bind(f'q', partial(self.play_btn, key))
+            self.window.bind(f'{i+1}', partial(self.play_btn, key))
 
         self.sequence_entry_text = StringVar()
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
