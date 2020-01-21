@@ -20,7 +20,7 @@ class ControlManager:
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
 
-    def hit(self, note, dynamics='', hittype='', tempo=0):
+    def hit(self, note, dynamics='pp', hittype='', tempo=0):
         malletBounce = 0
         if dynamics == 'pp':
             note.power = 1

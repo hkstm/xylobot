@@ -46,19 +46,21 @@ class HitManager:
             self.servospeed = 0.1
         else:
             self.servospeed = 0.05
-            if note.hittype == 'quadratic':
+            if note.hittype.lower() == 'quadratic':
                 h = self.qh
-            if note.hittype == 'triangle 1':
+            elif note.hittype.lower() == 'triangle 1':
                 h = self.th
-            if note.hittype == 'triangle 2':
+            elif note.hittype.lower() == 'triangle 2':
                 h = self.rh
-            if note.hittype == 'triangle 3':
+            elif note.hittype.lower() == 'triangle 3':
                 h = self.lh
-            if note.hittype == 'uniform':
+            elif note.hittype.lower() == 'uniform':
                 h = self.uh
-            if note.hittype == 'glissando':
+            elif note.hittype.lower() == 'glissando':
                 h = self.gh
                 malletBounce = -1
+            else:
+                h = self.rh
 
 
         if note.key is 'c6' or note.key is 'c7':

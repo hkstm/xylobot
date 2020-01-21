@@ -23,7 +23,7 @@ from signalprocessing.SignalArgParser import add_arguments
 from signalprocessing.SignalTrack import pitch_track_wav
 
 spectogram3dtest = False
-flatnesstest = True
+flatnesstest = False
 spectogramtest = False
 recordaudioflag = False
 
@@ -32,16 +32,30 @@ parser = add_arguments(parser)
 args = parser.parse_args()
 
 pitches = [
-    ('c6', 1047),
-    ('d6', 1175),
-    ('e6', 1319),
-    ('f6', 1397),
-    ('g6', 1568),
-    ('a6', 1760),
-    ('b6', 1976),
-    ('c7', 2093),
+    ('c6', 1053),
+    ('d6', 1182),
+    ('e6', 1324),
+    ('f6', 1399),
+    ('g6', 1570),
+    ('a6', 1764.8),
+    ('b6', 1974.5),
+    ('c7', 2101),
 ]
 
+testseq_analyzed = [
+    ('c6', 0.9),
+    ('d6', 1.9),
+    ('d6', 2.05),
+    ('e6', 3),
+    ('f6', 4),
+]
+
+testseq_actual = [
+    ('c6', 1),
+    ('d6', 2),
+    ('e6', 3),
+    ('f6', 4),
+]
 
 def correctscale(analysed_seq, reverse=False):
     if len(pitches) != len(analysed_seq):
