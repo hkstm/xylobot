@@ -218,7 +218,7 @@ class XylobotGUI:
         plt.savefig('displayplot.png')
         self.sequence_entry_text.set(str(key_and_times))
 
-        self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('displayplot.png'))
+        self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('signalprocessing\data\displayplot.png'))
         self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
 
     def update_hitmethods(self, event=None):
