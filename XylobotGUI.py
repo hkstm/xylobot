@@ -195,12 +195,12 @@ class XylobotGUI:
             'fftsize': self.fft_entry_text.get(),
             'topindex': 1
         }
-        keys_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
+        key_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
         # print(keys_and_times)
         # temp = full_align(keys_and_times)
         # print(temp)
         plt.savefig('displayplot.png')
-        self.sequence_entry_text.set(str(keys_and_times))
+        self.sequence_entry_text.set(str(key_and_times))
 
         self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('displayplot.png'))
         self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
@@ -239,6 +239,7 @@ class XylobotGUI:
 
     def start_pitchcheck(self, notelist):
         self.is_pitchchecking = True
+        self.notelist = notelist
         self.p = pyaudio.PyAudio()  # Create an interface to
         self.update_log('Starting pitch checking')
         self.stream = self.p.open(format=self.sampleformat,
@@ -247,26 +248,36 @@ class XylobotGUI:
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
-        # self.do_pitchcheck(notelist)
+        self.do_pitchcheck()
 
-    def do_pitchcheck(self, notelist):
+    def do_pitchcheck(self):
         if self.is_pitchchecking:
             data = self.stream.read(self.chunk)
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
             pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata,
-                                                                                    fft_size=fft_size,
-                                                                                    is_plotting=False,
-                                                                                    is_logging=False, topindex=1,
-                                                                                    window='hanning', amp_thresh=float(
+                                                fft_size=fft_size,
+                                                is_plotting=False,
+                                                is_logging=False, topindex=1,
+                                                window='hanning', amp_thresh=float(
                     self.ampthresh_entry_text.get()))
             overlap_fac = 0.5
-            flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
-                                                         hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+            # flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
+            #                                              hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
 
+            # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
             print(pitchtrack_resNS.key_and_times)
-            self.window.after(self.delay_audio, self.do_pitchcheck())
+            if len(pitchtrack_resNS.key_and_times) > 0:
+                list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
+                print(list1)
+                self.update_log(','.join(list1))
+            if self.cm.sm.song_hits == len(self.notelist):
+                self.stop_pitchcheck()
+            elif self.cm.sm.song_hits >= len(self.notelist):
+                self.update_log("!!!Song hits larger than length note list")
+            else:
+                self.window.after(self.delay_audio, self.do_pitchcheck)
 
     def stop_pitchcheck(self):
         self.update_log('Trying to stop pitch checking')
@@ -359,7 +370,7 @@ class XylobotGUI:
         self.ampthresh_entry_text = StringVar()
         self.ampthresh_entry = Entry(window, textvariable=self.ampthresh_entry_text)
         self.ampthresh_entry.grid(row=7, column=5, columnspan=1, sticky=NSEW)
-        self.ampthresh_entry_text.set('100')
+        self.ampthresh_entry_text.set('0')
 
         self.intensity_label = Label(window, text="Intensity:", relief=RIDGE)
         self.intensity_label.grid(row=6, column=6, columnspan=1, sticky=NSEW)

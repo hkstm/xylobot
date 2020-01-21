@@ -32,7 +32,7 @@ class Song:
         self.tempo = tempo
 
     def __str__(self):
-        return "Name: {}, tempo: {}, notes: {}".format(self.name, self.tempo, self.notes)
+        return f"Name: {self.name}, tempo: {self.tempo}, notes: {self.notes}"
 
 
 class SongManager:
@@ -42,15 +42,18 @@ class SongManager:
         self.notecoords = []
         self.notelist = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         self.hm = hm
+        self.song_hits = 0
 
     def play(self):
         for song in self.songs:
             self.hm.setTempo(song.getTempo())
+            self.song_hits = 0
             for note in song.getNotes():
                 try:
                     #print('[*] Playing note: ', note)
                     self.hit(note)
                     time.sleep(note.delay)
+                    self.song_hits += 1
                 except Warning as w:
                     print(w)
                     pass
@@ -106,4 +109,4 @@ class SongManager:
             i = i + 1
 
     def __str__(self):
-        return "Songs: {}".format(self.songs)
+        return f"Songs: {self.songs}"

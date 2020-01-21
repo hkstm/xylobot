@@ -36,7 +36,7 @@ class HitManager:
 
     def hit(self):
         for p in self.positions:
-            print('- Position: ', p)
+            # print('- Position: ', p)
             self.sendToArduino(p)
 
             time.sleep(self.tempo)
@@ -60,10 +60,10 @@ class HitManager:
 
         h = None
         #
-        print('target: ', self.targetPosition, ' current: ', self.currentPosition)
+        # print('target: ', self.targetPosition, ' current: ', self.currentPosition)
         #if self.targetPosition.x == self.currentPosition.x:
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
-            print('Same key is to be hit')
+            # print('Same key is to be hit')
             h = self.snh
         else:
             if self.hittype == 'quadratic':
@@ -93,7 +93,7 @@ class HitManager:
 
         # print('Points: ')
         for p in h.getPath():
-            print('- Point: ', p)
+            # print('- Point: ', p)
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)
