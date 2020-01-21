@@ -25,8 +25,8 @@ class HitManager:
     def hit(self):
         for p in self.positions:
             print('- Position: ', p)
-            #self.sendToArduino(p)
-            time.sleep(0.01)
+            self.sendToArduino(p)
+            time.sleep(0.1)
 
     def calculatePath(self, note, tempo=0, malletBounce=0):
         print('[*] Calculating path...')
@@ -41,7 +41,6 @@ class HitManager:
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
             print('Same key is to be hit')
             h = self.snh
-
             note.speed = distance
         else:
             if note.hittype == 'quadratic':
@@ -58,16 +57,15 @@ class HitManager:
                 h = self.gh
                 malletBounce = 0
 
-        #global POWER, maxpower
-        #if note.key is 'c6' or note.key is 'c7':
-        #    h.setHeight(self.xyloheight + 0.6*maxpower/POWER)
-        #if note.key is 'd6' or note.key is 'b6':
-        #    h.setHeight(self.xyloheight + 0.3*maxpower/POWER)
-        #if note.key is 'e6' or note.key is 'a6':
-        #    h.setHeight(self.xyloheight + 0.1*maxpower/POWER)
+        if note.key is 'c6' or note.key is 'c7':
+            h.setHeight(self.xyloheight + 0.5 + malletBounce)
+        if note.key is 'd6' or note.key is 'b6':
+            h.setHeight(self.xyloheight + 0.3 + malletBounce)
+        if note.key is 'e6' or note.key is 'a6':
+            h.setHeight(self.xyloheight + 0.1 + malletBounce)
 
-        self.xyloheight = self.xyloheight + malletBounce
-        h.setHeight(self.xyloheight)
+        #self.xyloheight = self.xyloheight + malletBounce
+        #h.setHeight(self.xyloheight + malletBounce)
         print('note speed: ', note.speed)
         h.set(self.currentPosition, self.targetPosition, note.speed, note.power)
 

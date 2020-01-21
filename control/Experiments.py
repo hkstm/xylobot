@@ -64,11 +64,12 @@ class Experiments:
         #self.testBounds()
 
     def testHitAngles(self):
-        for note in self.getNotesFromSequence('000777343'):
-            self.cm.hit(note, dynamics='f', hittype='triangle 2')
+        for note in self.getNotesFromSequence('07'):
+           self.cm.hit(note, dynamics='p', hittype='triangle 2')
 
-        # self.cm.addSong('test1', 0.5, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])
-        # self.cm.play()
+
+         # self.cm.addSong('test1', 2, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])
+         # self.cm.play()
 
         #print('[*] Testing hit types')
         #for type in TestComponents.hittypes:

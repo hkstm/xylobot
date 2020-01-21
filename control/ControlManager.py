@@ -6,8 +6,8 @@ from control.SongManager import SongManager
 class ControlManager:
 
     def __init__(self):
-        #self.ser = self.initArduino(9600, "COM3")
-        self.ser = 0
+        self.ser = self.initArduino(9600, "COM3")
+        #self.ser = 0
 
         self.hm = HitManager(self.ser)
         self.sm = SongManager(self.hm)
@@ -24,24 +24,25 @@ class ControlManager:
         malletBounce = 0
         if dynamics == 'pp':
             note.power = 1
-            malletBounce = 0
+            malletBounce = 0.5
         elif dynamics == 'mp':
             note.power = 2
-            malletBounce = 0.1
+            malletBounce = 1
         elif dynamics == 'p':
             note.power = 3
-            malletBounce = 0.4
+            malletBounce = 1
         elif dynamics == 'mf':
             note.power = 4
-            malletBounce = 0.7
+            malletBounce = 1.5
         elif dynamics == 'f':
             note.power = 5
-            malletBounce = 0.9
+            malletBounce = 1.5
         elif dynamics == 'ff':
             note.power = 6
-            malletBounce = 1
+            malletBounce = 1.5
         note.hittype = hittype
-        self.sm.hit(note, malletBounce)
+        print('malletBounce: ', malletBounce)
+        self.sm.hit(note, malletBounce=malletBounce)
 
     def hitPoint(self, point):
         self.sm.hitPoint(point)

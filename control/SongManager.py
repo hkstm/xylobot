@@ -3,7 +3,7 @@ from .Point import Point
 
 
 class Note:
-    def __init__(self, key, delay=0.0, coords='', power=4, speed=1, hittype='triangle 2'):
+    def __init__(self, key, delay=0.5, coords='', power=4, speed=1, hittype='triangle 2'):
         self.key = key
         self.delay = delay
         self.coords = coords

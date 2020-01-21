@@ -28,6 +28,7 @@ class Hit:
         self.origin = origin
         self.target = target
         self.speed = speed
+        self.power = power
 
         if self.origin.x < self.target.x:
             self.midpoint = Point(self.origin.x + (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
@@ -36,11 +37,13 @@ class Hit:
             self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
             self.left = False
 
-        #print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
-              # self.speed, ' power: ', self.power)
+        print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
+               self.speed, ' power: ', self.power)
 
     def setHeight(self, height):
         self.hit_height = height
+        print('Setting height to: ', self.hit_height)
+
 
     def getPath(self):
         return self.path
