@@ -64,26 +64,59 @@ def normalize_data(data, average_magnitudes):
 
 
 def check_correct_hits(actual_seq, analyzed_seq):
+    actual_seq_string = [",".join for keytuple in actual_seq]
+    analyzed_seq_string = [",".join for keytuple in analyzed_seq]
+    check_df = pd.DataFrame(index=analyzed_seq_string, columns=actual_seq_string)
+
+    for idx_row in range(len(actual_seq)):
+        for idx_col in range(len(analyzed_seq)):
+            actual_key, actual_time = actual_seq[idx_row]
+            analyzed_key, analyzed_time = analyzed_seq[idx_col]
+            check_df.iat[idx_row, idx_col] = actual_time - analyzed_time
+
+    col_length, row_length = check_df.shape
+    aligned_seq_actual = []
+    aligned_seq_analyzed = []
+    while col_length == 0 or row_length == 0:
+        dataframe, idx_row_low, idx_col_low = dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string)
+        aligned_seq_actual.append(actual_seq[idx_row])
+        aligned_seq_analyzed.append(analyzed_seq[idx_col])
+    actualtimes = [time for (key, time) in aligned_seq_actual]
+    sorted_indices = np.argsort(actualtimes)
+    timesorted_aligned_seq_actual = [aligned_seq_actual[idx] for idx in sorted_indices]
+    timesorted_aligned_seq_analyzed = [aligned_seq_analyzed[idx] for idx in sorted_indices]
+
     time_error = 0
-    key_error = abs(len(actual_seq) - len(analyzed_seq))
-    shortest_length = len(actual_seq) if len(actual_seq) <= len(analyzed_seq) else len(analyzed_seq)
-    for i in range(shortest_length):
-        actual_key, actual_time = actual_seq[i]
-        analyzed_key, analyzed_time = analyzed_seq[i]
-        time_error += abs(actual_time - analyzed_time)
-        print(f'actual key: {actual_key}')
-        print(f'analyzed key: {analyzed_key}')
-        if actual_key != analyzed_key:
+    key_error = 0
+    for i_timesorted_aligned in range(len(timesorted_aligned_seq_actual)):
+        actual_key_timesorted_aligned, actual_time_timesorted_aligned = timesorted_aligned_seq_actual[i_timesorted_aligned]
+        analyzed_key_timesorted_aligned, analyzed_time_timesorted_aligned = timesorted_aligned_seq_analyzed[i_timesorted_aligned]
+        time_error += abs(actual_time_timesorted_aligned - analyzed_time_timesorted_aligned)
+        print(f'actual key: {actual_key_timesorted_aligned}')
+        print(f'analyzed key: {analyzed_key_timesorted_aligned}')
+        if actual_key_timesorted_aligned != analyzed_key_timesorted_aligned:
             key_error += 1
-    if shortest_length == 0:
-        return -1, key_error
-    return (time_error / shortest_length), key_error
+
+    return (time_error / len(timesorted_aligned_seq_actual)), key_error
+
+
+
+def dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string):
+    col_length, row_length = dataframe.shape
+    min_val = dataframe.values.min()
+    for idx_row in range(row_length):
+        for idx_col in range(col_length):
+            if min_val == dataframe.iat[idx_row, idx_col]:
+                dataframe = dataframe.drop(columns=actual_seq_string[idx_row])
+                dataframe = dataframe.drop(index=analyzed_seq_string[idx_col])
+                return dataframe, idx_row, idx_col
 
 
 def generate_random_sequence(seq_length, min_delay=0.1, max_delay=1):
     random_sequence = []
     for i_seq_length in range(seq_length):
-        random_sequence.append(Note(key=pitches[random.randint(0, len(pitches) - 1)][0], delay=random.uniform(min_delay, max_delay)))
+        random_sequence.append(
+            Note(key=pitches[random.randint(0, len(pitches) - 1)][0], delay=random.uniform(min_delay, max_delay)))
     return random_sequence
 
 
@@ -100,6 +133,7 @@ def convertnote2seq(notelist):
     for i_notelist in range(len(notelist)):
         seqlist.append((notelist[i_notelist].key, notelist[i_notelist].delay))
     return seqlist
+
 
 generate_random_sequence(10)
 
@@ -137,7 +171,6 @@ if recordaudioflag:
     # audio = None
     # frames = None
     # samplewidth = None
-
 
 
 def recordaudio():
@@ -264,7 +297,9 @@ for i in range(amount_of_runs_test):
         # noisy_signal = np.multiply(data, noise)
         # noise = np.random.normal(0, 10, len(data))
         # noisy_signal = data + noise
-        flatness = librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float), n_fft=pitchtrack_resNS.fft_size, hop_length=pitchtrack_resNS.hop_size)
+        flatness = librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float),
+                                                     n_fft=pitchtrack_resNS.fft_size,
+                                                     hop_length=pitchtrack_resNS.hop_size)
         # flatness = librosa.feature.spectral_flatness(y=noisy_signal.astype(float), n_fft=fft_size, hop_length=hop_size)
         print(f' mean flatness: {np.mean(flatness)}')
         normalized = normalize_data(flatness[0], pitchtrack_resNS.averages)
@@ -277,8 +312,10 @@ for i in range(amount_of_runs_test):
         plt.show()
 
     if spectogramtest:
-        img = plt.imshow(pitchtrack_resNS.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-                         extent=[pitchtrack_resNS.time_list[0], pitchtrack_resNS.time_list[-1], pitchtrack_resNS.freq_list[pitchtrack_resNS.low_index_cutoff],
+        img = plt.imshow(pitchtrack_resNS.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
+                         aspect='auto',
+                         extent=[pitchtrack_resNS.time_list[0], pitchtrack_resNS.time_list[-1],
+                                 pitchtrack_resNS.freq_list[pitchtrack_resNS.low_index_cutoff],
                                  pitchtrack_resNS.freq_list[pitchtrack_resNS.upper_index_cutoff]])
         plt.title('Spectogram')
         plt.xlabel('Time in seconds')
@@ -295,7 +332,9 @@ for i in range(amount_of_runs_test):
         time_error_p.append(time_error_seq)
         length_difference_p.append(len(pitchtrack_resNS.key_and_times) - len(convertnote2seq(sequence_test)))
         flatness_p.append(
-            np.mean(librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float), n_fft=pitchtrack_resNS.fft_size, hop_length=pitchtrack_resNS.hop_size)))
+            np.mean(librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float),
+                                                      n_fft=pitchtrack_resNS.fft_size,
+                                                      hop_length=pitchtrack_resNS.hop_size)))
         fftsize_p.append(argsdict['fftsize'])
         window_p.append(argsdict['window'])
         topindex_p.append(argsdict['topindex'])
