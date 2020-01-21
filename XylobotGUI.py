@@ -78,7 +78,10 @@ class XylobotGUI:
             pts = key.getPoints()
             self.birds_eye_view.create_polygon(pts, fill=key.getColor(), tags = key.getColor())
 
-        self.side_view.create_rectangle(self.simu_xylo.get_side_view_rectangle(), fill="blue")
+        self.side_view.create_rectangle(self.simu_xylo.get_side_view_rectangle(), fill="blue", tags= "svrec")
+
+        #self.side_view.create_rectangle(100,200,300,400, fill="blue")
+
 
         self.birds_eye_view.create_line(self.simu_xylo.get_b_line(),
                                         fill="grey", width=self.simu_xylo.arm_width, joinstyle=ROUND, tags="b_line")
@@ -153,21 +156,42 @@ class XylobotGUI:
 
     def set_xylophone_location(self, x, y, z):
         self.simu_xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
-        self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
+        self.simu_xylo.updateXyloDrawing(self.birds_eye_view,self.side_view)
 
     def play_btn(self, key, event=None):
         self.update_log(f'playing: {key}')
         #####3#TODO REMOVE THIS TESTER:
-        self.simu_xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+
+        if(key == "c7"):
+            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33, -63, 68, 0)
+        elif(key == "c6"):
+            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 18.5, -75.9, 46.89, 0)
+        elif(key == "b6"):
+            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -26.1, -60.22, 73.53, 0)
+        elif(key=="f6"):
+            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 5.99, -65.57, 64, 0)
+
+
+        else:
+            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,20, 20, 20, 0)
+
+
+
+        #self.simu_xylo.setXyloMidpoint(SimuVector(0,0,11), cm = True)
         #self.simu_xylo.goodRotate(30)
-        self.number = self.number + 2
-        print(self.number)
-        self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 0, self.number, 20,0)
-        self.simu_xylo.setXyloMidpoint(SimuVector(0,self.number,11),cm=True)
-        self.simu_xylo.setXyloMidpoint(SimuVector(0,23,11),cm=True)
+        #self.number = self.number + 2
+        #print(self.number)
 
-        self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
+        #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 0, self.number, 20,0)
+        #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 0, 60, 68,0)
 
+        #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33.1, -63.25, 68,0)
+
+        #self.simu_xylo.fill_canvas(SimuVector(0,self.number,11),cm=True)
+        self.simu_xylo.setXyloMidpoint(SimuVector(-2.2,23.3,11),cm=True)
+        self.simu_xylo.setRotation(180)
+        #self.simu_xylo.setXyloMidpoint(SimuVector(0,self.number,11),cm=True)
+        self.simu_xylo.updateXyloDrawing(self.birds_eye_view, self.side_view)
         #self.move_Simulation_Robot(20,180,220)
         ############3
         if connectedtosetup:
@@ -180,7 +204,7 @@ class XylobotGUI:
         if connectedtosetup:
             self.update_log('Started calibration')
             try:
-                newNotes = Calibrator.calibrate(self.cm)
+                newNotes = Calibrator.calibrate(self,self.cm)
                 self.update_log(f'Calibration successful with: {newNotes}')
                 print('Calibration successful with: ', newNotes)
                 # control.setNotes(newNotes)
@@ -302,10 +326,12 @@ class XylobotGUI:
                                                                                     is_logging=False, topindex=1,
                                                                                     window='hanning', amp_thresh=float(self.ampthresh_entry_text.get()))
             overlap_fac = 0.5
-            flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+            #flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
 
             print(key_and_times)
-            self.window.after(self.delay_audio, self.do_pitchcheck())
+            ####TODO UNCOMMENT THE NEXT LINE::::::::::::::::::
+            #self.window.after(self.delay_audio, self.do_pitchcheck())
+            #######################3
 
     def stop_pitchcheck(self):
         self.update_log('Trying to stop checking tonal quality')

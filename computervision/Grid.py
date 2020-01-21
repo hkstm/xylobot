@@ -13,7 +13,11 @@ def generateList(gui):
     global isSwapped
     print(" Generating LIst")
     getSides.run()
-    gui.updateCenterpointsImage()
+
+    ###TODO LOOK FOR A SOLUTION, GIVES AN ERROR!
+    #gui.updateCenterpointsImage()
+    ########
+
     list = getSides.getList()
     return list
 

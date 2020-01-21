@@ -5,7 +5,7 @@ except:
 
 from .Point import Point as Point
 from .Position import Position as Position
-import IK
+#import IK
 from . import IK as ik
 import computervision.Grid as Grid
 
@@ -34,7 +34,11 @@ def calibrate(gui, cm):
     # control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
     # time.sleep(5)
     keyList = Grid.generateList(gui)
-    gui.updateCenterpointsImage()
+
+    ###TODO LOOK FOR A SOLUTION FOR THE NEXT LINE, GIVES AN ERROR
+    #gui.updateCenterpointsImage()
+    #####
+
 
     keyList[0].x = 11
     keyList[0].y = 23
