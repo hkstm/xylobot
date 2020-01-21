@@ -164,8 +164,11 @@ def run(gui):
             DONE = True
 
         # cv2.imshow('frame', frame)
+        frame = cv2.resize(frame, (int(gui.canvaswidth), int(gui.canvasheight)))
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = PIL.Image.fromarray(frame)
         if frame is not None:
-            gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(cv2.resize(frame, (int(gui.canvaswidth), int(gui.canvasheight))), cv2.COLOR_BGR2RGB)))
+            gui.centerpoints_img = PIL.ImageTk.PhotoImage(frame)
             gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2, image=gui.centerpoints_img)
         k = cv2.waitKey(5) & 0xFF
         if k == 27:

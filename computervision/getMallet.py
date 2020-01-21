@@ -44,8 +44,11 @@ def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
         #except:
             #print("Could not print all requested frames")
 
+        res = cv2.resize(res, (int(gui.canvaswidth), int(gui.canvasheight)))
+        res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
+        res = PIL.Image.fromarray(res)
         if res is not None:
-            gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(cv2.resize(res, (int(gui.canvaswidth), int(gui.canvasheight))), cv2.COLOR_BGR2RGB)))
+            gui.centerpoints_img = PIL.ImageTk.PhotoImage(res)
             gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2, image=gui.centerpoints_img)
 
         k = cv2.waitKey(5) & 0xFF
