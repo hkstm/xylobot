@@ -24,10 +24,10 @@ class ControlManager:
         malletBounce = 0
         if dynamics == 'pp':
             note.power = 1
-            malletBounce = 0
+            malletBounce = -0.1
         elif dynamics == 'mp':
             note.power = 2
-            malletBounce = 1
+            malletBounce = 0.7
         elif dynamics == 'p':
             note.power = 3
             malletBounce = 1
@@ -36,7 +36,7 @@ class ControlManager:
             malletBounce = 1.5
         elif dynamics == 'f':
             note.power = 5
-            malletBounce = 1.5
+            malletBounce = 1.3
         elif dynamics == 'ff':
             note.power = 5
             malletBounce = 1

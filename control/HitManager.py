@@ -60,8 +60,9 @@ class HitManager:
                 h = self.gh
                 malletBounce = -1
 
+
         if note.key is 'c6' or note.key is 'c7':
-            h.setHeight(self.xyloheight + 0.3 + malletBounce)
+            h.setHeight(self.xyloheight + 0.30 + malletBounce)
         if note.key is 'd6' or note.key is 'b6':
             h.setHeight(self.xyloheight + 0.2 + malletBounce)
         if note.key is 'e6' or note.key is 'a6':
