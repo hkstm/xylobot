@@ -42,21 +42,6 @@ pitches = [
     ('c7', 2101),
 ]
 
-testseq_analyzed = [
-    ('c6', 0.9),
-    ('d6', 1.9),
-    ('d6', 2.05),
-    ('e6', 3),
-    ('f6', 4),
-]
-
-testseq_actual = [
-    ('c6', 1),
-    ('d6', 2),
-    ('e6', 3),
-    ('f6', 4),
-]
-
 def correctscale(analysed_seq, reverse=False):
     if len(pitches) != len(analysed_seq):
         return False
@@ -108,10 +93,28 @@ def check_correct_hits(actual_seq, analyzed_seq):
         time_error += abs(actual_time_timesorted_aligned - analyzed_time_timesorted_aligned)
         print(f'actual key: {actual_key_timesorted_aligned}')
         print(f'analyzed key: {analyzed_key_timesorted_aligned}')
+        
         if actual_key_timesorted_aligned != analyzed_key_timesorted_aligned:
             key_error += 1
 
     return (time_error / len(timesorted_aligned_seq_actual)), key_error
+
+testseq_analyzed = [
+    ('c6', 0.9),
+    ('d6', 1.9),
+    ('d6', 2.05),
+    ('e6', 3),
+    ('f6', 4),
+]
+
+testseq_actual = [
+    ('c6', 1),
+    ('d6', 2),
+    ('e6', 3),
+    ('f6', 4),
+]
+
+time_error, key_error = check_correct_hits()
 
 
 
@@ -151,13 +154,13 @@ def convertnote2seq(notelist):
 
 generate_random_sequence(10)
 
-amount_of_runs_test = 10
+amount_of_runs_test = 1
 seq_length_test = 10
 record_time_test = 10
 position_test = 'Center'
 min_delay_test = 0.1
 max_delay_test = 0.9
-hit_method_test = 'Triangle 1'
+hit_method_test = 'Triangle 2'
 if recordaudioflag:
     print('set control manager')
     filename_p = []

@@ -13,6 +13,8 @@ from signalprocessing.SignalTrack import pitch_track_wrap
 from signalprocessing.SignalTrack import pitch_track_calc
 from control.ControlManager import ControlManager
 from control.SongManager import Note
+from control.Position import Position
+
 from computervision import VideoCamera as vc
 
 import Test
@@ -42,6 +44,16 @@ class XylobotGUI:
     def init_window(self):
         if connectedtosetup:
             self.cm = ControlManager()
+            self.cm.sendToArduino(Position(0, 0, 0))
+
+            newNotes = []
+
+            try:
+                with open('notecoords.txt', 'r') as filehandle:
+                    newNotes = [notecoords.rstrip() for notecoords in filehandle.readlines()]
+                self.cm.setNoteCoordinates(newNotes)
+            except Exception as e:
+                print(e)
 
         self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
         self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
@@ -218,7 +230,7 @@ class XylobotGUI:
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), self.hitmethods_text.get)
+            self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
@@ -489,6 +501,11 @@ class CalibrateThread(threading.Thread):
             self.gui.update_log('Started calibration')
             try:
                 newNotes = Calibrator.calibrate(self.gui, self.gui.cm)
+
+                with open('notecoords.txt', 'w') as filehandle:
+                    filehandle.writelines("%s\n" % notecoords for notecoords in newNotes)
+
+
                 print('Calibration successful with: ')
                 for note in newNotes:
                     print(note.x, note.y)

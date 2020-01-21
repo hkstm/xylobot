@@ -39,6 +39,7 @@ class HitManager:
 
         h = None
         print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
+        print(f'hittype {note.hittype}')
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
             print('Same key is to be hit')
             h = self.snh
