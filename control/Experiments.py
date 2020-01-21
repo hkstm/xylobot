@@ -64,8 +64,9 @@ class Experiments:
         #self.testBounds()
 
     def testHitAngles(self):
-        for note in self.getNotesFromSequence('07'):
-           self.cm.hit(note, dynamics='p', hittype='triangle 2')
+        for note in self.getNotesFromSequence('0007162534'):
+           self.cm.hit(note, dynamics='p', hittype='triangle 2', tempo=1)
+           time.sleep(note.delay)
 
 
          # self.cm.addSong('test1', 2, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])

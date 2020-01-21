@@ -89,11 +89,11 @@ class RightAngledTriangularHit(Hit):
                 self.z = self.slope * self.x + self.b
                 print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
                 if self.z >= self.hit_height:
-                    self.path.append(Point(self.x, self.origin.y, self.z))
+                    self.path.append(Point(self.x, self.target.y, self.z))
                 if self.x > self.target.x:
                     if len(self.path) > 0:
                         self.path.pop()
-                    self.path.append(Point(self.target.x, self.origin.y, self.z))
+                    self.path.append(Point(self.target.x, self.target.y, self.z))
         else:
             print('Going right')
             print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
@@ -104,11 +104,11 @@ class RightAngledTriangularHit(Hit):
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 if self.z >= self.hit_height:
-                    self.path.append(Point(self.x, self.origin.y, self.z))
+                    self.path.append(Point(self.x, self.target.y, self.z))
                 if self.x < self.target.x:
                     if len(self.path) > 0:
                         self.path.pop()
-                    self.path.append(Point(self.target.x, self.origin.y, self.z))
+                    self.path.append(Point(self.target.x, self.target.y, self.z))
 
         self.path.append(Point(self.target.x, self.target.y, self.hit_height))
 

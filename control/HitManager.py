@@ -21,12 +21,13 @@ class HitManager:
         self.lh = None
         self.snh = SameNoteHit(ser, self.xyloheight)
         self.positions = []
+        self.servospeed = 0.05
 
     def hit(self):
         for p in self.positions:
             print('- Position: ', p)
             self.sendToArduino(p)
-            time.sleep(0.1)
+            time.sleep(self.servospeed)
 
     def calculatePath(self, note, tempo=0, malletBounce=0):
         print('[*] Calculating path...')
@@ -42,7 +43,9 @@ class HitManager:
             print('Same key is to be hit')
             h = self.snh
             note.speed = distance
+            self.servospeed = 0.1
         else:
+            self.servospeed = 0.05
             if note.hittype == 'quadratic':
                 h = self.qh
             if note.hittype == 'triangle 1':

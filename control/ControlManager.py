@@ -20,7 +20,7 @@ class ControlManager:
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
 
-    def hit(self, note, dynamics='', hittype=''):
+    def hit(self, note, dynamics='', hittype='', tempo=0):
         malletBounce = 0
         if dynamics == 'pp':
             note.power = 1
@@ -42,7 +42,7 @@ class ControlManager:
             malletBounce = 1.5
         note.hittype = hittype
         print('malletBounce: ', malletBounce)
-        self.sm.hit(note, malletBounce=malletBounce)
+        self.sm.hit(note, tempo=tempo, malletBounce=malletBounce)
 
     def hitPoint(self, point):
         self.sm.hitPoint(point)
