@@ -393,6 +393,12 @@ class XylobotGUI:
         self.intensity_entry.grid(row=6, column=7, columnspan=1, sticky=NSEW)
         self.intensity_entry_text.set('512')
 
+        # self.hitmethods_text = StringVar()
+        # self.hitmethods_cbbox = Combobox(window, textvariable=self.hitmethods_text, state='readonly',
+        #                                  values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
+        # self.hitmethods_text.set('Triangle 2')
+        # self.hitmethods_cbbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
+
         self.delay_label = Label(window, text="some parameter:", relief=RIDGE)
         self.delay_label.grid(row=6, column=8, columnspan=1, sticky=NSEW)
 
