@@ -1,4 +1,4 @@
-from Point import Point
+from control.Point import Point
 from control.SongManager import Note
 from control.ControlManager import ControlManager
 import time
@@ -64,8 +64,13 @@ class Experiments:
         #self.testBounds()
 
     def testHitAngles(self):
-        for note in self.getNotesFromSequence('01234567'):
-            self.cm.hit(note)
+        for note in self.getNotesFromSequence('0007162534'):
+           self.cm.hit(note, dynamics='p', hittype='triangle 2', tempo=1)
+           time.sleep(note.delay)
+
+
+         # self.cm.addSong('test1', 2, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])
+         # self.cm.play()
 
         #print('[*] Testing hit types')
         #for type in TestComponents.hittypes:

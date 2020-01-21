@@ -1,5 +1,3 @@
-import copy
-
 from control.Hit import *
 from .Point import Point
 from .Position import Position
@@ -9,83 +7,70 @@ import time
 
 
 class HitManager:
-    maxpower = 5
-    POWER = 5
-    XYLO_HEIGHT = 12.5
-
 
     def __init__(self, ser):
-        global maxpower, POWER, XYLO_HEIGHT
-        maxpower = 5
-        POWER = 5
-        XYLO_HEIGHT = 12.5
-        xyloheight = self.XYLO_HEIGHT
+        self.xyloheight = 12.5
         self.ser = ser
-        self.currentPosition = Point(0, 23, 13)
+        self.currentPosition = Point(1.1, 23, 13)
         self.targetPosition = None
-        self.qh = QuadraticHit(ser, xyloheight)
-        self.rh = RightAngledTriangularHit(ser, xyloheight)
-        self.th = TriangularHit(ser, xyloheight)
-        self.uh = UniformHit(ser, xyloheight)
+        self.qh = QuadraticHit(ser, self.xyloheight)
+        self.rh = RightAngledTriangularHit(ser, self.xyloheight)
+        self.th = TriangularHit(ser, self.xyloheight)
+        self.uh = UniformHit(ser, self.xyloheight)
+        self.gh = Glissando(ser, self.xyloheight)
         self.lh = None
-        self.snh = SameNoteHit(ser, xyloheight)
+        self.snh = SameNoteHit(ser, self.xyloheight)
         self.positions = []
-        self.hittype = 'triangle 2'
-        self.tempo = 0.1
-        self.height = xyloheight
+        self.servospeed = 0.05
 
     def hit(self):
         for p in self.positions:
-            # print('- Position: ', p)
+            print('- Position: ', p)
             self.sendToArduino(p)
+            time.sleep(self.servospeed)
 
-            time.sleep(self.tempo)
-
-    def calculatePath(self, note, speed='', power=''):
-        xyloheight = self.XYLO_HEIGHT
-
-        print('[*] calculating path...')
+    def calculatePath(self, note, tempo=0, malletBounce=0):
+        print('[*] Calculating path...')
+        print('[*] Playing note: ', note)
         self.positions = []
-        if power == '':
-            power = self.POWER
-
-
-
         self.targetPosition = note.coords
-        distance = math.fabs(self.targetPosition.x - self.currentPosition.x)
-        speed = 2
-        #speed = distance / 20
-        #if distance == 0:
-        #    speed = 0.1
+        distance = math.sqrt((self.currentPosition.x - self.targetPosition.x) ** 2 + note.power ** 2)
+        note.speed = distance / (3 + tempo)  # approx cm between keys
 
         h = None
-        #
-        # print('target: ', self.targetPosition, ' current: ', self.currentPosition)
-        #if self.targetPosition.x == self.currentPosition.x:
+        print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
-            # print('Same key is to be hit')
+            print('Same key is to be hit')
             h = self.snh
+            note.speed = distance
+            self.servospeed = 0.1
         else:
-            if self.hittype == 'quadratic':
+            self.servospeed = 0.05
+            if note.hittype == 'quadratic':
                 h = self.qh
-            if self.hittype == 'triangle 1':
+            if note.hittype == 'triangle 1':
                 h = self.th
-            if self.hittype == 'triangle 2':
+            if note.hittype == 'triangle 2':
                 h = self.rh
-            if self.hittype == 'triangle 3':
+            if note.hittype == 'triangle 3':
                 h = self.lh
-            if self.hittype == 'uniform':
+            if note.hittype == 'uniform':
                 h = self.uh
+            if note.hittype == 'glissando':
+                h = self.gh
+                malletBounce = 0
 
-        global POWER, maxpower
         if note.key is 'c6' or note.key is 'c7':
-            h.setHeight(xyloheight + 0.6*maxpower/POWER)
+            h.setHeight(self.xyloheight + 0.5 + malletBounce)
         if note.key is 'd6' or note.key is 'b6':
-            h.setHeight(xyloheight + 0.3*maxpower/POWER)
+            h.setHeight(self.xyloheight + 0.3 + malletBounce)
         if note.key is 'e6' or note.key is 'a6':
-            h.setHeight(xyloheight + 0.1*maxpower/POWER)
+            h.setHeight(self.xyloheight + 0.1 + malletBounce)
 
-        h.set(self.currentPosition, self.targetPosition, speed, power)
+        #self.xyloheight = self.xyloheight + malletBounce
+        #h.setHeight(self.xyloheight + malletBounce)
+        print('note speed: ', note.speed)
+        h.set(self.currentPosition, self.targetPosition, note.speed, note.power)
 
         h.calculatePath()
 
@@ -93,7 +78,7 @@ class HitManager:
 
         # print('Points: ')
         for p in h.getPath():
-            # print('- Point: ', p)
+            print('- Point: ', p)
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)
@@ -117,17 +102,6 @@ class HitManager:
         else:
             self.setCurrent(lastPos)
 
-        # Hit the note, go up and hit harder down
-        # try:
-        #     hitpos = copy.deepcopy(self.positions[-1])
-        #     hitpos.m1 = hitpos.m1 - 5
-        #     hitpos.m2 = hitpos.m2 + 10
-        #     self.positions.append(hitpos)
-        # except Exception:
-        #     print('Position list is empty')
-
-        # pos = ik.getAngles(Point(self.currentPosition.x, self.currentPosition.y, 13.5))
-        # self.positions.append(Position(pos[0], pos[1], pos[2]))
 
     def sendToArduino(self, pos):
         string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'
@@ -146,17 +120,3 @@ class HitManager:
     def standTall(self):
         self.sendToArduino(Position(0, 0, 0))
 
-    def setHitType(self, hittype):
-        self.hittype = hittype
-
-    def setTempo(self, tempo):
-        if tempo <= 100:
-            self.tempo = tempo / (10 ** 4)
-        if tempo <= 75:
-            self.tempo = tempo / (10 ** 3.5)
-        if tempo <= 50:
-            self.tempo = tempo / (10 ** 3)
-        if tempo <= 25:
-            self.tempo = tempo / (10 ** 2.5)
-        if tempo <= 10:
-            self.tempo = tempo / (10 ** 2)

@@ -20,8 +20,29 @@ class ControlManager:
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
 
-    def hit(self, note, hittype=''):
-        self.sm.hit(note)
+    def hit(self, note, dynamics='', hittype='', tempo=0):
+        malletBounce = 0
+        if dynamics == 'pp':
+            note.power = 1
+            malletBounce = 0.5
+        elif dynamics == 'mp':
+            note.power = 2
+            malletBounce = 1
+        elif dynamics == 'p':
+            note.power = 3
+            malletBounce = 1
+        elif dynamics == 'mf':
+            note.power = 4
+            malletBounce = 1.5
+        elif dynamics == 'f':
+            note.power = 5
+            malletBounce = 1.5
+        elif dynamics == 'ff':
+            note.power = 6
+            malletBounce = 1.5
+        note.hittype = hittype
+        print('malletBounce: ', malletBounce)
+        self.sm.hit(note, tempo=tempo, malletBounce=malletBounce)
 
     def hitPoint(self, point):
         self.sm.hitPoint(point)
@@ -39,9 +60,6 @@ class ControlManager:
 
     def sendToArduino(self, pos):
         self.hm.sendToArduino(pos)
-
-    def setHitType(self, hittype):
-        self.hm.setHitType(hittype)
 
 
 
