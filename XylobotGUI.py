@@ -53,7 +53,7 @@ class XylobotGUI:
                 with open('notecoords.txt', 'r') as filehandle:
                     newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
                 newNotes = [tuple(coord.split()) for coord in newNotesCoords]
-                newNotes = [Point(x, y, z) for (x,y,z) in newNotes]
+                newNotes = [Point(float(x), float(y), float(z)) for (x,y,z) in newNotes]
                 self.cm.setNoteCoordinates(newNotes)
                 print(f'newNotes {newNotes}')
                 print(f'{type(newNotes)}')
