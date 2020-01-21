@@ -142,6 +142,8 @@ def find(cm, key, currentPoint):
                 key.x -= offset[0]*stepsize #* Coefficient
             if abs(offset[1])>error:
                 key.y -= offset[1]*stepsize
+            if stepsize > 0.02:
+                stepsize -= 0.01
             currentPoint = moveTo(cm, Point(key.x, key.y, key.z), currentPoint)
             offset = Grid.getOffset(key, (key.px, key.py))
         print(" KEYFOUND " , key.x, " ", key.y, " ", key.z, " With px, py and malletx, mallety : ", key.px, ", ", key.py, ", ", key.px + offset[0], ", ", key.py + offset[1])
