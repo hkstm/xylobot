@@ -3,14 +3,16 @@ from .Point import Point
 
 
 class Note:
-    def __init__(self, key, delay=0.0, coords='', intensity=1000):
+    def __init__(self, key, delay=0.0, coords='', power=4, speed=1, hittype='triangle 2'):
         self.key = key
         self.delay = delay
         self.coords = coords
-        self.intensity = intensity  # velocity
+        self.power = power  # velocity
+        self.speed = speed
+        self.hittype = hittype
 
     def __str__(self):
-        return f"Note: {self.key}, delay: {self.delay}, coords: {self.coords}, intensity: {self.intensity}"
+        return f"Note: {self.key}, delay: {self.delay}, coords: {self.coords}, power: {self.power}, speed: {self.speed}, hit type: {self.hittype}"
 
 
 class Song:
@@ -32,7 +34,7 @@ class Song:
         self.tempo = tempo
 
     def __str__(self):
-        return f"Name: {self.name}, tempo: {self.tempo}, notes: {self.notes}"
+        return "Name: {}, tempo: {}, notes: {}".format(self.name, self.tempo, self.notes)
 
 
 class SongManager:
@@ -42,18 +44,16 @@ class SongManager:
         self.notecoords = []
         self.notelist = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         self.hm = hm
-        self.song_hits = 0
+        self.note = Note('tmp', delay=0.01)
 
     def play(self):
         for song in self.songs:
-            self.hm.setTempo(song.getTempo())
-            self.song_hits = 0
+            tempo = song.getTempo()
             for note in song.getNotes():
                 try:
-                    #print('[*] Playing note: ', note)
-                    self.hit(note)
+                    print('[*] Playing note: ', note)
+                    self.hit(note, tempo)
                     time.sleep(note.delay)
-                    self.song_hits += 1
                 except Warning as w:
                     print(w)
                     pass
@@ -71,15 +71,15 @@ class SongManager:
             self.hitPoint(p)
         self.hm.standTall()
 
-    def hit(self, note):
+    def hit(self, note, tempo=0, malletBounce=0):
         newnote = next((x for x in self.notecoords if x.key == note.key), None)
         note.coords = newnote.coords
-        self.hm.calculatePath(note)
+        self.hm.calculatePath(note, tempo, malletBounce)
         self.hm.hit()
 
     def hitPoint(self, point):
-        n = Note('sup', delay=0.01, coords=point)
-        self.hm.calculatePath(n)
+        self.note.coords = point
+        self.hm.calculatePath(self.note)
         self.hm.hit()
 
     def add(self, name, tempo, notes):
@@ -109,4 +109,4 @@ class SongManager:
             i = i + 1
 
     def __str__(self):
-        return f"Songs: {self.songs}"
+        return "Songs: {}".format(self.songs)
