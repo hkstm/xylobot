@@ -24,7 +24,7 @@ class ControlManager:
         malletBounce = 0
         if dynamics == 'pp':
             note.power = 1
-            malletBounce = 0.5
+            malletBounce = 0
         elif dynamics == 'mp':
             note.power = 2
             malletBounce = 1
@@ -38,8 +38,8 @@ class ControlManager:
             note.power = 5
             malletBounce = 1.5
         elif dynamics == 'ff':
-            note.power = 6
-            malletBounce = 1.5
+            note.power = 5
+            malletBounce = 1
         note.hittype = hittype
         print('malletBounce: ', malletBounce)
         self.sm.hit(note, tempo=tempo, malletBounce=malletBounce)
