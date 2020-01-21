@@ -37,8 +37,6 @@ import PIL.ImageTk
 import cv2
 
 screen_factor = 0.9
-
-
 class XylobotGUI:
 
     def init_window(self):
@@ -248,7 +246,8 @@ class XylobotGUI:
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
-        self.do_pitchcheck()
+        # self.do_pitchcheck()
+        self.stop_pitchcheck()
 
     def do_pitchcheck(self):
         if self.is_pitchchecking:
@@ -269,9 +268,11 @@ class XylobotGUI:
             # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
             print(pitchtrack_resNS.key_and_times)
             if len(pitchtrack_resNS.key_and_times) > 0:
-                list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
-                print(list1)
-                self.update_log(','.join(list1))
+                # list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
+                # print(list1)
+                # self.update_log(','.join(list1))
+                # self.cm.sm.song_hits
+                pass
             if self.cm.sm.song_hits == len(self.notelist):
                 self.stop_pitchcheck()
             elif self.cm.sm.song_hits >= len(self.notelist):
