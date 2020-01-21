@@ -93,7 +93,7 @@ def check_correct_hits(actual_seq, analyzed_seq):
         time_error += abs(actual_time_timesorted_aligned - analyzed_time_timesorted_aligned)
         print(f'actual key: {actual_key_timesorted_aligned}')
         print(f'analyzed key: {analyzed_key_timesorted_aligned}')
-        
+
         if actual_key_timesorted_aligned != analyzed_key_timesorted_aligned:
             key_error += 1
 
