@@ -25,6 +25,7 @@ from tkinter.ttk import Combobox, Style
 from tkinter.filedialog import askopenfilename
 from functools import partial
 from types import SimpleNamespace
+from control.Point import Point
 
 import pyaudio
 import wave
@@ -46,14 +47,19 @@ class XylobotGUI:
             self.cm = ControlManager()
             self.cm.sendToArduino(Position(0, 0, 0))
 
-            newNotes = []
+            newNotesCoords = []
 
             try:
                 with open('notecoords.txt', 'r') as filehandle:
-                    newNotes = [notecoords.rstrip() for notecoords in filehandle.readlines()]
+                    newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
+                newNotes = [tuple(coord.split()) for coord in newNotesCoords]
+                newNotes = [Point(x, y, z) for (x,y,z) in newNotes]
                 self.cm.setNoteCoordinates(newNotes)
+                print(f'newNotes {newNotes}')
+                print(f'{type(newNotes)}')
             except Exception as e:
                 print(e)
+
 
         self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
         self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
@@ -511,6 +517,8 @@ class CalibrateThread(threading.Thread):
                 with open('notecoords.txt', 'w') as filehandle:
                     filehandle.writelines("%s\n" % notecoords for notecoords in newNotes)
 
+                print(f'newNotes {newNotes}')
+                print(f'{type(newNotes)}')
 
                 print('Calibration successful with: ')
                 for note in newNotes:
