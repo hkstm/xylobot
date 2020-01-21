@@ -60,9 +60,6 @@ class HitManager:
             elif note.hittype.lower() == 'glissando':
                 h = self.gh
                 malletBounce = -1
-            else:
-                h = self.rh
-
 
         if note.key is 'c6' or note.key is 'c7':
             h.setHeight(self.xyloheight + 0.30 + malletBounce)

@@ -61,25 +61,36 @@ def normalize_data(data, average_magnitudes):
         normalized.append(data[i_data] / average_magnitudes[i_data])
     return normalized
 
+def dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string):
+    row_length, col_length = dataframe.shape
+    min_val = dataframe.values.min()
+    for idx_row in range(row_length):
+        for idx_col in range(col_length):
+            if min_val == dataframe.iat[idx_row, idx_col]:
+                seq_actual_tobedropped = dataframe.columns[idx_col]
+                seq_analyzed_tobedropped = dataframe.index[idx_row]
+                dataframe = dataframe.drop(dataframe.columns[idx_col], axis=1)
+                dataframe = dataframe.drop(dataframe.index[idx_row])
+                return dataframe, seq_actual_tobedropped, seq_analyzed_tobedropped
 
 def check_correct_hits(actual_seq, analyzed_seq):
-    actual_seq_string = [",".join for keytuple in actual_seq]
-    analyzed_seq_string = [",".join for keytuple in analyzed_seq]
-    check_df = pd.DataFrame(index=analyzed_seq_string, columns=actual_seq_string)
-
-    for idx_row in range(len(actual_seq)):
-        for idx_col in range(len(analyzed_seq)):
-            actual_key, actual_time = actual_seq[idx_row]
-            analyzed_key, analyzed_time = analyzed_seq[idx_col]
-            check_df.iat[idx_row, idx_col] = actual_time - analyzed_time
+    check_df = pd.DataFrame(index=analyzed_seq, columns=actual_seq)
+    for idx_col in range(len(actual_seq)):
+        for idx_row in range(len(analyzed_seq)):
+            actual_key, actual_time = actual_seq[idx_col]
+            analyzed_key, analyzed_time = analyzed_seq[idx_row]
+            check_df.iat[idx_row, idx_col] = abs(actual_time - analyzed_time)
 
     col_length, row_length = check_df.shape
     aligned_seq_actual = []
     aligned_seq_analyzed = []
-    while col_length == 0 or row_length == 0:
-        dataframe, idx_row_low, idx_col_low = dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string)
-        aligned_seq_actual.append(actual_seq[idx_row])
-        aligned_seq_analyzed.append(analyzed_seq[idx_col])
+    while col_length >= 1 and row_length >= 1:
+        check_df, seq_actual_dropped, seq_analyzed_dropped = dropandgetlowestvalue(check_df, actual_seq, analyzed_seq)
+        aligned_seq_actual.append(seq_actual_dropped)
+        aligned_seq_analyzed.append(seq_analyzed_dropped)
+        col_length, row_length = check_df.shape
+
+    print(f'alignedseqactual {aligned_seq_actual}')
     actualtimes = [time for (key, time) in aligned_seq_actual]
     sorted_indices = np.argsort(actualtimes)
     timesorted_aligned_seq_actual = [aligned_seq_actual[idx] for idx in sorted_indices]
@@ -97,7 +108,14 @@ def check_correct_hits(actual_seq, analyzed_seq):
         if actual_key_timesorted_aligned != analyzed_key_timesorted_aligned:
             key_error += 1
 
-    return (time_error / len(timesorted_aligned_seq_actual)), key_error
+
+    result = {
+        'time_error': (time_error / len(timesorted_aligned_seq_actual)),
+        'key_error': key_error,
+        'seq_actual': timesorted_aligned_seq_actual,
+        'seq_analyzed': timesorted_aligned_seq_analyzed,
+    }
+    return SimpleNamespace(**result)
 
 testseq_analyzed = [
     ('c6', 0.9),
@@ -114,20 +132,8 @@ testseq_actual = [
     ('f6', 4),
 ]
 
-time_error, key_error = check_correct_hits()
-
-
-
-def dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string):
-    col_length, row_length = dataframe.shape
-    min_val = dataframe.values.min()
-    for idx_row in range(row_length):
-        for idx_col in range(col_length):
-            if min_val == dataframe.iat[idx_row, idx_col]:
-                dataframe = dataframe.drop(columns=actual_seq_string[idx_row])
-                dataframe = dataframe.drop(index=analyzed_seq_string[idx_col])
-                return dataframe, idx_row, idx_col
-
+result_hits = check_correct_hits(testseq_actual, testseq_analyzed)
+print(result_hits)
 
 def generate_random_sequence(seq_length, min_delay=0.1, max_delay=1):
     random_sequence = []

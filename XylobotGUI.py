@@ -206,7 +206,7 @@ class XylobotGUI:
             'name': fname.split('/')[-1],
             'plot': False,
             'guiplot': True,
-            'level': 'Info',
+            'level': 'info',
             'window': 'hanning',
             'fftsize': self.fft_entry_text.get(),
             'topindex': 1
@@ -218,8 +218,8 @@ class XylobotGUI:
         plt.savefig('displayplot.png')
         self.sequence_entry_text.set(str(key_and_times))
 
-        self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('signalprocessing\data\displayplot.png'))
-        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
+        # self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('signalprocessing\data\displayplot.png'))
+        # self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
 
     def update_hitmethods(self, event=None):
         # combobox_event.selection_clear()
