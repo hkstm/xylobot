@@ -203,7 +203,7 @@ class XylobotGUI:
             title="Choose a clip"
         )
         argsdict = {
-            'name': fname.split('/')[-1],
+            'name': fname.split('/')[-1].split('.')[0],
             'plot': False,
             'guiplot': True,
             'level': 'info',

@@ -213,7 +213,7 @@ def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, 
 
 def pitch_track_wav(args, is_logging=False):
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
-    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}')
+    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}.wav')
     fs, data = wavfile.read(sound_file_path)
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')

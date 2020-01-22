@@ -1,8 +1,6 @@
 import argparse
 import datetime
 import os
-import random
-import threading
 import time
 import wave
 from types import SimpleNamespace
@@ -17,15 +15,13 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.collections import PolyCollection
 from scipy import signal
 
-from control.ControlManager import ControlManager
-from control.SongManager import Note
 from signalprocessing.SignalArgParser import add_arguments
 from signalprocessing.SignalTrack import pitch_track_wav
 
 spectogram3dtest = False
 flatnesstest = False
 spectogramtest = False
-recordaudioflag = False
+createcsv = True
 
 parser = argparse.ArgumentParser(description="Custom Pitch")
 parser = add_arguments(parser)
@@ -42,17 +38,37 @@ pitches = [
     ('c7', 2101),
 ]
 
-def correctscale(analysed_seq, reverse=False):
-    if len(pitches) != len(analysed_seq):
-        return False
-    for i_analysed_seq in range(len(analysed_seq)):
-        key, time = analysed_seq[i_analysed_seq]
-        if reverse:
-            key, time = analysed_seq[len(analysed_seq) - 1 - i_analysed_seq]
-        scale_key, scale_time = pitches[i_analysed_seq]
-        if key != scale_key:
-            return False
-    return True
+scale_fw_fast_filenames = [
+    'scale_fw_fast_1',
+    'scale_fw_fast_2',
+    'scale_fw_fast_3',
+    'scale_fw_fast_4',
+    'scale_fw_fast_5',
+]
+scale_bw_fast_filenames = [
+    'scale_bw_fast_1',
+    'scale_bw_fast_2',
+    'scale_bw_fast_3',
+    'scale_bw_fast_4',
+    'scale_bw_fast_5',
+]
+scale_fw_slow_filenames = [
+    'scale_fw_slow_1',
+    'scale_fw_slow_2',
+    'scale_fw_slow_3',
+    'scale_fw_slow_4',
+    'scale_fw_slow_5',
+]
+scale_bw_slow_filenames = [
+    'scale_bw_slow_1',
+    'scale_bw_slow_2',
+    'scale_bw_slow_3',
+    'scale_bw_slow_4',
+    'scale_bw_slow_5',
+]
+
+scale_fast_filenames = scale_fw_fast_filenames + scale_bw_fast_filenames
+scale_slow_filenames = scale_fw_fast_filenames + scale_bw_fast_filenames
 
 
 def normalize_data(data, average_magnitudes):
@@ -60,6 +76,7 @@ def normalize_data(data, average_magnitudes):
     for i_data in range(len(average_magnitudes)):
         normalized.append(data[i_data] / average_magnitudes[i_data])
     return normalized
+
 
 def dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string):
     row_length, col_length = dataframe.shape
@@ -72,6 +89,7 @@ def dropandgetlowestvalue(dataframe, actual_seq_string, analyzed_seq_string):
                 dataframe = dataframe.drop(dataframe.columns[idx_col], axis=1)
                 dataframe = dataframe.drop(dataframe.index[idx_row])
                 return dataframe, seq_actual_tobedropped, seq_analyzed_tobedropped
+
 
 def check_correct_hits(actual_seq, analyzed_seq):
     check_df = pd.DataFrame(index=analyzed_seq, columns=actual_seq)
@@ -98,15 +116,14 @@ def check_correct_hits(actual_seq, analyzed_seq):
     time_error = 0
     key_error = row_length
     for i_timesorted_aligned in range(len(timesorted_aligned_seq_actual)):
-        actual_key_timesorted_aligned, actual_time_timesorted_aligned = timesorted_aligned_seq_actual[i_timesorted_aligned]
-        analyzed_key_timesorted_aligned, analyzed_time_timesorted_aligned = timesorted_aligned_seq_analyzed[i_timesorted_aligned]
+        actual_key_timesorted_aligned, actual_time_timesorted_aligned = timesorted_aligned_seq_actual[
+            i_timesorted_aligned]
+        analyzed_key_timesorted_aligned, analyzed_time_timesorted_aligned = timesorted_aligned_seq_analyzed[
+            i_timesorted_aligned]
         time_error += abs(actual_time_timesorted_aligned - analyzed_time_timesorted_aligned)
-        # print(f'actual key: {actual_key_timesorted_aligned}')
-        # print(f'analyzed key: {analyzed_key_timesorted_aligned}')
 
         if actual_key_timesorted_aligned != analyzed_key_timesorted_aligned:
             key_error += 1
-
 
     result = {
         'time_error': (time_error / len(timesorted_aligned_seq_actual)),
@@ -115,31 +132,19 @@ def check_correct_hits(actual_seq, analyzed_seq):
         'seq_analyzed': timesorted_aligned_seq_analyzed,
     }
     return SimpleNamespace(**result)
-#
-# testseq_actual = [
-#     ('c6', 1),
-#     ('d6', 2),
-#     ('e6', 3),
-#     ('f6', 4),
-# ]
-#
-# testseq_analyzed = [
-#     ('c6', 0.9),
-#     ('d6', 1.9),
-#     ('d6', 2.05),
-#     ('e6', 3),
-#     ('f6', 4),
-# ]
-#
-# result_hits = check_correct_hits(testseq_actual, testseq_analyzed)
-# print(result_hits)
 
-def generate_random_sequence(seq_length, min_delay=0.1, max_delay=1):
-    random_sequence = []
-    for i_seq_length in range(seq_length):
-        random_sequence.append(
-            Note(key=pitches[random.randint(0, len(pitches) - 1)][0], delay=random.uniform(min_delay, max_delay)))
-    return random_sequence
+
+def correctscale(analysed_seq, reverse=False):
+    if len(pitches) != len(analysed_seq):
+        return False
+    for i_analysed_seq in range(len(analysed_seq)):
+        key, time = analysed_seq[i_analysed_seq]
+        if reverse:
+            key, time = analysed_seq[len(analysed_seq) - 1 - i_analysed_seq]
+        scale_key, scale_time = pitches[i_analysed_seq]
+        if key != scale_key:
+            return False
+    return True
 
 
 def scale_decibel(data):
@@ -150,24 +155,24 @@ def time_resolution(time_list):
     return time_list[-1] / len(time_list)
 
 
-def convertnote2seq(notelist):
-    seqlist = []
-    for i_notelist in range(len(notelist)):
-        seqlist.append((notelist[i_notelist].key, notelist[i_notelist].delay))
-    return seqlist
+def create_uniform_sequence(start_time, end_time, reverse=False):
+    uniform_seq = []
+    for idx_uni_seq, (key, _) in enumerate(pitches):
+        current_time = start_time + idx_uni_seq * (end_time - start_time) / len(pitches)
+        uniform_seq.append((key, current_time))
 
+    if not reverse:
+        return uniform_seq
+    else:
+        uniform_seq.reverse()
+        return uniform_seq
 
-generate_random_sequence(10)
-
-amount_of_runs_test = 1
-seq_length_test = 10
-record_time_test = 10
+amount_of_runs_test = 10
 position_test = 'Center'
-min_delay_test = 0.1
-max_delay_test = 0.9
-hit_method_test = 'Triangle 2'
-if recordaudioflag:
-    print('set control manager')
+hit_method_test = 'Manual'
+playingstyle = 'Slow'
+
+if createcsv:
     filename_p = []
     run_p = []
     position_p = []
@@ -179,119 +184,30 @@ if recordaudioflag:
     window_p = []
     topindex_p = []
     seq_length_p = []
-    min_delay_p = []
+    effective_duration = []
     max_delay_p = []
     hit_method_p = []
     clip_length_p = []
     executiontime_p = []
-    controlmanager = ControlManager()
 
-    import control.TestControl as tc
-
-    controlmanager.setNoteCoordinates(tc.coords)
-
-    # audio = None
-    # frames = None
-    # samplewidth = None
-
-
-def recordaudio():
-    global audio
-    global frames
-    global samplewidth
-    audio = pyaudio.PyAudio()
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
-
-    frames = []
-
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data_recaudio = stream.read(CHUNK)
-        frames.append(data_recaudio)
-
-    stream.stop_stream()
-    stream.close()
-    samplewidth = audio.get_sample_size(FORMAT)
-    audio.terminate()
-
-
-if not recordaudioflag:
+if not createcsv:
     amount_of_runs_test = 1
 
-# controlmanager = ControlManager()
-#
-# import control.TestControl as tc
-#
-# controlmanager.setNoteCoordinates(tc.coords)
-# sequence_test = generate_random_sequence(seq_length_test, min_delay_test, max_delay_test)
-# controlmanager.addSong('sdsf', 100, sequence_test)
-# controlmanager.play()
-#
 for i in range(amount_of_runs_test):
+    argsdict = {
+        'name': scale_slow_filenames[i],
+        'plot': args.plot,
+        'guiplot': args.guiplot,
+        'level': args.level,
+        'window': args.window,
+        'fftsize': args.fftsize,
+        'topindex': args.topindex,
+    }
 
-    if recordaudioflag:
-        print('recording audio')
-        sequence_test = generate_random_sequence(seq_length_test, min_delay_test, max_delay_test)
-
-        controlmanager.addSong('sdsf', 100, sequence_test)
-        print(f'length {len(sequence_test)}')
-
-        print(convertnote2seq(sequence_test))
-        FORMAT = pyaudio.paInt16
-        CHANNELS = 1
-        RATE = 44100
-        CHUNK = 1024
-        RECORD_SECONDS = record_time_test
-        starttime = time.time()
-        print('Starting thread')
-        t1 = threading.Thread(target=recordaudio)
-        t1.start()
-        controlmanager.play()
-        t1.join()
-        endtime = time.time()
-        print(f'time elapsed {endtime - starttime}')
-        global audio
-        global frames
-        global samplewidth
-
-        currentdt = datetime.datetime.now()
-        WAVE_OUTPUT_FILENAME = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                            f'signalprocessing\\data\\testclip_{currentdt.strftime("%m-%d_%H-%M-%S")}.wav')
-        waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-        waveFile.setnchannels(CHANNELS)
-        waveFile.setsampwidth(samplewidth)
-        waveFile.setframerate(RATE)
-        waveFile.writeframes(b''.join(frames))
-        waveFile.close()
-        argsdict = {
-            'name': WAVE_OUTPUT_FILENAME.split('\\')[-1],
-            'plot': args.plot,
-            'guiplot': args.guiplot,
-            'level': args.level,
-            'window': args.window,
-            'fftsize': args.fftsize,
-            'topindex': args.topindex,
-        }
-    else:
-        argsdict = {
-            'name': args.name,
-            'plot': args.plot,
-            'guiplot': args.guiplot,
-            'level': args.level,
-            'window': args.window,
-            'fftsize': args.fftsize,
-            'topindex': args.topindex,
-        }
     starttime = time.process_time()
-    pitchtrack_resNS = pitch_track_wav(
-        SimpleNamespace(**argsdict))
+    pitchtrack_resNS = pitch_track_wav(SimpleNamespace(**argsdict))
     endtime = time.process_time()
-    print(f'data type {type(pitchtrack_resNS.data)}')
-    print(f'timeres {time_resolution(pitchtrack_resNS.time_list)}')
-    print(f'{pitchtrack_resNS.key_and_times}')
-    # print(freq_and_times)
-    print(f'Correct scale: {correctscale(pitchtrack_resNS.key_and_times)}')
+
     if spectogram3dtest:
         nperseg = 2 ** 12
         noverlap = 2 ** 11
@@ -343,15 +259,27 @@ for i in range(amount_of_runs_test):
         plt.ylabel('Frequency in Hz')
         plt.show()
 
-    if recordaudioflag:
-        time_error_seq, key_error_seq = check_correct_hits(actual_seq=convertnote2seq(sequence_test),
-                                                           analyzed_seq=pitchtrack_resNS.key_and_times)
+    if createcsv:
+        start_key_res, start_time_res = pitchtrack_resNS.key_and_times[0]
+        end_key_res, end_time_res = pitchtrack_resNS.key_and_times[-1]
+        actual_seq = create_uniform_sequence(start_time_res, end_time_res, True if i % 10 >= 5 else False)
+        analyzed_seq = pitchtrack_resNS.key_and_times
+        print(f'file name: \t {scale_slow_filenames[i]}')
+        print(pitchtrack_resNS.key_and_times)
+        print(f'unallgined actual: {actual_seq}')
+        print(f'unallgined analyzed: {analyzed_seq}')
+
+        res_correct_check = check_correct_hits(actual_seq=actual_seq,
+                                               analyzed_seq=analyzed_seq)
+        actual_seq = res_correct_check.seq_actual
+        analyzed_seq = res_correct_check.seq_analyzed
+
         filename_p.append(argsdict['name'])
         run_p.append(i)
         position_p.append(position_test)
-        key_error_p.append(key_error_seq)
-        time_error_p.append(time_error_seq)
-        length_difference_p.append(len(pitchtrack_resNS.key_and_times) - len(convertnote2seq(sequence_test)))
+        key_error_p.append(res_correct_check.key_error)
+        time_error_p.append(res_correct_check.time_error)
+        length_difference_p.append(len(pitchtrack_resNS.key_and_times) - len(actual_seq))
         flatness_p.append(
             np.mean(librosa.feature.spectral_flatness(y=pitchtrack_resNS.data.astype(float),
                                                       n_fft=pitchtrack_resNS.fft_size,
@@ -359,35 +287,33 @@ for i in range(amount_of_runs_test):
         fftsize_p.append(argsdict['fftsize'])
         window_p.append(argsdict['window'])
         topindex_p.append(argsdict['topindex'])
-        seq_length_p.append(seq_length_test)
-        min_delay_p.append(min_delay_test)
-        max_delay_p.append(max_delay_test)
+        seq_length_p.append(len(actual_seq))
+        effective_duration.append(end_time_res - start_time_res)
+        max_delay_p.append(playingstyle)
         hit_method_p.append(hit_method_test)
         clip_length_p.append(pitchtrack_resNS.time_list[-1])
         executiontime_p.append(endtime - starttime)
-        print(f'actual {convertnote2seq(sequence_test)}')
-        print(f'analyz {pitchtrack_resNS.key_and_times}')
+        print(f'actual {actual_seq}')
+        print(f'analyz {analyzed_seq}')
 
-if recordaudioflag:
+if createcsv:
     df = pd.DataFrame({'Filename': filename_p,
                        'Run': run_p,
                        'Position': position_p,
                        'KeyError': key_error_p,
                        'TimeError': time_error_p,
-                       'LengthDiffAnalyzedActual': length_difference_p,
+                       'LengthDiffSeq': length_difference_p,
                        'MeanFlatness': flatness_p,
                        'FFTSize': fftsize_p,
                        'Window': window_p,
                        'TopIndex': topindex_p,
                        'SequenceLength': seq_length_p,
-                       'MinDelay': min_delay_p,
-                       'MaxDelay': max_delay_p,
+                       'EffDuration': effective_duration,
+                       'PlayingStyle': max_delay_p,
                        'HitMethod': hit_method_p,
                        'ClipLength': clip_length_p,
                        'ExecutionTime': executiontime_p,
                        })
 
     currentdt = datetime.datetime.now()
-    filename = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            f'signalprocessing\\data\\clip_{currentdt.strftime("%m-%d_%H-%M-%S")}.wav')
     df.to_csv(r'signalprocessing\data\csvs\test_' + currentdt.strftime("%m-%d_%H-%M-%S") + '.csv')
