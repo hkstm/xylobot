@@ -16,7 +16,7 @@ def generateList(GUI):
     gui = GUI
     print(" Generating LIst")
     getSides.run(gui)
-    gui.updateCenterpointsImage()
+    # gui.updateCenterpointsImage()
     list = getSides.getList()
     return list
 

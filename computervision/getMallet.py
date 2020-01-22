@@ -44,9 +44,12 @@ def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
         #except:
             #print("Could not print all requested frames")
 
-        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(cv2.resize(res, (460, 388)), cv2.COLOR_BGR2RGB)))
-        gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2,
-                                          image=gui.centerpoints_img)
+        res = cv2.resize(res, (int(gui.canvaswidth), int(gui.canvasheight)))
+        res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
+        res = PIL.Image.fromarray(res)
+        if res is not None:
+            gui.centerpoints_img = PIL.ImageTk.PhotoImage(res)
+            gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2, image=gui.centerpoints_img)
 
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
@@ -127,9 +130,11 @@ def drawCircle(cnts, frame, prec, bcl, bcr, mask):
             area = cv2.contourArea(c)
             print("area: ", area)
 
-            if 1000 > area > 100 and (bcl[0] + 20 < ((x, y), radius)[0][0] < bcr[0] - 20):  # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
+            if 1000 > area > 100 and (bcl[0] + 20 < ((x, y), radius)[0][0] < bcr[0] - 20) and ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
+                # cv2.circle(frame, center, int(radius-1), (255, 255, 255), cv2.FILLED, 8, 0);
+                # cv2.circle(frame, center, int(radius), (0, 255, 255), 3)
                 cv2.circle(frame, (int(x), int(y)), int(radius-1), (255, 255, 255), cv2.FILLED, 8, 0);
                 cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 3)
                 cv2.circle(frame, center, 3, (0, 0, 255), -1)

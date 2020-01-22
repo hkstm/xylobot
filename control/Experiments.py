@@ -58,16 +58,21 @@ class Experiments:
     def __init__(self, cm):
         self.cm = cm
         self.cm.setNoteCoordinates(TestComponents.coords)
-        self.movemargin = 0.08
+        self.movemargin = 0.0
 
     def run(self):
         self.testHitAngles()
         #self.testBounds()
 
     def testHitAngles(self):
-        for note in self.getNotesFromSequence('01257654'):
-           self.cm.hit(note, dynamics='ff', hittype='triangle 2', tempo=1)
+        for note in self.getNotesFromSequence('01231212321010'):
+           self.cm.hit(note, dynamics='f', hittype='triangle 2', tempo=10)
            time.sleep(note.delay - self.movemargin)
+
+        # for note in self.getNotesFromSequence('0121321054321204'):
+        #    self.cm.hit(note, dynamics='mf', hittype='triangle 2', tempo=10)
+        #    time.sleep(note.delay - self.movemargin)
+
 
 
          # self.cm.addSong('test1', 2, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])

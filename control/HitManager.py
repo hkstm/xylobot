@@ -39,6 +39,7 @@ class HitManager:
 
         h = None
         print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
+        print(f'hittype {note.hittype}')
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
             print('Same key is to be hit')
             h = self.snh
@@ -46,22 +47,22 @@ class HitManager:
             self.servospeed = 0.1
         else:
             self.servospeed = 0.05
-            if note.hittype == 'quadratic':
+            if note.hittype.lower() == 'quadratic':
                 h = self.qh
-            if note.hittype == 'triangle 1':
+            elif note.hittype.lower() == 'triangle 1':
                 h = self.th
-            if note.hittype == 'triangle 2':
+            elif note.hittype.lower() == 'triangle 2':
                 h = self.rh
-            if note.hittype == 'triangle 3':
+            elif note.hittype.lower() == 'triangle 3':
                 h = self.lh
-            if note.hittype == 'uniform':
+            elif note.hittype.lower() == 'uniform':
                 h = self.uh
-            if note.hittype == 'glissando':
+            elif note.hittype.lower() == 'glissando':
                 h = self.gh
                 malletBounce = -1
 
         if note.key is 'c6' or note.key is 'c7':
-            h.setHeight(self.xyloheight + 0.3 + malletBounce)
+            h.setHeight(self.xyloheight + 0.30 + malletBounce)
         if note.key is 'd6' or note.key is 'b6':
             h.setHeight(self.xyloheight + 0.2 + malletBounce)
         if note.key is 'e6' or note.key is 'a6':

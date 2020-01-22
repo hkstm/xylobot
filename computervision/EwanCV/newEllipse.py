@@ -159,14 +159,17 @@ def run(gui):
             else:
                 createList1(int(finalObj[0][0]), int(finalObj2[0][0]), int(finalObj[0][1]), int(finalObj2[0][1]))
 
-            cv2.imwrite('centerpoints.jpg', cv2.resize(frame, (460, 388)))
+            cv2.imwrite('centerpoints.jpg', cv2.resize(frame, (int(gui.canvaswidth), int(gui.canvasheight))))
             print('Image saved')
             DONE = True
 
         # cv2.imshow('frame', frame)
-        gui.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(cv2.cvtColor(cv2.resize(frame, (460, 388)), cv2.COLOR_BGR2RGB)))
-        gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2,
-                                          image=gui.centerpoints_img)
+        frame = cv2.resize(frame, (int(gui.canvaswidth), int(gui.canvasheight)))
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = PIL.Image.fromarray(frame)
+        if frame is not None:
+            gui.centerpoints_img = PIL.ImageTk.PhotoImage(frame)
+            gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2, image=gui.centerpoints_img)
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break
