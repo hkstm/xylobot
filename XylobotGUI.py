@@ -2,14 +2,16 @@ import librosa
 import queue as Queue
 import threading
 
-connectedtosetup = True
+connectedtosetup = False
 print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
 
+from Improv import *
 from simulation.SimuVector import SimuVector
 from simulation.SimuXylo import SimuXylo
 from signalprocessing.SignalTrack import pitch_track_wrap
+from signalprocessing.SignalTrack import pitch_track_wrap_improv
 from signalprocessing.SignalTrack import pitch_track_calc
 from control.ControlManager import ControlManager
 from control.SongManager import Note
@@ -249,7 +251,7 @@ class XylobotGUI:
             prevtime = time
         if connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('test', 20, note_list)
+            self.cm.addSong('improv', 100, note_list)
             self.cm.play()
             # Control.play(note_list)
 
@@ -302,6 +304,46 @@ class XylobotGUI:
         self.stream.close()
         self.p.terminate()
         self.update_log('Stopped pitch checking')
+
+    def improvise_sequence(self):
+
+        self.update_log('Trying to stop recording')
+        self.recordclip_btn_isclicked = False
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
+        self.update_log('Finished recording')
+        # Save the recorded data as a WAV file
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                f'signalprocessing\\data\\improv.wav')
+        print(os.path.abspath(filename))
+        wf = wave.open(os.path.abspath(filename), 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(self.p.get_sample_size(self.sampleformat))
+        wf.setframerate(self.fs)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
+        fname = 'improv'
+        argsdict = {
+            'name': fname.split('/')[-1],
+            'plot': False,
+            'guiplot': True,
+            'level': 'info',
+            'window': 'hanning',
+            'fftsize': self.fft_entry_text.get(),
+            'topindex': 1
+        }
+        key_and_times = pitch_track_wrap_improv(SimpleNamespace(**argsdict))
+        num_improv_notes = 16
+        sequence = create_music(key_and_times[0], num_improv_notes)
+        print(sequence)
+        if connectedtosetup:
+            notes = [0] * len(sequence)
+            for i in sequence:
+                notes[i] = Note(key = sequence[i][0], delay = sequence[i][1])
+            self.start_pitchcheck(notelist=sequence)
+            self.cm.addSong('improv', 100, sequence)
+            self.cm.play()
 
     def close_gui(self):
         self.window.destroy()
@@ -368,7 +410,7 @@ class XylobotGUI:
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
                                                                                         sticky=NSEW)
         self.calibrate_btn = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
-                                                                                                 columnspan=4,
+                                                                                                 columnspan=2,
                                                                                                  rowspan=1,
                                                                                                  sticky=NSEW)
 
@@ -432,6 +474,10 @@ class XylobotGUI:
         self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
                                                                                            rowspan=2,
                                                                                            columnspan=2, sticky=NSEW)
+        self.improvise_btn = Button(window, text="Improvise", command=self.improvise_sequence).grid(row=6, column=4,
+                                                                                                    columnspan=2,
+                                                                                                    rowspan=1,
+                                                                                                    sticky=NSEW)
         self.window.protocol('WM_DELETE_WINDOW', self.close_gui)
         self.update_log('Initialized window')
 
@@ -574,4 +620,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam

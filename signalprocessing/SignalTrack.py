@@ -200,6 +200,39 @@ def pitch_track_wrap(args_dict):
                                                  pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
     return pitchtrackresults.key_and_times
 
+def pitch_track_wrap_improv(args_dict):
+    global logger
+    args = args_dict
+    logger_levels = {
+        'critical': 50,
+        'error': 40,
+        'warning': 30,
+        'info': 20,
+        'debug': 10,
+    }
+    logger.setLevel(level=logger_levels[args.level])
+    if not len(logger.handlers):
+        logger.addHandler(logging.StreamHandler())
+    logger.info("Starting script")
+
+    pitchtrackresults = pitch_track_wav_improv(
+        args, is_logging=True)
+    if args.plot:
+        plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                   extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                           pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+        plt.title('results transposed')
+        plt.show()
+
+    # !!! FINAL RESULT !!!
+    print(pitchtrackresults.key_and_times)
+    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in pitchtrackresults.key_and_times]}')
+    if args.guiplot:
+        return pitchtrackresults.key_and_times, plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
+                                         aspect='auto',
+                                         extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                                                 pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+    return pitchtrackresults.key_and_times
 
 def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, threshold=0.2):
     if idx + offset < len(results):
@@ -217,7 +250,15 @@ def pitch_track_wav(args, is_logging=False):
     fs, data = wavfile.read(sound_file_path)
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')
-    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window, loudness_factor=args.loudnessfactor)
+    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window, loudnessfactor=args.loudnessfactor)
+
+def pitch_track_wav_improv(args, is_logging=False):
+    # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
+    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}.wav')
+    fs, data = wavfile.read(sound_file_path)
+    if is_logging:
+        logger.debug(f'path:\t{sound_file_path}')
+    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window)
 
 
 def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning',
