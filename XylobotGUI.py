@@ -207,7 +207,7 @@ class XylobotGUI:
             'plot': False,
             'guiplot': True,
             'level': 'info',
-            'window': 'hanning',
+            'window': 'blackman',
             'fftsize': self.fft_entry_text.get(),
             'topindex': 1
         }
@@ -273,11 +273,8 @@ class XylobotGUI:
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata,
-                                                fft_size=fft_size,
-                                                is_plotting=False,
-                                                is_logging=False, topindex=1,
-                                                window='hanning', amp_thresh=float(
+            pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata, fft_size=fft_size, is_plotting=False,
+                                                is_logging=False, topindex=1, window='blackman', amp_thresh=float(
                     self.ampthresh_entry_text.get()))
             overlap_fac = 0.5
             # flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,

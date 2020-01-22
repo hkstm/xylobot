@@ -217,17 +217,17 @@ def pitch_track_wav(args, is_logging=False):
     fs, data = wavfile.read(sound_file_path)
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')
-    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window)
+    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window, loudness_factor=args.loudnessfactor)
 
 
-def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning', amp_thresh=0):
+def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning',
+                     amp_thresh=0, loudness_factor=0.4):
     if is_logging:
         logger.debug(f'fs:\t\t{fs}')
         logger.debug(f'fftsize:\t{fft_size}')
         logger.debug(f'fs/fft:\t\t{fs / fft_size}')
 
     overlap_fac = 0.5
-    loudness_factor = 0.4  # determines senitivity off hit detection
 
     hop_size = np.int32(np.floor(fft_size * (1 - overlap_fac)))
     pad_end_size = fft_size  # the last segment can overlap the end of the data array by no more than one window size
