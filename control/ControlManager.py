@@ -7,7 +7,7 @@ class ControlManager:
 
     def __init__(self):
         self.ser = self.initArduino(9600, "COM3")
-        #self.ser = 0
+        self.ser = 0
 
         self.hm = HitManager(self.ser)
         self.sm = SongManager(self.hm)
