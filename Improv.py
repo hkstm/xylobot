@@ -442,7 +442,9 @@ def improvise(note, improvisation_length, timings):
 
 
 def create_music(sequence, improvisation_length):
-	create_transition_matrix(sequence)
+	print(create_transition_matrix(sequence))
+	print(sequence)
+#	print(sequence[len(sequence) - 1][0])
 	improvised_sequence = improvise(sequence[len(sequence) - 1][0], improvisation_length, generate_timings(sequence))
 	print(improvised_sequence)
 	return improvised_sequence
