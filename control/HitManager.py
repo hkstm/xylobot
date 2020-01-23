@@ -9,7 +9,7 @@ import time
 class HitManager:
 
     def __init__(self, ser):
-        self.xyloheight = 12.5
+        self.xyloheight = 13.5
         self.ser = ser
         self.currentPosition = Point(1.1, 23, 13)
         self.targetPosition = None

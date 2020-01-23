@@ -166,7 +166,7 @@ def create_sametiming_sequence(analyzed_seq, reverse=False):
 amount_of_runs_test = 10
 position_test = 'Center'
 hit_method_test = 'Manual'
-playingstyle = 'slow'
+playingstyle = 'fast'
 
 if createcsv:
     filename_p = []
@@ -194,17 +194,17 @@ i_len = amount_of_runs_test
 j_len = len([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
 k_len = len([128, 256, 512, 1024, 2048])
 for i in range(0, amount_of_runs_test):
-    for j in [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85,  0.9, 0.95, 1]:
-        for k in [512]:
+    for j in [0.34]:
+        for k in [2048]:
             argsdict = {
-                'name': scale_slow_filenames[i],
+                'name': scale_fast_filenames[i],
                 'plot': args.plot,
                 'guiplot': args.guiplot,
                 'level': args.level,
                 'window': 'blackman',
                 'fftsize': k,
                 'topindex': args.topindex,
-                'loudnessfactor': j,
+                'loudnessfactor':j,
             }
 
             starttime = time.process_time()
@@ -322,4 +322,4 @@ if createcsv:
                        })
 
     currentdt = datetime.datetime.now()
-    df.to_csv(r'signalprocessing\data\csvs\testfft512_' + playingstyle + '_' + currentdt.strftime("%m-%d_%H-%M-%S") + '.csv')
+    df.to_csv(r'signalprocessing\data\csvs\test034_' + playingstyle + '_' + currentdt.strftime("%m-%d_%H-%M-%S") + '.csv')

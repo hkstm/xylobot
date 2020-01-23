@@ -209,7 +209,8 @@ class XylobotGUI:
             'level': 'info',
             'window': 'blackman',
             'fftsize': self.fft_entry_text.get(),
-            'topindex': 1
+            'topindex': 1,
+            'loudnessfactor': 0.4,
         }
         key_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
         # print(keys_and_times)
@@ -249,7 +250,7 @@ class XylobotGUI:
             prevtime = time
         if connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('test', 20, note_list)
+            self.cm.addSong('test', 3, note_list)
             self.cm.play()
             # Control.play(note_list)
 
@@ -378,7 +379,7 @@ class XylobotGUI:
         self.fft_entry_text = StringVar()
         self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
         self.fft_entry.grid(row=7, column=3, columnspan=1, sticky=NSEW)
-        self.fft_entry_text.set('512')
+        self.fft_entry_text.set('2048')
 
         self.ampthresh_label = Label(window, text="Amp Thresh:", relief=RIDGE)
         self.ampthresh_label.grid(row=7, column=4, columnspan=1, sticky=NSEW)
@@ -574,4 +575,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
