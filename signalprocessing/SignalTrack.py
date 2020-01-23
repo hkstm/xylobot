@@ -2,6 +2,7 @@ import logging
 import os
 import math
 import numpy as np
+from types import SimpleNamespace
 from scipy.signal import find_peaks
 from scipy.io import wavfile
 from .PitchesData import pitches, pitches_ranges
@@ -180,25 +181,60 @@ def pitch_track_wrap(args_dict):
         logger.addHandler(logging.StreamHandler())
     logger.info("Starting script")
 
-    key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times = pitch_track_wav(
+    pitchtrackresults = pitch_track_wav(
         args, is_logging=True)
     if args.plot:
-        plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-                   extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
-                           freq_list[upper_index_cutoff]])
+        plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                   extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                           pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+        plt.title(f'Frequency Spectogram of {args.name}, FFT Size: {pitchtrackresults.fft_size}')
+        plt.xlabel('Time in seconds')
+        plt.ylabel('Frequency in Hz.')
+        plt.show()
+
+    # !!! FINAL RESULT !!!
+    print(pitchtrackresults.key_and_times)
+    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in pitchtrackresults.key_and_times]}')
+    if args.guiplot:
+        return pitchtrackresults.key_and_times, plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
+                                         aspect='auto',
+                                         extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                                                 pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+    return pitchtrackresults.key_and_times
+
+def pitch_track_wrap_improv(args_dict):
+    global logger
+    args = args_dict
+    logger_levels = {
+        'critical': 50,
+        'error': 40,
+        'warning': 30,
+        'info': 20,
+        'debug': 10,
+    }
+    logger.setLevel(level=logger_levels[args.level])
+    if not len(logger.handlers):
+        logger.addHandler(logging.StreamHandler())
+    logger.info("Starting script")
+
+    pitchtrackresults = pitch_track_wav_improv(
+        args, is_logging=True)
+    if args.plot:
+        plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+                   extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                           pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
         plt.title('results transposed')
         plt.show()
 
     # !!! FINAL RESULT !!!
-
-    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in key_and_times]}')
+    print(pitchtrackresults.key_and_times)
+    logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in pitchtrackresults.key_and_times]}')
     if args.guiplot:
-        return key_and_times, plt.imshow(results_transposed, origin='lower', cmap='jet', interpolation='nearest',
+        return pitchtrackresults.key_and_times, plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
                                          aspect='auto',
-                                         extent=[time_list[0], time_list[-1], freq_list[low_index_cutoff],
-                                                 freq_list[upper_index_cutoff]])
-    return key_and_times
-
+                                         extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+                                                 pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+    return pitchtrackresults.key_and_times
 
 def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, threshold=0.2):
     if idx + offset < len(results):
@@ -216,17 +252,25 @@ def pitch_track_wav(args, is_logging=False):
     fs, data = wavfile.read(sound_file_path)
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')
+    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window, loudnessfactor=args.loudnessfactor)
+
+def pitch_track_wav_improv(args, is_logging=False):
+    # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
+    sound_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'data/{args.name}.wav')
+    fs, data = wavfile.read(sound_file_path)
+    if is_logging:
+        logger.debug(f'path:\t{sound_file_path}')
     return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window)
 
 
-def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning', amp_thresh=0):
+def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning',
+                     amp_thresh=0, loudness_factor=0.4):
     if is_logging:
         logger.debug(f'fs:\t\t{fs}')
         logger.debug(f'fftsize:\t{fft_size}')
         logger.debug(f'fs/fft:\t\t{fs / fft_size}')
 
     overlap_fac = 0.5
-    loudness_factor = 0.4  # determines senitivity off hit detection
 
     hop_size = np.int32(np.floor(fft_size * (1 - overlap_fac)))
     pad_end_size = fft_size  # the last segment can overlap the end of the data array by no more than one window size
@@ -259,4 +303,20 @@ def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, to
                 # logger.debug(f'pitch: {pitch}, time: {convert_idx_to_time(time_list, hit_idx)}')
 
     results_transposed = np.transpose(results_cutoff)
-    return key_and_times, results_transposed, time_list, freq_list, low_index_cutoff, upper_index_cutoff, fft_size, overlap_fac, loudness_factor, fs, data, hop_size, averages, freq_and_times
+    pitch_track_results_dict = {
+        'key_and_times': key_and_times,
+        'results_transposed': results_transposed,
+        'time_list': time_list,
+        'freq_list': freq_list,
+        'low_index_cutoff': low_index_cutoff,
+        'upper_index_cutoff': upper_index_cutoff,
+        'fft_size': fft_size,
+        'overlap_fac': overlap_fac,
+        'loudness_factor': loudness_factor,
+        'fs': fs,
+        'data': data,
+        'hop_size': hop_size,
+        'averages': averages,
+        'freq_and_times': freq_and_times,
+    }
+    return SimpleNamespace(**pitch_track_results_dict)

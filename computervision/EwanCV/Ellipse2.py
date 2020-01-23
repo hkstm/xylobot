@@ -10,14 +10,28 @@ finalObj = None
 bready = False
 b2ready = False
 finalObj2 = None
+boundarycenterleft = None
+boundarycenterright = None
 list = []
 
 def run():
     width = int(cap.get(3))
     height = int(cap.get(4))
-    global finalObj, DONE, bready, b2ready, finalObj2, list
+    global finalObj, DONE, bready, b2ready, finalObj2, list, boundarycenterleft, boundarycenterright
     while(DONE == False):
-        ret, frame = cap.read()
+       # ret, frame = cap.read()
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        fgbg = cv2.createBackgroundSubtractorMOG2()
+        while (1):
+            ret, frame = cap.read()
+            fgmask = fgbg.apply(frame)
+            fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
+            cv2.imshow('frame', fgmask)
+            k = cv2.waitKey(30) & 0xff
+            if k == 27:
+                break
+
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         cv2.imshow('hsv', hsv)
         lower_black = np.array([0, 0, 0])
@@ -86,8 +100,10 @@ def run():
         
         if bready:
             cv2.circle(frame, (int(finalObj[0][0]), int(finalObj[0][1])), 1, (0, 0, 255), 3)
+            boundarycenterleft = (int(finalObj[0][0]), int(finalObj[0][1]))
         if b2ready:
             cv2.circle(frame, (int(finalObj2[0][0]), int(finalObj2[0][1])), 1, (0, 0, 255), 3)
+            boundarycenterright = (int(finalObj2[0][0]), int(finalObj2[0][1]))
         if b2ready and bready and (abs(int(finalObj2[0][0]) - int(finalObj[0][0])) > 40 or abs(int(finalObj2[0][1]) - int(finalObj[0][1])) > 40):
 
             lineThickness = 2
@@ -111,7 +127,7 @@ def run():
 
             cv2.imwrite('Xylobot\centerpoints.jpg', frame)
             print('Printed')
-            #DONE = True
+            DONE = True
 
         cv2.imshow('frame', frame)
         k = cv2.waitKey(5) & 0xFF
@@ -122,9 +138,11 @@ def run():
 
 
 def getList():
+    global list
     return list
 
 def createList(blackcx, black2cx, blackcy, black2cy):
+    global list
     print(" LIST CERATED")
     list.append(CenterPoint("c6", int(blackcx + (8 / 9) * (black2cx - blackcx)),
                             int(blackcy + (8 / 9) * (black2cy - blackcy)), 0, 0, 0))

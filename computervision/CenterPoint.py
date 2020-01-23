@@ -12,4 +12,4 @@ class CenterPoint:
         print(key, px, py, x, y, z)
 
     def __str__(self):
-        return self.key + ' ' + str(self.delay)
+        return self.key #+ ' ' + str(self.delay)

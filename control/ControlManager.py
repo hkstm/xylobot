@@ -4,13 +4,10 @@ from control.SongManager import SongManager
 
 
 class ControlManager:
-    XYLO_HEIGHT = 13
 
     def __init__(self):
         self.ser = self.initArduino(9600, "COM3")
-        #self.ser = 0
-
-        self.hm = HitManager(self.ser, self.XYLO_HEIGHT)
+        self.hm = HitManager(self.ser)
         self.sm = SongManager(self.hm)
         self.startMarker = 60
         self.endMarker = 62
@@ -21,8 +18,29 @@ class ControlManager:
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)
 
-    def hit(self, note, hittype=''):
-        self.sm.hit(note)
+    def hit(self, note, dynamics='pp', hittype='', tempo=0):
+        malletBounce = 0
+        if dynamics == 'pp':
+            note.power = 1
+            malletBounce = -0.1
+        elif dynamics == 'mp':
+            note.power = 2
+            malletBounce = 0.7
+        elif dynamics == 'p':
+            note.power = 3
+            malletBounce = 1
+        elif dynamics == 'mf':
+            note.power = 4
+            malletBounce = 1.5
+        elif dynamics == 'f':
+            note.power = 5
+            malletBounce = 1.3
+        elif dynamics == 'ff':
+            note.power = 5
+            malletBounce = 1
+        note.hittype = hittype
+        print('malletBounce: ', malletBounce)
+        self.sm.hit(note, tempo=tempo, malletBounce=malletBounce)
 
     def hitPoint(self, point):
         self.sm.hitPoint(point)
@@ -40,9 +58,6 @@ class ControlManager:
 
     def sendToArduino(self, pos):
         self.hm.sendToArduino(pos)
-
-    def setHitType(self, hittype):
-        self.hm.setHitType(hittype)
 
 
 

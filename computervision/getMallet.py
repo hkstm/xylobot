@@ -2,17 +2,20 @@ import cv2
 import numpy
 from collections import deque
 import imutils
+from computervision import VideoCamera as vc
+import PIL
 
 cap = None
 counter = 0
 
-def run(previous_coordinates, boundarycenterleft, boundarycenterright):
+def run(gui, previous_coordinates, boundarycenterleft, boundarycenterright):
     global cap, counter
     counter = 0
-    cap = cv2.VideoCapture(1)
+    cap = gui.vid_bird.vid
 
-    width = int(cap.get(3))
-    height = int(cap.get(4))
+    # width = int(cap.get(3))
+    # height = int(cap.get(4))
+    width, height = cap.getDimensions()
     print(width)
     print(height)
 
@@ -26,7 +29,7 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
     x2 = 480
 
     while (1):
-        _, frame = cap.read()
+        ret, frame = cap.getNextFrame()
         #frame = frame[y1:y2, x1:x2]  # crop frame
 
         mask, res, ((x, y), radius) = colorDetection(frame, previous_coordinates, boundarycenterleft, boundarycenterright)
@@ -41,6 +44,13 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
         #except:
             #print("Could not print all requested frames")
 
+        res = cv2.resize(res, (int(gui.canvaswidth), int(gui.canvasheight)))
+        res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
+        res = PIL.Image.fromarray(res)
+        if res is not None:
+            gui.centerpoints_img = PIL.ImageTk.PhotoImage(res)
+            gui.plot_canvas.create_image(gui.canvaswidth / 2, gui.canvasheight / 2, image=gui.centerpoints_img)
+
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break
@@ -48,15 +58,15 @@ def run(previous_coordinates, boundarycenterleft, boundarycenterright):
         if ((x,y))[0] is not None and ((x,y))[1]:
             print(" Mallet ",((x + x1, y + y1), radius))
             #writer.release()
-            cap.release()
+            # cap.release()
             cv2.destroyAllWindows()
             return ((x, y), radius)
-        elif counter > 40:
+        elif counter > 20:
             return ((None, None), None)
         previous_coordinates = (None, None)
         counter += 1
     #writer.release()
-    cap.release()
+    # cap.release()
     cv2.destroyAllWindows()
 
 
@@ -85,18 +95,18 @@ def colorDetection(frame, prec, bcl, bcr):
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
 
-    #removeSmallAreas(mask, cnts)
-    res[mask == 255] = [255, 255, 255]
+    # res[mask == 255] = [255, 255, 255]
 
 
     #resblur[mask == 255] = [0, 0, 255]
     #cv2.imshow('resblur', resblur)
 
-    res, ((x, y), radius) = drawCircle(cnts, res, prec, bcl, bcr)
+    res, ((x, y), radius) = drawCircle(cnts, res, prec, bcl, bcr, mask)
+    # mask = removeSmallAreas(mask, cnts)
 
     return mask, res, ((x, y), radius)
 
-def drawCircle(cnts, frame, prec, bcl, bcr):
+def drawCircle(cnts, frame, prec, bcl, bcr, mask):
     if len(cnts) > 0:
         # find the largest contour in the mask, then use it to compute the minimum enclosing circle and centroid
         # print("area: ", cv2.contourArea(c))
@@ -116,29 +126,39 @@ def drawCircle(cnts, frame, prec, bcl, bcr):
             # print("y difference: ", abs(((x, y), radius)[0][1] - prec[1]))
             # print("radius in bounds? ", 30 > radius > 10, " radius: ", radius)
             # print("not outside? ", bcl[0], bcr[0])
-            if 30 > radius > 10 and (bcl[0] + 40 < ((x, y), radius)[0][0] < bcr[0] - 40): # ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
+
+            area = cv2.contourArea(c)
+            print("area: ", area)
+
+            if 1000 > area > 100 and (bcl[0] + 20 < ((x, y), radius)[0][0] < bcr[0] - 20) and ((abs(((x, y), radius)[0][0] - prec[0]) < 100 and abs(((x, y), radius)[0][1] - prec[1]) < 100)):
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
-                cv2.circle(frame, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
-                cv2.imshow("mallet frame", frame)
-                cv2.waitKey(500)
+                # cv2.circle(frame, center, int(radius-1), (255, 255, 255), cv2.FILLED, 8, 0);
+                # cv2.circle(frame, center, int(radius), (0, 255, 255), 3)
+                cv2.circle(frame, (int(x), int(y)), int(radius-1), (255, 255, 255), cv2.FILLED, 8, 0);
+                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 3)
+                cv2.circle(frame, center, 3, (0, 0, 255), -1)
+                # cv2.imshow("mallet frame", frame)
+                # cv2.waitKey(500)
                 return frame, ((x, y), radius)
     print("No mallet detected")
-    cv2.imshow('frame', frame)
+    # cv2.imshow('frame', frame)
+    frame[mask == 255] = [255, 255, 255]
     return frame, ((None, None), None)
 
 
 def removeSmallAreas(mask, cnts):
     if len(cnts) > 0:
-        for cnt in cnts:
-            c = cv2.contourArea(cnt)
+        for c in cnts:
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            if radius < 10:
-                cv2.drawContours(mask, c, "black")
+            try:
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            except:
+                continue
+            # cnt = cv2.contourArea(c)
+            if 0 < radius < 0:
+                img = cv2.drawContours(img, [c], 0, (255, 255, 255), 3)
     return mask
 
 def destroyWindows():

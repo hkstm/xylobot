@@ -3,14 +3,16 @@ from .Point import Point
 
 
 class Note:
-    def __init__(self, key, delay=0.0, coords='', intensity=1000):
+    def __init__(self, key, delay=0.5, coords='', power=4, speed=1, hittype='triangle 2'):
         self.key = key
         self.delay = delay
         self.coords = coords
-        self.intensity = intensity
+        self.power = power  # velocity
+        self.speed = speed
+        self.hittype = hittype
 
     def __str__(self):
-        return f"Note: {self.key}, delay: {self.delay}, coords: {self.coords}, intensity: {self.intensity}"
+        return f"Note: {self.key}, delay: {self.delay}, coords: {self.coords}, power: {self.power}, speed: {self.speed}, hit type: {self.hittype}"
 
 
 class Song:
@@ -42,15 +44,40 @@ class SongManager:
         self.notecoords = []
         self.notelist = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         self.hm = hm
+        self.note = Note('tmp', delay=0.01)
+        self.song_hits = 0
 
-    def play(self):
+    def play(self, dynamics='p', hittype='triangle 2'):
         for song in self.songs:
-            self.hm.setTempo(song.getTempo())
+            tempo = song.getTempo()
+            self.song_hits = 0
             for note in song.getNotes():
+                malletBounce = 0
+                if dynamics == 'pp':
+                    note.power = 1
+                    malletBounce = -0.1
+                elif dynamics == 'mp':
+                    note.power = 2
+                    malletBounce = 0.7
+                elif dynamics == 'p':
+                    note.power = 3
+                    malletBounce = 1
+                elif dynamics == 'mf':
+                    note.power = 4
+                    malletBounce = 1.5
+                elif dynamics == 'f':
+                    note.power = 5
+                    malletBounce = 1.3
+                elif dynamics == 'ff':
+                    note.power = 5
+                    malletBounce = 1
+                note.hittype = hittype
+                print('malletBounce: ', malletBounce)
                 try:
-                    #print('[*] Playing note: ', note)
-                    self.hit(note)
+                    print('[*] Playing note: ', note)
                     time.sleep(note.delay)
+                    self.hit(note, tempo)
+                    self.song_hits += 1
                 except Warning as w:
                     print(w)
                     pass
@@ -68,15 +95,17 @@ class SongManager:
             self.hitPoint(p)
         self.hm.standTall()
 
-    def hit(self, note):
+    def hit(self, note, tempo=0, malletBounce=0):
         newnote = next((x for x in self.notecoords if x.key == note.key), None)
         note.coords = newnote.coords
-        self.hm.calculatePath(note)
+        self.hm.calculatePath(note, tempo, malletBounce)
+        self.song_hits = 0
         self.hm.hit()
+        self.song_hits += 1
 
     def hitPoint(self, point):
-        n = Note('sup', delay=0.01, coords=point)
-        self.hm.calculatePath(n)
+        self.note.coords = point
+        self.hm.calculatePath(self.note)
         self.hm.hit()
 
     def add(self, name, tempo, notes):

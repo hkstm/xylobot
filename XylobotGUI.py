@@ -1,23 +1,33 @@
 import librosa
+import queue as Queue
+import threading
 
-connectedtosetup = False
+connectedtosetup = True
+print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
 
+from Improv import *
 from simulation.SimuVector import SimuVector
 from simulation.SimuXylo import SimuXylo
 from signalprocessing.SignalTrack import pitch_track_wrap
+from signalprocessing.SignalTrack import pitch_track_wrap_improv
 from signalprocessing.SignalTrack import pitch_track_calc
 from control.ControlManager import ControlManager
 from control.SongManager import Note
+from control.Position import Position
 
+from computervision import VideoCamera as vc
+
+import Test
 import os
 import ast
 from tkinter import *
-from tkinter.ttk import Combobox
+from tkinter.ttk import Combobox, Style
 from tkinter.filedialog import askopenfilename
 from functools import partial
 from types import SimpleNamespace
+from control.Point import Point
 
 import pyaudio
 import wave
@@ -34,8 +44,6 @@ import cv2
 import itertools
 
 screen_factor = 0.9
-
-
 class XylobotGUI:
 
     def init_window(self):
@@ -43,32 +51,24 @@ class XylobotGUI:
 
         if connectedtosetup:
             self.cm = ControlManager()
+            self.cm.sendToArduino(Position(0, 0, 0))
+
+            newNotesCoords = []
+
+            try:
+                with open('notecoords.txt', 'r') as filehandle:
+                    newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
+                newNotes = [tuple(coord.split()) for coord in newNotesCoords]
+                newNotes = [Point(float(x), float(y), float(z)) for (x,y,z) in newNotes]
+                self.cm.setNoteCoordinates(newNotes)
+                print(f'newNotes {newNotes}')
+                print(f'{type(newNotes)}')
+            except Exception as e:
+                print(e)
+
 
         self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
         self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
-
-        # self.birds_eye_view.grid(row=0, column=0)
-        # self.side_view.grid(row=0, column=1)
-        # self.pack(fill=BOTH, expand=1)
-
-        # self.birds_eye_view.create_rectangle(left + 0 * (keywidth + division), top + 0 * c,
-        #                                      left + 0 * (keywidth + division) + keywidth, bottom - 0 * c, fill="blue")
-        # self.birds_eye_view.create_rectangle(left + 1 * (keywidth + division), top + 1 * c,
-        #                                      left + 1 * (keywidth + division) + keywidth, bottom - 1 * c, fill="green")
-        # self.birds_eye_view.create_rectangle(left + 2 * (keywidth + division), top + 2 * c,
-        #                                      left + 2 * (keywidth + division) + keywidth, bottom - 2 * c, fill="yellow")
-        # self.birds_eye_view.create_rectangle(left + 3 * (keywidth + division), top + 3 * c,
-        #                                      left + 3 * (keywidth + division) + keywidth, bottom - 3 * c, fill="orange")
-        # self.birds_eye_view.create_rectangle(left + 4 * (keywidth + division), top + 4 * c,
-        #                                      left + 4 * (keywidth + division) + keywidth, bottom - 4 * c, fill="red")
-        # self.birds_eye_view.create_rectangle(left + 5 * (keywidth + division), top + 5 * c,
-        #                                      left + 5 * (keywidth + division) + keywidth, bottom - 5 * c, fill="purple")
-        # self.birds_eye_view.create_rectangle(left + 6 * (keywidth + division), top + 6 * c,
-        #                                      left + 6 * (keywidth + division) + keywidth, bottom - 6 * c, fill="white")
-        # self.birds_eye_view.create_rectangle(left + 7 * (keywidth + division), top + 7 * c,
-        #                                      left + 7 * (keywidth + division) + keywidth, bottom - 7 * c,
-        #                                      fill="darkblue")
-
 
         self.simu_xylo = SimuXylo(0)
         self.simu_xylo.update_base()
@@ -199,22 +199,21 @@ class XylobotGUI:
             # control.hitkey(key)
             self.cm.hit(Note(key, 0.8), 'uniform')
 
+
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
-        if connectedtosetup:
-            self.update_log('Started calibration')
-            try:
-                newNotes = Calibrator.calibrate(self,self.cm)
-                self.update_log(f'Calibration successful with: {newNotes}')
-                print('Calibration successful with: ', newNotes)
-                # control.setNotes(newNotes)
-                self.cm.setNoteCoordinates(newNotes)
-                self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
-                self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.centerpoints_img)
-            except Exception as e:
-                print(e)
-                self.update_log(f'Calibration failed: {e}')
-                Calibrator.destroyWindows()
+        self.queue = Queue.Queue()
+        CalibrateThread(self.queue, self).start()
+        self.window.after(100, self.process_queue)
+
+    def process_queue(self):
+        try:
+            msg = self.queue.get(0)
+            print(msg)
+            # Show result of the task if needed
+            # self.prog_bar.stop()
+        except Queue.Empty:
+            self.window.after(100, self.process_queue)
 
     def start_recordclip(self):
         self.recordclip_btn_isclicked = True
@@ -265,27 +264,41 @@ class XylobotGUI:
             title="Choose a clip"
         )
         argsdict = {
-            'name': fname.split('/')[-1],
+            'name': fname.split('/')[-1].split('.')[0],
             'plot': False,
             'guiplot': True,
-            'level': 'Info',
-            'window': 'hanning',
+            'level': 'info',
+            'window': 'blackman',
             'fftsize': self.fft_entry_text.get(),
-            'topindex': 1
+            'topindex': 1,
+            'loudnessfactor': 0.4,
         }
-        keys_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
+        key_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
         # print(keys_and_times)
         # temp = full_align(keys_and_times)
         # print(temp)
         plt.savefig('displayplot.png')
-        self.sequence_entry_text.set(str(keys_and_times))
+        self.sequence_entry_text.set(str(key_and_times))
 
-        self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('displayplot.png'))
-        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
+        # self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('signalprocessing\data\displayplot.png'))
+        # self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
 
     def update_hitmethods(self, event=None):
         # combobox_event.selection_clear()
-        method = self.hitmethodsvar.get()
+        method = self.hitmethods_text.get()
+
+    def play_btn(self, key, event=None):
+        self.update_log(f'playing: {key}')
+        # #TODO REMOVE THIS TESTER:
+        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+        # self.xylo.goodRotate(30)
+        # updateXyloDrawing(self.xylo,self.birds_eye_view)
+        # self.move_Simulation_Robot(20,180,220)
+        ############
+        if connectedtosetup:
+            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
+            # control.hitkey(key)
+            self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
@@ -298,54 +311,110 @@ class XylobotGUI:
             prevtime = time
         if connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('test', 20, note_list)
+            self.cm.addSong('improv', 100, note_list)
             self.cm.play()
             # Control.play(note_list)
 
     def start_pitchcheck(self, notelist):
         self.is_pitchchecking = True
+        self.notelist = notelist
         self.p = pyaudio.PyAudio()  # Create an interface to
-        self.update_log('Starting checking tonal quality')
+        self.update_log('Starting pitch checking')
         self.stream = self.p.open(format=self.sampleformat,
                                   channels=self.channels,
                                   rate=self.fs,
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
-        self.numpyframes = []  # Initialize array to store frames
-        self.do_pitchcheck(notelist)
+        # self.do_pitchcheck()
+        self.stop_pitchcheck()
 
-    def do_pitchcheck(self, notelist):
+    def do_pitchcheck(self):
         if self.is_pitchchecking:
             data = self.stream.read(self.chunk)
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            key_and_times, _, _, _, _, _, _, _, _, _, _, _, _, _ = pitch_track_calc(fs=self.fs, data=numpydata,
-                                                                                    fft_size=fft_size, is_plotting=False,
-                                                                                    is_logging=False, topindex=1,
-                                                                                    window='hanning', amp_thresh=float(self.ampthresh_entry_text.get()))
+            pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata, fft_size=fft_size, is_plotting=False,
+                                                is_logging=False, topindex=1, window='blackman', amp_thresh=float(
+                    self.ampthresh_entry_text.get()))
             overlap_fac = 0.5
-            #flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size, hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
 
-            print(key_and_times)
-            ####TODO UNCOMMENT THE NEXT LINE::::::::::::::::::
-            #self.window.after(self.delay_audio, self.do_pitchcheck())
-            #######################3
+            # flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
+            #                                              hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+
+            # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
+            print(pitchtrack_resNS.key_and_times)
+            if len(pitchtrack_resNS.key_and_times) > 0:
+                # list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
+                # print(list1)
+                # self.update_log(','.join(list1))
+                # self.cm.sm.song_hits
+                pass
+            if self.cm.sm.song_hits == len(self.notelist):
+                self.stop_pitchcheck()
+            elif self.cm.sm.song_hits >= len(self.notelist):
+                self.update_log("!!!Song hits larger than length note list")
+            else:
+                self.window.after(self.delay_audio, self.do_pitchcheck)
 
     def stop_pitchcheck(self):
-        self.update_log('Trying to stop checking tonal quality')
+        self.update_log('Trying to stop pitch checking')
         self.is_pitchchecking = False
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
-        self.update_log('Stopped checking tonal quality')
+        self.update_log('Stopped pitch checking')
+
+    def improvise_sequence(self):
+
+        self.update_log('Trying to stop recording')
+        self.recordclip_btn_isclicked = False
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
+        self.update_log('Finished recording')
+        # Save the recorded data as a WAV file
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                f'signalprocessing\\data\\improv.wav')
+        print(os.path.abspath(filename))
+        wf = wave.open(os.path.abspath(filename), 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(self.p.get_sample_size(self.sampleformat))
+        wf.setframerate(self.fs)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
+        fname = 'improv'
+        argsdict = {
+            'name': fname.split('/')[-1],
+            'plot': False,
+            'guiplot': True,
+            'level': 'info',
+            'window': 'hanning',
+            'fftsize': self.fft_entry_text.get(),
+            'topindex': 1
+        }
+        key_and_times = pitch_track_wrap_improv(SimpleNamespace(**argsdict))
+        num_improv_notes = 16
+        sequence = create_music(key_and_times[0], num_improv_notes)
+        if connectedtosetup:
+            notes = [0] * len(sequence)
+            for i in range(len(sequence)):
+                notes[i] = Note(key=sequence[i][0], delay=sequence[i][1])
+            self.start_pitchcheck(notelist=sequence)
+            self.cm.addSong('improv', 20, notes)
+            self.cm.play()
 
     def close_gui(self):
         self.window.destroy()
         exit()
 
     def __init__(self, window, window_title, vid_source_bird=0, vid_source_side=0):
+        # self.style = Style()
+        # print(self.style.theme_use())
+        #
+        # print(self.style.theme_names())
+        # self.style.theme_use('alt')
         self.window = window
         self.window.title(window_title)
         self.window.iconbitmap('data/amsterdam.ico')
@@ -395,30 +464,60 @@ class XylobotGUI:
                    command=partial(self.play_btn, key)).grid(row=5, column=(2 + i),
                                                              sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
-            self.window.bind(f'q', partial(self.play_btn, key))
+            self.window.bind(f'{i + 1}', partial(self.play_btn, key))
 
         self.sequence_entry_text = StringVar()
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
                                                                                         sticky=NSEW)
         self.calibrate_btn = Button(window, text="Calibrate Setup", command=self.calibrate).grid(row=6, column=2,
-                                                                                                 columnspan=4,
-                                                                                                 rowspan=2,
+                                                                                                 columnspan=2,
+                                                                                                 rowspan=1,
                                                                                                  sticky=NSEW)
+
+        self.fft_label = Label(window, text="FFT Size:", relief=RIDGE)
+        self.fft_label.grid(row=7, column=2, columnspan=1, sticky=NSEW)
+
         self.fft_entry_text = StringVar()
         self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
-        self.fft_entry.grid(row=6, column=6, columnspan=2, sticky=NSEW)
-        self.fft_entry_text.set('512')
+        self.fft_entry.grid(row=7, column=3, columnspan=1, sticky=NSEW)
+        self.fft_entry_text.set('2048')
+
+        self.ampthresh_label = Label(window, text="Amp Thresh:", relief=RIDGE)
+        self.ampthresh_label.grid(row=7, column=4, columnspan=1, sticky=NSEW)
 
         self.ampthresh_entry_text = StringVar()
         self.ampthresh_entry = Entry(window, textvariable=self.ampthresh_entry_text)
-        self.ampthresh_entry.grid(row=6, column=8, columnspan=2, sticky=NSEW)
-        self.ampthresh_entry_text.set('100')
+        self.ampthresh_entry.grid(row=7, column=5, columnspan=1, sticky=NSEW)
+        self.ampthresh_entry_text.set('0')
 
-        self.hitmethodsvar = StringVar()
-        self.hitmethodsbox = Combobox(window, textvariable=self.hitmethodsvar, state='readonly',
-                                      values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
-        self.hitmethodsbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
-        self.hitmethodsbox.grid(row=7, column=6, columnspan=4, sticky=NSEW)
+        self.intensity_label = Label(window, text="Intensity:", relief=RIDGE)
+        self.intensity_label.grid(row=6, column=6, columnspan=1, sticky=NSEW)
+
+        self.intensity_entry_text = StringVar()
+        self.intensity_entry = Entry(window, textvariable=self.intensity_entry_text)
+        self.intensity_entry.grid(row=6, column=7, columnspan=1, sticky=NSEW)
+        self.intensity_entry_text.set('512')
+
+        # self.hitmethods_text = StringVar()
+        # self.hitmethods_cbbox = Combobox(window, textvariable=self.hitmethods_text, state='readonly',
+        #                                  values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
+        # self.hitmethods_text.set('Triangle 2')
+        # self.hitmethods_cbbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
+
+        self.delay_label = Label(window, text="some parameter:", relief=RIDGE)
+        self.delay_label.grid(row=6, column=8, columnspan=1, sticky=NSEW)
+
+        self.delay_entry_text = StringVar()
+        self.delay_entry = Entry(window, textvariable=self.delay_entry_text)
+        self.delay_entry.grid(row=6, column=9, columnspan=1, sticky=NSEW)
+        self.delay_entry_text.set('100')
+
+        self.hitmethods_text = StringVar()
+        self.hitmethods_cbbox = Combobox(window, textvariable=self.hitmethods_text, state='readonly',
+                                         values=('Uniform', 'Triangle 1', 'Triangle 2', 'Triangle 3', 'Quadratic'))
+        self.hitmethods_text.set('Triangle 2')
+        self.hitmethods_cbbox.bind('<<ComboboxSelected>>', self.update_hitmethods)
+        self.hitmethods_cbbox.grid(row=7, column=6, columnspan=4, sticky=NSEW)
 
         self.record_btn = Button(window, text="Record Clip", command=self.start_recordclip).grid(row=8, column=2,
                                                                                                  rowspan=2,
@@ -435,6 +534,10 @@ class XylobotGUI:
         self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
                                                                                            rowspan=2,
                                                                                            columnspan=2, sticky=NSEW)
+        self.improvise_btn = Button(window, text="Improvise", command=self.improvise_sequence).grid(row=6, column=4,
+                                                                                                    columnspan=2,
+                                                                                                    rowspan=1,
+                                                                                                    sticky=NSEW)
         self.window.protocol('WM_DELETE_WINDOW', self.close_gui)
         self.update_log('Initialized window')
 
@@ -483,7 +586,8 @@ class XylobotGUI:
         ret_bird, frame_bird = self.vid_bird.get_frame()
 
         if ret_bird:
-            self.photo_bird = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame_bird))
+            self.photo_bird = PIL.ImageTk.PhotoImage(
+                image=PIL.Image.fromarray(cv2.cvtColor(frame_bird, cv2.COLOR_BGR2RGB)))
             self.vid_bird_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.photo_bird)
 
         # if not self.vid_source_side == 0:
@@ -494,24 +598,76 @@ class XylobotGUI:
 
         self.window.after(self.delay, self.update_vid)
 
+    def updateCenterpointsImage(self):
+        self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
+        self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2,
+                                      image=self.centerpoints_img)
+
+
+class CalibrateThread(threading.Thread):
+    def __init__(self, queue, gui):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.gui = gui
+
+    def run(self):
+        print("Connected to setup: ", connectedtosetup)
+        if connectedtosetup:
+            self.gui.update_log('Started calibration')
+            try:
+                newNotes = Calibrator.calibrate(self.gui, self.gui.cm)
+
+                with open('notecoords.txt', 'w') as filehandle:
+                    filehandle.writelines("%s\n" % notecoords for notecoords in newNotes)
+
+                print(f'newNotes {newNotes}')
+                print(f'{type(newNotes)}')
+
+                print('Calibration successful with: ')
+                for note in newNotes:
+                    print(note.x, note.y)
+                    self.gui.update_log(f'{note.x}, {note.y}')
+                self.gui.update_log(f'Calibration successful with:')
+                # control.setNotes(newNotes)
+                self.gui.cm.setNoteCoordinates(newNotes)
+                self.gui.updateCenterpointsImage()
+            except Exception as e:
+                print(e)
+                self.gui.update_log(f'Calibration failed: {e}')
+                Calibrator.destroyWindows()
+        else:
+            Test.run(self.gui)
+        self.queue.put("Task finished")
+        self.queue = None
+
 
 class CamCapture:
     def __init__(self, width, height, video_source=0, ):
         # Open the video source
-        self.vid = cv2.VideoCapture(video_source)
-        if not self.vid.isOpened():
+        # self.vid = cv2.VideoCapture(video_source)
+        self.vid = vc.NewVideoCamera(video_source)
+        if not self.vid.isOpen():
             raise ValueError("Unable to open video source", video_source)
 
-        self.vid.set(3, width)  # 3 refers to width
-        self.vid.set(4, height)  # 4 refers to height
+        # self.vid.getCap.set(3, width)  # 3 refers to width
+        # self.vid.getCap.set(4, height)  # 4 refers to height
+
+        self.width = int(width)
+        self.height = int(height)
+
+        # self.vid.setDimensions(width, height)
 
     def get_frame(self):
+        # frame = self.vid.getNextFrame()
+        # return frame
         ret = False
-        if self.vid.isOpened():
-            ret, frame = self.vid.read()
+        if self.vid.isOpen():
+            ret, frame = self.vid.getNextFrame()
             if ret:
                 # Return a boolean success flag and the current frame converted to BGR
-                return ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame = cv2.resize(frame, (self.width, self.height))
+                # print((self.width, self.height))
+                return ret, frame
             else:
                 return ret, None
         else:
@@ -519,7 +675,7 @@ class CamCapture:
 
     # Release the video source when the object is destroyed
     def __del__(self):
-        if self.vid.isOpened():
+        if self.vid.isOpen():
             self.vid.release()
 
 
