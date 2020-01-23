@@ -341,7 +341,7 @@ class XylobotGUI:
             for i in range(len(sequence)):
                 notes[i] = Note(key=sequence[i][0], delay=sequence[i][1])
             self.start_pitchcheck(notelist=sequence)
-            self.cm.addSong('improv', 20, sequence)
+            self.cm.addSong('improv', 20, notes)
             self.cm.play()
 
     def close_gui(self):
@@ -619,4 +619,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
