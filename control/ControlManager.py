@@ -12,8 +12,8 @@ class ControlManager:
         self.startMarker = 60
         self.endMarker = 62
 
-    def play(self):
-        self.sm.play()
+    def play(self, dynamics='p', hittype='triangle 2'):
+        self.sm.play(dynamics, hittype)
 
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)

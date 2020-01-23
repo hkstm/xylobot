@@ -127,7 +127,7 @@ def run(gui):
                 finalObj = finalObj2
                 finalObj2 = temp
                 swapped = True
-            return boundarycenterleft, boundarycenterright
+        return boundarycenterleft, boundarycenterright
 
         k = cv2.waitKey(5) & 0xFF
         if k == 27:

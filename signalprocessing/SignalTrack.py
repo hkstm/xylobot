@@ -187,7 +187,9 @@ def pitch_track_wrap(args_dict):
         plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
                    extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
                            pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
-        plt.title('results transposed')
+        plt.title(f'Frequency Spectogram of {args.name}, FFT Size: {pitchtrackresults.fft_size}')
+        plt.xlabel('Time in seconds')
+        plt.ylabel('Frequency in Hz.')
         plt.show()
 
     # !!! FINAL RESULT !!!
@@ -262,7 +264,7 @@ def pitch_track_wav_improv(args, is_logging=False):
 
 
 def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning',
-                     amp_thresh=0, loudness_factor=0.4):
+                     amp_thresh=0, loudnessfactor=0.4):
     if is_logging:
         logger.debug(f'fs:\t\t{fs}')
         logger.debug(f'fftsize:\t{fft_size}')

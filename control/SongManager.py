@@ -47,15 +47,36 @@ class SongManager:
         self.note = Note('tmp', delay=0.01)
         self.song_hits = 0
 
-    def play(self):
+    def play(self, dynamics='p', hittype='triangle 2'):
         for song in self.songs:
             tempo = song.getTempo()
             self.song_hits = 0
             for note in song.getNotes():
+                malletBounce = 0
+                if dynamics == 'pp':
+                    note.power = 1
+                    malletBounce = -0.1
+                elif dynamics == 'mp':
+                    note.power = 2
+                    malletBounce = 0.7
+                elif dynamics == 'p':
+                    note.power = 3
+                    malletBounce = 1
+                elif dynamics == 'mf':
+                    note.power = 4
+                    malletBounce = 1.5
+                elif dynamics == 'f':
+                    note.power = 5
+                    malletBounce = 1.3
+                elif dynamics == 'ff':
+                    note.power = 5
+                    malletBounce = 1
+                note.hittype = hittype
+                print('malletBounce: ', malletBounce)
                 try:
                     print('[*] Playing note: ', note)
-                    self.hit(note, tempo)
-                    time.sleep(note.delay)
+                    time.sleep(note.delay - tempo*0.1)
+                    self.hit(note, tempo, malletBounce=malletBounce)
                     self.song_hits += 1
                 except Warning as w:
                     print(w)

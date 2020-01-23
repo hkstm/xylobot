@@ -211,7 +211,8 @@ class XylobotGUI:
             'level': 'info',
             'window': 'blackman',
             'fftsize': self.fft_entry_text.get(),
-            'topindex': 1
+            'topindex': 1,
+            'loudnessfactor': 0.4,
         }
         key_and_times, img = pitch_track_wrap(SimpleNamespace(**argsdict))
         # print(keys_and_times)
@@ -285,11 +286,10 @@ class XylobotGUI:
             # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
             print(pitchtrack_resNS.key_and_times)
             if len(pitchtrack_resNS.key_and_times) > 0:
-                # list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
-                # print(list1)
-                # self.update_log(','.join(list1))
-                # self.cm.sm.song_hits
-                pass
+                list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
+                print(list1)
+                self.update_log(','.join(list1))
+                self.cm.sm.song_hits
             if self.cm.sm.song_hits == len(self.notelist):
                 self.stop_pitchcheck()
             elif self.cm.sm.song_hits >= len(self.notelist):
@@ -419,7 +419,7 @@ class XylobotGUI:
         self.fft_entry_text = StringVar()
         self.fft_entry = Entry(window, textvariable=self.fft_entry_text)
         self.fft_entry.grid(row=7, column=3, columnspan=1, sticky=NSEW)
-        self.fft_entry_text.set('512')
+        self.fft_entry_text.set('2048')
 
         self.ampthresh_label = Label(window, text="Amp Thresh:", relief=RIDGE)
         self.ampthresh_label.grid(row=7, column=4, columnspan=1, sticky=NSEW)
@@ -570,12 +570,20 @@ class CalibrateThread(threading.Thread):
                 # control.setNotes(newNotes)
                 self.gui.cm.setNoteCoordinates(newNotes)
                 self.gui.updateCenterpointsImage()
+                try:
+                    Calibrator.monitor(self.gui)
+                except Exception as e:
+                    print('Monitoring xylophone position failed. Recalibrate xylophone to restart closed-loop.')
+                    print(e)
+                    self.gui.update_log('Recalibrate xylophone to restart closed-loop.')
+                    self.gui.update_log(f'Monitoring xylophone position failed: {e}')
             except Exception as e:
                 print(e)
                 self.gui.update_log(f'Calibration failed: {e}')
                 Calibrator.destroyWindows()
         else:
             Test.run(self.gui)
+
         self.queue.put("Task finished")
         self.queue = None
 
