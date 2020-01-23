@@ -37,12 +37,12 @@ class Hit:
             self.midpoint = Point(self.origin.x - (math.fabs(self.target.x - self.origin.x) / 2), 0, self.prehit_height)
             self.left = False
 
-        print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
-               self.speed, ' power: ', self.power)
+        #print('Current position: ', self.origin, ' target: ', self.target, ' midpoint: ', self.midpoint, ' speed: ',
+        #       self.speed, ' power: ', self.power)
 
     def setHeight(self, height):
         self.hit_height = height
-        print('Setting height to: ', self.hit_height)
+        #print('Setting height to: ', self.hit_height)
 
 
     def getPath(self):
@@ -77,17 +77,17 @@ class RightAngledTriangularHit(Hit):
         self.b = self.prehit_height - self.slope * self.target.x
 
     def calculatePath(self):
-        print('[*] Right angled triangle hit')
+        #print('[*] Right angled triangle hit')
         self.getFunction()
         if self.left:
-            print('Going left')
-            print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
+            #print('Going left')
+            #print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
             i = 0
             while self.x < self.target.x:
                 i = i + self.speed
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
-                print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
+                #print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
                 if self.z >= self.hit_height:
                     self.path.append(Point(self.x, self.origin.y, self.z))
                 if self.x > self.target.x:
@@ -95,8 +95,8 @@ class RightAngledTriangularHit(Hit):
                         self.path.pop()
                     self.path.append(Point(self.target.x, self.target.y, self.z))
         else:
-            print('Going right')
-            print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
+            #print('Going right')
+            #print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
             self.b = self.prehit_height - self.slope * self.origin.x
             i = 0
             while self.x > self.target.x:
@@ -127,20 +127,20 @@ class TriangularHit(Hit):
         self.getFunction()
         if self.left:
             i = 0
-            print('Going left')
-            print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
+            #print('Going left')
+            #print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
             while self.x < self.midpoint.x:
                 i = i + self.speed
                 self.x = self.origin.x + i
                 self.z = self.slope * self.x + self.b
-                print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
+                #print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
                 if self.x < self.midpoint.x:
                     self.path.append(Point(self.x, self.origin.y, self.z))
                 else:
                     self.path.append(Point(self.midpoint.x, self.target.y, self.prehit_height))
         else:
-            print('Going right')
-            print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
+            #print('Going right')
+            #print('x: ', self.origin.x, ' target x: ', self.target.x, ' z: ', self.z, ' slope: ', self.slope, ' b: ', self.b)
             i = 0
             while self.x > self.midpoint.x:
                 i = i + self.speed

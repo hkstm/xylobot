@@ -141,6 +141,24 @@ class XylobotGUI:
         self.simu_xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
         self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
 
+    def run_sequence_threaded(self):
+        seq_list = ast.literal_eval(self.sequence_entry_text.get())
+        self.update_log(f'Running sequence: {seq_list}')
+        note_list = []
+        prevtime = 0
+        for seqpart in seq_list:
+            note, time = seqpart
+            note_list.append(Note(key=note, delay=(time - prevtime)))
+            prevtime = time
+        if connectedtosetup:
+            self.start_pitchcheck(notelist=note_list)
+            self.cm.addSong('improv', 3, note_list)
+            self.queue = Queue.Queue()
+            RunSequenceThread(self.queue, self, self.cm).start()
+            self.window.after(100, self.process_queue)
+            # Control.play(note_list)
+
+
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
         self.queue = Queue.Queue()
@@ -228,33 +246,44 @@ class XylobotGUI:
         # combobox_event.selection_clear()
         method = self.hitmethods_text.get()
 
-    def play_btn(self, key, event=None):
+    def play_btn_threaded(self, key, event=None):
         self.update_log(f'playing: {key}')
-        # #TODO REMOVE THIS TESTER:
-        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
-        # self.xylo.goodRotate(30)
-        # updateXyloDrawing(self.xylo,self.birds_eye_view)
-        # self.move_Simulation_Robot(20,180,220)
-        ############
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
+            self.cm.addSong('singlehit', 3, [Note(key, 0.8)])
+            self.queue = Queue.Queue()
+            RunSequenceThread(self.queue, self, self.cm).start()
+            self.window.after(100, self.process_queue)
 
-    def run_sequence(self):
-        seq_list = ast.literal_eval(self.sequence_entry_text.get())
-        self.update_log(f'Running sequence: {seq_list}')
-        note_list = []
-        prevtime = 0
-        for seqpart in seq_list:
-            note, time = seqpart
-            note_list.append(Note(key=note, delay=(time - prevtime)))
-            prevtime = time
-        if connectedtosetup:
-            self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('improv', 100, note_list)
-            self.cm.play()
-            # Control.play(note_list)
+    # def play_btn_old(self, key, event=None):
+    #     self.update_log(f'playing: {key}')
+    #     # #TODO REMOVE THIS TESTER:
+    #     # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+    #     # self.xylo.goodRotate(30)
+    #     # updateXyloDrawing(self.xylo,self.birds_eye_view)
+    #     # self.move_Simulation_Robot(20,180,220)
+    #     ############
+    #     if connectedtosetup:
+    #         self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
+    #         # control.hitkey(key)
+    #         self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
+
+    # def run_sequence(self):
+    #     seq_list = ast.literal_eval(self.sequence_entry_text.get())
+    #     self.update_log(f'Running sequence: {seq_list}')
+    #     note_list = []
+    #     prevtime = 0
+    #     for seqpart in seq_list:
+    #         note, time = seqpart
+    #         note_list.append(Note(key=note, delay=(time - prevtime)))
+    #         prevtime = time
+    #     if connectedtosetup:
+    #         self.start_pitchcheck(notelist=note_list)
+    #         self.cm.addSong('improv', 3, note_list)
+    #
+    #         print('after play')
+    #         # Control.play(note_list)
 
     def start_pitchcheck(self, notelist):
         self.is_pitchchecking = True
@@ -400,10 +429,10 @@ class XylobotGUI:
         color_list = ['blue', 'green', 'yellow', 'orange', 'red', 'purple', 'white', 'blue']
         for i, key in enumerate(key_list):
             Button(window, text=key_list[i].upper(), bg=color_list[i], relief=RAISED,
-                   command=partial(self.play_btn, key)).grid(row=5, column=(2 + i),
-                                                             sticky=NSEW, ipadx=(
+                   command=partial(self.play_btn_threaded, key)).grid(row=5, column=(2 + i),
+                                                                      sticky=NSEW, ipadx=(
                         (self.width / self.gridcolumns) / len(key_list)))
-            self.window.bind(f'{i + 1}', partial(self.play_btn, key))
+            self.window.bind(f'{i + 1}', partial(self.play_btn_threaded, key))
 
         self.sequence_entry_text = StringVar()
         self.sequence_entry = Entry(window, textvariable=self.sequence_entry_text).grid(row=4, column=2, columnspan=8,
@@ -470,9 +499,12 @@ class XylobotGUI:
                                                                                                rowspan=2,
                                                                                                columnspan=2,
                                                                                                sticky=NSEW)
-        self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
-                                                                                           rowspan=2,
-                                                                                           columnspan=2, sticky=NSEW)
+        # self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence).grid(row=8, column=8,
+        #                                                                                    rowspan=2,
+        #                                                                                    columnspan=2, sticky=NSEW)
+        self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence_threaded).grid(row=8, column=8,
+                                                                                                    rowspan=2,
+                                                                                                    columnspan=2, sticky=NSEW)
         self.improvise_btn = Button(window, text="Improvise", command=self.improvise_sequence).grid(row=6, column=4,
                                                                                                     columnspan=2,
                                                                                                     rowspan=1,
@@ -541,6 +573,30 @@ class XylobotGUI:
         self.centerpoints_img = PIL.ImageTk.PhotoImage(PIL.Image.open('centerpoints.jpg'))
         self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2,
                                       image=self.centerpoints_img)
+
+class RunSequenceThread(threading.Thread):
+    def __init__(self, queue, gui, cm):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.gui = gui
+        self.cm = cm
+
+    def run(self):
+        if connectedtosetup:
+            self.gui.update_log('Started note hit thread')
+            try:
+                try:
+                    self.cm.play()
+                except Exception as e:
+                    pass
+            except Exception as e:
+                print(e)
+                self.gui.update_log(f'Note hit failed: {e}')
+        else:
+            print('Not connected to setup')
+        self.queue.put("Task finished")
+        self.queue = None
+
 
 
 class CalibrateThread(threading.Thread):

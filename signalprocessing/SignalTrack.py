@@ -252,7 +252,7 @@ def pitch_track_wav(args, is_logging=False):
     fs, data = wavfile.read(sound_file_path)
     if is_logging:
         logger.debug(f'path:\t{sound_file_path}')
-    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window, loudnessfactor=args.loudnessfactor)
+    return pitch_track_calc(fs, data, int(args.fftsize), args.plot, is_logging, args.topindex, args.window, loudness_factor=args.loudnessfactor)
 
 def pitch_track_wav_improv(args, is_logging=False):
     # https://kevinsprojects.wordpress.com/2014/12/13/short-time-fourier-transform-using-python-and-numpy/
@@ -264,7 +264,7 @@ def pitch_track_wav_improv(args, is_logging=False):
 
 
 def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning',
-                     amp_thresh=0, loudnessfactor=0.4):
+                     amp_thresh=0, loudness_factor=0.4):
     if is_logging:
         logger.debug(f'fs:\t\t{fs}')
         logger.debug(f'fftsize:\t{fft_size}')

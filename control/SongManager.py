@@ -72,10 +72,13 @@ class SongManager:
                     note.power = 5
                     malletBounce = 1
                 note.hittype = hittype
-                print('malletBounce: ', malletBounce)
+                #print('malletBounce: ', malletBounce)
                 try:
-                    print('[*] Playing note: ', note)
-                    time.sleep(note.delay - tempo*0.1)
+                    #print('[*] Playing note: ', note)
+                    if note.delay - tempo*0.1 < 0:
+                        time.sleep(note.delay)
+                    else:
+                        time.sleep(note.delay - tempo * 0.1)
                     self.hit(note, tempo, malletBounce=malletBounce)
                     self.song_hits += 1
                 except Warning as w:
