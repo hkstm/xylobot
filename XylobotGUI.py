@@ -2,7 +2,7 @@ import librosa
 import queue as Queue
 import threading
 
-connectedtosetup = False
+connectedtosetup = True
 print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
@@ -336,13 +336,12 @@ class XylobotGUI:
         key_and_times = pitch_track_wrap_improv(SimpleNamespace(**argsdict))
         num_improv_notes = 16
         sequence = create_music(key_and_times[0], num_improv_notes)
-        print(sequence)
         if connectedtosetup:
             notes = [0] * len(sequence)
-            for i in sequence:
-                notes[i] = Note(key = sequence[i][0], delay = sequence[i][1])
+            for i in range(len(sequence)):
+                notes[i] = Note(key=sequence[i][0], delay=sequence[i][1])
             self.start_pitchcheck(notelist=sequence)
-            self.cm.addSong('improv', 100, sequence)
+            self.cm.addSong('improv', 20, sequence)
             self.cm.play()
 
     def close_gui(self):
@@ -620,4 +619,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
