@@ -290,7 +290,7 @@ class SimuXylo:
         if(goal_direction-self.direction)!=0:
             sleep_time = seconds / abs(goal_direction - self.direction)
 
-        ###TODO CHANGED WIDTH FOR TESTING
+        ###TODO CHANGED WIDTH FOR TESTING!
         width = birds_eye_view.winfo_screenwidth() / 3
         height = birds_eye_view.winfo_screenheight() / 2
         bottom = height / 2 + self.multiplier * 5.53
