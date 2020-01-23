@@ -89,7 +89,7 @@ class RightAngledTriangularHit(Hit):
                 self.z = self.slope * self.x + self.b
                 print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
                 if self.z >= self.hit_height:
-                    self.path.append(Point(self.x, self.target.y, self.z))
+                    self.path.append(Point(self.x, self.origin.y, self.z))
                 if self.x > self.target.x:
                     if len(self.path) > 0:
                         self.path.pop()
@@ -104,7 +104,7 @@ class RightAngledTriangularHit(Hit):
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 if self.z >= self.hit_height:
-                    self.path.append(Point(self.x, self.target.y, self.z))
+                    self.path.append(Point(self.x, self.origin.y, self.z))
                 if self.x < self.target.x:
                     if len(self.path) > 0:
                         self.path.pop()
@@ -135,7 +135,7 @@ class TriangularHit(Hit):
                 self.z = self.slope * self.x + self.b
                 print('x: ', self.x, ' target x: ', self.target.x, ' z: ', self.z, ' hit height: ', self.hit_height, ' prehit: ', self.prehit_height)
                 if self.x < self.midpoint.x:
-                    self.path.append(Point(self.x, self.target.y, self.z))
+                    self.path.append(Point(self.x, self.origin.y, self.z))
                 else:
                     self.path.append(Point(self.midpoint.x, self.target.y, self.prehit_height))
         else:
@@ -147,7 +147,7 @@ class TriangularHit(Hit):
                 self.x = self.origin.x - i
                 self.z = self.slope * (self.target.x + i) + self.b
                 if self.x > self.midpoint.x:
-                    self.path.append(Point(self.x, self.target.y, self.z))
+                    self.path.append(Point(self.x, self.origin.y, self.z))
                 else:
                     self.path.append(Point(self.midpoint.x, self.target.y, self.prehit_height))
 
