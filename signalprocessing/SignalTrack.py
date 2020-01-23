@@ -264,7 +264,7 @@ def pitch_track_wav_improv(args, is_logging=False):
 
 
 def pitch_track_calc(fs, data, fft_size, is_plotting=False, is_logging=False, topindex=1, window='hanning',
-                     amp_thresh=0, loudness_factor=0.4):
+                     amp_thresh=0, loudnessfactor=0.4):
     if is_logging:
         logger.debug(f'fs:\t\t{fs}')
         logger.debug(f'fftsize:\t{fft_size}')

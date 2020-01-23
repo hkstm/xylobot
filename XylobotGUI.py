@@ -286,11 +286,10 @@ class XylobotGUI:
             # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
             print(pitchtrack_resNS.key_and_times)
             if len(pitchtrack_resNS.key_and_times) > 0:
-                # list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
-                # print(list1)
-                # self.update_log(','.join(list1))
-                # self.cm.sm.song_hits
-                pass
+                list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
+                print(list1)
+                self.update_log(','.join(list1))
+                self.cm.sm.song_hits
             if self.cm.sm.song_hits == len(self.notelist):
                 self.stop_pitchcheck()
             elif self.cm.sm.song_hits >= len(self.notelist):
