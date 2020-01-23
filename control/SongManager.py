@@ -75,8 +75,8 @@ class SongManager:
                 print('malletBounce: ', malletBounce)
                 try:
                     print('[*] Playing note: ', note)
-                    time.sleep(note.delay)
-                    self.hit(note, tempo)
+                    time.sleep(note.delay - tempo*0.1)
+                    self.hit(note, tempo, malletBounce=malletBounce)
                     self.song_hits += 1
                 except Warning as w:
                     print(w)

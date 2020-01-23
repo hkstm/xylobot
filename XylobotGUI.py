@@ -570,12 +570,20 @@ class CalibrateThread(threading.Thread):
                 # control.setNotes(newNotes)
                 self.gui.cm.setNoteCoordinates(newNotes)
                 self.gui.updateCenterpointsImage()
+                try:
+                    Calibrator.monitor(self.gui)
+                except Exception as e:
+                    print('Monitoring xylophone position failed. Recalibrate xylophone to restart closed-loop.')
+                    print(e)
+                    self.gui.update_log('Recalibrate xylophone to restart closed-loop.')
+                    self.gui.update_log(f'Monitoring xylophone position failed: {e}')
             except Exception as e:
                 print(e)
                 self.gui.update_log(f'Calibration failed: {e}')
                 Calibrator.destroyWindows()
         else:
             Test.run(self.gui)
+
         self.queue.put("Task finished")
         self.queue = None
 
@@ -619,4 +627,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
