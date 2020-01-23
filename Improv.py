@@ -1,271 +1,142 @@
 import random
 import math
 
-# test_sequence = [('E', 0), ('D', 0.25), ('C', 0.5), ('D', 0.75), ('E', 1), ('E', 1.25), ('E', 1.5), ('D', 2.0),
-#                 ('D', 2.25), ('D', 2.5), ('E', 3.0), ('G', 3.25), ('G', 3.5), ('E', 4.0), ('D', 4.25), ('C', 4.5),
-#                 ('D', 4.75), ('E', 5.0), ('E', 5.25), ('E', 5.5), ('E', 5.75), ('D', 6.0), ('D', 6.25), ('E', 6.5),
-#                 ('D', 6.75), ('C', 7.0)]
+#initializing matricies for use with Markov chain
 number_of_notes = 8
 transition_frequencies = [[0 for i in range(number_of_notes)] for j in range(number_of_notes)]
 transition_probabilities = [[0 for i in range(number_of_notes)] for j in range(number_of_notes)]
 
-
+#Methods to be called from dictionary for updating Marvok chain transition matrix
 def lowc_to_lowc():
 	transition_frequencies[0][0] = transition_frequencies[0][0] + 1
-
-
 def d_to_lowc():
 	transition_frequencies[1][0] = transition_frequencies[1][0] + 1
-
-
 def e_to_lowc():
 	transition_frequencies[2][0] = transition_frequencies[2][0] + 1
-
-
 def f_to_lowc():
 	transition_frequencies[3][0] = transition_frequencies[3][0] + 1
-
-
 def g_to_lowc():
 	transition_frequencies[4][0] = transition_frequencies[4][0] + 1
-
-
 def a_to_lowc():
 	transition_frequencies[5][0] = transition_frequencies[5][0] + 1
-
-
 def b_to_lowc():
 	transition_frequencies[6][0] = transition_frequencies[6][0] + 1
-
-
 def highc_to_lowc():
 	transition_frequencies[7][0] = transition_frequencies[7][0] + 1
-
-
 def lowc_to_d():
 	transition_frequencies[0][1] = transition_frequencies[0][1] + 1
-
-
 def d_to_d():
 	transition_frequencies[1][1] = transition_frequencies[1][1] + 1
-
-
 def e_to_d():
 	transition_frequencies[2][1] = transition_frequencies[2][1] + 1
-
-
 def f_to_d():
 	transition_frequencies[3][1] = transition_frequencies[3][1] + 1
-
-
 def g_to_d():
 	transition_frequencies[4][1] = transition_frequencies[4][1] + 1
-
-
 def a_to_d():
 	transition_frequencies[5][1] = transition_frequencies[5][1] + 1
-
-
 def b_to_d():
 	transition_frequencies[6][1] = transition_frequencies[6][1] + 1
-
-
 def highc_to_d():
 	transition_frequencies[7][1] = transition_frequencies[7][1] + 1
-
-
 def lowc_to_e():
 	transition_frequencies[0][2] = transition_frequencies[0][2] + 1
-
-
 def d_to_e():
 	transition_frequencies[1][2] = transition_frequencies[1][2] + 1
-
-
 def e_to_e():
 	transition_frequencies[2][2] = transition_frequencies[2][2] + 1
-
-
 def f_to_e():
 	transition_frequencies[3][2] = transition_frequencies[3][2] + 1
-
-
 def g_to_e():
 	transition_frequencies[4][2] = transition_frequencies[4][2] + 1
-
-
 def a_to_e():
 	transition_frequencies[5][2] = transition_frequencies[5][2] + 1
-
-
 def b_to_e():
 	transition_frequencies[6][2] = transition_frequencies[6][2] + 1
-
-
 def highc_to_e():
 	transition_frequencies[7][2] = transition_frequencies[7][2] + 1
-
-
 def lowc_to_f():
 	transition_frequencies[0][3] = transition_frequencies[0][3] + 1
-
-
 def d_to_f():
 	transition_frequencies[1][3] = transition_frequencies[1][3] + 1
-
-
 def e_to_f():
 	transition_frequencies[2][3] = transition_frequencies[2][3] + 1
-
-
 def f_to_f():
 	transition_frequencies[3][3] = transition_frequencies[3][3] + 1
-
-
 def g_to_f():
 	transition_frequencies[4][3] = transition_frequencies[4][3] + 1
-
-
 def a_to_f():
 	transition_frequencies[5][3] = transition_frequencies[5][3] + 1
-
-
 def b_to_f():
 	transition_frequencies[6][3] = transition_frequencies[6][3] + 1
-
-
 def highc_to_f():
 	transition_frequencies[7][3] = transition_frequencies[7][3] + 1
-
-
 def lowc_to_g():
 	transition_frequencies[0][4] = transition_frequencies[0][4] + 1
-
-
 def d_to_g():
 	transition_frequencies[1][4] = transition_frequencies[1][4] + 1
-
-
 def e_to_g():
 	transition_frequencies[2][4] = transition_frequencies[2][4] + 1
-
-
 def f_to_g():
 	transition_frequencies[3][4] = transition_frequencies[3][4] + 1
-
-
 def g_to_g():
 	transition_frequencies[4][4] = transition_frequencies[4][4] + 1
-
-
 def a_to_g():
 	transition_frequencies[5][4] = transition_frequencies[5][4] + 1
-
-
 def b_to_g():
 	transition_frequencies[6][4] = transition_frequencies[6][4] + 1
-
-
 def highc_to_g():
 	transition_frequencies[7][4] = transition_frequencies[7][4] + 1
-
-
 def lowc_to_a():
 	transition_frequencies[0][5] = transition_frequencies[0][5] + 1
-
-
 def d_to_a():
 	transition_frequencies[1][5] = transition_frequencies[1][5] + 1
-
-
 def e_to_a():
 	transition_frequencies[2][5] = transition_frequencies[2][5] + 1
-
-
 def f_to_a():
 	transition_frequencies[3][5] = transition_frequencies[3][5] + 1
-
-
 def g_to_a():
 	transition_frequencies[4][5] = transition_frequencies[4][5] + 1
-
-
 def a_to_a():
 	transition_frequencies[5][5] = transition_frequencies[5][5] + 1
-
-
 def b_to_a():
 	transition_frequencies[6][5] = transition_frequencies[6][5] + 1
-
-
 def highc_to_a():
 	transition_frequencies[7][5] = transition_frequencies[7][5] + 1
-
-
 def lowc_to_b():
 	transition_frequencies[0][6] = transition_frequencies[0][6] + 1
-
-
 def d_to_b():
 	transition_frequencies[1][6] = transition_frequencies[1][6] + 1
-
-
 def e_to_b():
 	transition_frequencies[2][6] = transition_frequencies[2][6] + 1
-
-
 def f_to_b():
 	transition_frequencies[3][6] = transition_frequencies[3][6] + 1
-
-
 def g_to_b():
 	transition_frequencies[4][6] = transition_frequencies[4][6] + 1
-
-
 def a_to_b():
 	transition_frequencies[5][6] = transition_frequencies[5][6] + 1
-
-
 def b_to_b():
 	transition_frequencies[6][6] = transition_frequencies[6][6] + 1
-
-
 def highc_to_b():
 	transition_frequencies[7][6] = transition_frequencies[7][6] + 1
-
-
 def lowc_to_highc():
 	transition_frequencies[0][7] = transition_frequencies[0][7] + 1
-
-
 def d_to_highc():
 	transition_frequencies[1][7] = transition_frequencies[1][7] + 1
-
-
 def e_to_highc():
 	transition_frequencies[2][7] = transition_frequencies[2][7] + 1
-
-
 def f_to_highc():
 	transition_frequencies[3][7] = transition_frequencies[3][7] + 1
-
-
 def g_to_highc():
 	transition_frequencies[4][7] = transition_frequencies[4][7] + 1
-
-
 def a_to_highc():
 	transition_frequencies[5][7] = transition_frequencies[5][7] + 1
-
-
 def b_to_highc():
 	transition_frequencies[6][7] = transition_frequencies[6][7] + 1
-
-
 def highc_to_highc():
 	transition_frequencies[7][7] = transition_frequencies[7][7] + 1
 
-
+#dictionary used to generating index for the transition matrix
 index_dictionary = {'c6': lambda x: 0,
 					'd6': lambda x: 1,
 					'e6': lambda x: 2,
@@ -275,6 +146,7 @@ index_dictionary = {'c6': lambda x: 0,
 					'b6': lambda x: 6,
 					'c7': lambda x: 7}
 
+#dictionary used for updating transition matrix based on input sequence
 key_dictionary = {
 	'c6': {'c6': lowc_to_lowc, 'd6': d_to_lowc, 'e6': e_to_lowc, 'f6': f_to_lowc, 'g6': g_to_lowc, 'a6': a_to_lowc,
 		   'b6': b_to_lowc, 'c7': highc_to_lowc},
@@ -293,7 +165,7 @@ key_dictionary = {
 	'c7': {'c6': lowc_to_highc, 'd6': d_to_highc, 'e6': e_to_highc, 'f6': f_to_highc, 'g6': g_to_highc,
 		   'a6': a_to_highc, 'b6': b_to_highc, 'c7': highc_to_highc}}
 
-
+#creates the transition matrix for the markov model
 def create_transition_matrix(sequence):
 	for i in range(len(sequence) - 1):
 		key_dictionary[sequence[i][0]][sequence[i + 1][0]]()
@@ -308,7 +180,7 @@ def create_transition_matrix(sequence):
 		for j in range(number_of_notes):
 			transition_probabilities[i][j] = (transition_frequencies[j][i] + 1) / (column_total + number_of_notes)
 
-
+#generates one note based on the previous note played by consulting the index dictionary and then transition matrix
 def generate_note(previous_note):
 	index = index_dictionary[previous_note](None)
 	rand = random.random()
@@ -336,7 +208,7 @@ def generate_note(previous_note):
 	else:
 		return 'c7'
 
-
+#finds the shortest interval between two consecutive notes in the input sequence
 def find_shortest_interval(note_info):
 	array_length = len(note_info)
 	i = 0
@@ -348,7 +220,7 @@ def find_shortest_interval(note_info):
 		i += 1
 	return round(minimum, 5)
 
-
+#finds the longest interval between two consecutive in the input sequence
 def find_longest_interval(note_info):
 	array_length = len(note_info)
 	i = 0
@@ -360,7 +232,7 @@ def find_longest_interval(note_info):
 		i += 1
 	return round(maximum, 5)
 
-
+#quantizes the notes so that they fit onto a discrete timeline
 def align_notes(note_info_tuples, interval):
 	note_info = []
 	for i in range(len(note_info_tuples)):
@@ -392,7 +264,7 @@ def align_notes(note_info_tuples, interval):
 		formatted_note_info.append(temp_tuple)
 	return formatted_note_info
 
-
+#calculates the probability of time delays occuring in the improvised sequence based on time delays in the input sequence
 def generate_timings(sequence):
 	aligned_sequence = align_notes(sequence, find_shortest_interval(sequence))
 	shortest_interval = find_shortest_interval(aligned_sequence)
@@ -420,7 +292,69 @@ def generate_timings(sequence):
 		raw_probabilities[j] = time_frequencies[j] / ptotal
 	return raw_probabilities, time_values
 
+#increases the probability of transitions between notes pairs in the transition matrix if those note pairs do not occur
+#in the input sequence
+def adjust(probabilities, frequencies, severity):
+	for i in range(len(probabilities)):
+		zero_counter = 0
+		for j in range(len(probabilities[i])):
+			if frequencies[i][j] == 0:
+				zero_counter = zero_counter+1
+		if zero_counter != len(probabilities):
+			for j in range(len(probabilities[i])):
+				if frequencies[i][j] == 0:
+					probabilities[i][j] = probabilities[i][j]+severity
+			decrease_by = (zero_counter*severity)/(len(probabilities)-zero_counter)
+			for j in range(len(probabilities[i])):
+				if frequencies[i][j] != 0:
+					probabilities[i][j] = probabilities[i][j]-decrease_by
+	for i in range(len(transition_probabilities)):
+		for j in range(len(transition_probabilities[i])):
+			transition_probabilities[i][j] = probabilities[i][j]
 
+#calculates the similarity score between two melodies in the same key
+def calculate_score(s1, s2):
+	multiplier = len(s1)*len(s2)
+	modified_s1 = translate(s1)
+	modified_s2 = translate(s2)
+	score = 0
+	num_in_scale_1 = 0
+	num_in_scale_2 = 0
+	for i in modified_s1:
+		if i == 1 | i == 5 | i == 8 | i == 13:
+			num_in_scale_1 = num_in_scale_1+1
+	for i in modified_s2:
+		if i == 1 | i == 5 | i == 8 | i == 13:
+			num_in_scale_2 = num_in_scale_2+1
+	score = score-(multiplier*(abs(num_in_scale_1-num_in_scale_2)))
+	for i in modified_s1:
+		for j in modified_s2:
+			score = score+(j-i)
+	return score
+
+#converts each element in a note sequence into a number equivelant for greater ease in calculate_score
+def translate(s):
+	number_equivalent = [0]*len(s)
+	for i in range(len(s)):
+		if s[i][0] == 'c6':
+			number_equivalent[i] = 1
+		elif s[i][0] == 'd6':
+			number_equivalent[i] = 3
+		elif s[i][0] == 'e6':
+			number_equivalent[i] = 5
+		elif s[i][0] == 'f6':
+			number_equivalent[i] = 6
+		elif s[i][0] == 'g6':
+			number_equivalent[i] = 8
+		elif s[i][0] == 'a6':
+			number_equivalent[i] = 10
+		elif s[i][0] == 'b6':
+			number_equivalent[i] = 12
+		elif s[i][0] == 'c7':
+			number_equivalent[i] = 13
+	return number_equivalent
+
+#generates an interval between two notes in the improvised sequence based on the probability matrix
 def generate_interval(timings):
 	rand = random.random()
 	probability_counter = timings[0][0]
@@ -430,7 +364,7 @@ def generate_interval(timings):
 		if i < len(timings) - 1:
 			probability_counter = probability_counter + timings[1][i + 1]
 
-
+#creates an improvised sequence of specified length based on an input sequence
 def improvise(note, improvisation_length, timings):
 	improvised_notes = []
 	current_time = generate_interval(timings)
@@ -440,11 +374,16 @@ def improvise(note, improvisation_length, timings):
 		improvised_notes.append((generate_note(improvised_notes[i][0]), current_time))
 	return improvised_notes
 
+#calculates the similarity between two sequences after altering the probability by a severity factor to increase the
+#number of rare note pairs ap0earing
+def calculate_similarity(sequence, improvisation_length, severity):
+	create_transition_matrix(sequence)
+	adjust(transition_probabilities, transition_frequencies, severity)
+	adjusted_improvised_sequence = improvise(sequence[len(sequence)-1][0], improvisation_length, generate_timings(sequence))
+	score = calculate_score(sequence, adjusted_improvised_sequence)
+	return score
 
+#called by another class to return an improvised sequence
 def create_music(sequence, improvisation_length):
-	print(create_transition_matrix(sequence))
-	print(sequence)
-#	print(sequence[len(sequence) - 1][0])
 	improvised_sequence = improvise(sequence[len(sequence) - 1][0], improvisation_length, generate_timings(sequence))
-	print(improvised_sequence)
 	return improvised_sequence
