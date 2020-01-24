@@ -426,7 +426,8 @@ class XylobotGUI:
             'level': 'info',
             'window': 'hanning',
             'fftsize': self.fft_entry_text.get(),
-            'topindex': 1
+            'topindex': 1,
+            'loudnessfactor': 0.4
         }
         key_and_times = pitch_track_wrap(SimpleNamespace(**argsdict))
         num_improv_notes = 16

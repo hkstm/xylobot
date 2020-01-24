@@ -200,38 +200,38 @@ def pitch_track_wrap(args_dict):
                                                  pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
     return pitchtrackresults.key_and_times
 
-# def pitch_track_wrap_improv(args_dict):
-#     global logger
-#     args = args_dict
-#     logger_levels = {
-#         'critical': 50,
-#         'error': 40,
-#         'warning': 30,
-#         'info': 20,
-#         'debug': 10,
-#     }
-#     logger.setLevel(level=logger_levels[args.level])
-#     if not len(logger.handlers):
-#         logger.addHandler(logging.StreamHandler())
-#     logger.info("Starting script")
-#
-#     pitchtrackresults = pitch_track_wav(
-#         args, is_logging=True)
-#     if args.plot:
-#         plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
-#                    extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
-#                            pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
-#         plt.title('results transposed')
-#         plt.show()
-#
-#     # !!! FINAL RESULT !!!
-#     logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in pitchtrackresults.key_and_times]}')
-#     if args.guiplot:
-#         return pitchtrackresults.key_and_times, plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
-#                                          aspect='auto',
-#                                          extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
-#                                                  pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
-#     return pitchtrackresults.key_and_times
+ #def pitch_track_wrap_improv(args_dict):
+     # global logger
+     # args = args_dict
+     # logger_levels = {
+     #    'critical': 50,
+     #    'error': 40,
+     #    'warning': 30,
+     #    'info': 20,
+     #    'debug': 10,
+     # }
+     # logger.setLevel(level=logger_levels[args.level])
+     # if not len(logger.handlers):
+     #     logger.addHandler(logging.StreamHandler())
+     # logger.info("Starting script")
+     #
+     # pitchtrackresults = pitch_track_wav(
+     #     args, is_logging=True)
+     # if args.plot:
+     #     plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest', aspect='auto',
+     #                extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+     #                        pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+     #     plt.title('results transposed')
+     #     plt.show()
+     #
+     # # !!! FINAL RESULT !!!
+     # logger.info(f'key_and_time\t{[(key, round(times, 2)) for (key, times) in pitchtrackresults.key_and_times]}')
+     # if args.guiplot:
+     #     return pitchtrackresults.key_and_times, plt.imshow(pitchtrackresults.results_transposed, origin='lower', cmap='jet', interpolation='nearest',
+     #                                      aspect='auto',
+     #                                      extent=[pitchtrackresults.time_list[0], pitchtrackresults.time_list[-1], pitchtrackresults.freq_list[pitchtrackresults.low_index_cutoff],
+     #                                              pitchtrackresults.freq_list[pitchtrackresults.upper_index_cutoff]])
+     # return pitchtrackresults.key_and_times
 
 def find_pitch_recursively(results, freq_list, topindex, idx, offset, timestep, threshold=0.2):
     if idx + offset < len(results):
