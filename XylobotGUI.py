@@ -3,7 +3,7 @@ import queue as Queue
 import threading
 
 is_connectedtosetup = True
-is_threadhitting = False
+is_threadhitting = True
 print(f"Connected to setup: {is_connectedtosetup}")
 if is_connectedtosetup:
     from control import Calibrator
@@ -176,7 +176,7 @@ class XylobotGUI:
         if is_connectedtosetup:
             # self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=self.delay_entry_text())
+            self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=int(self.delay_entry_text.get()))
 
 
     def run_sequence_threaded(self):
@@ -208,8 +208,8 @@ class XylobotGUI:
             prevtime = time
         if is_connectedtosetup:
             # self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('test', self.delay_entry_text.get(), note_list)
-            self.cm.play()
+            self.cm.addSong('test', int(self.delay_entry_text.get()), note_list)
+            self.cm.play(hittype=self.hitmethods_text.get())
             # Control.play(note_list)
 
     # TODO call right method, calibrator needs to be restructured
@@ -447,7 +447,7 @@ class XylobotGUI:
             self.start_pitchcheck(notelist=sequence)
             #self.cm.addSong('improv', int(self.delay_entry_text.get()), notes)
             self.cm.addSong('improv', 100, notes)
-            self.cm.play()
+            self.cm.play(hittype=self.hitmethods_text.get())
 
     def close_gui(self):
         self.window.destroy()
@@ -677,7 +677,7 @@ class RunSequenceThread(threading.Thread):
             self.gui.update_log('Started note hit thread')
             try:
                 try:
-                    self.cm.play()
+                    self.cm.play(hittype=self.gui.hitmethods_text.get())
                 except Exception as e:
                     pass
             except Exception as e:
