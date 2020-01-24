@@ -224,9 +224,8 @@ class XylobotGUI:
         if connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
             self.cm.addSong('improv', 2, note_list)
-            self.queue = Queue.Queue()
-            RunSequenceThread(self.queue, self, self.cm).start()
-            self.window.after(100, self.process_queue)
+            RunSequenceThread(self, self.cm).start()
+
             # Control.play(note_list)
 
     # TODO call right method, calibrator needs to be restructured
@@ -398,7 +397,6 @@ class XylobotGUI:
                     print(pitchtrack_resNS.key_and_times)
 
             if self.pitchtrackcalcs > 0 and len(pitchtrack_resNS.key_and_times) > 0:
-
                 self.update_log(pitchtrack_resNS.key_and_times)
                 self.update_log(self.notelist)
 
@@ -671,9 +669,9 @@ class XylobotGUI:
 
 
 class RunSequenceThread(threading.Thread):
-    def __init__(self, queue, gui, cm):
+    def __init__(self, gui, cm):
         threading.Thread.__init__(self)
-        self.queue = queue
+
         self.gui = gui
         self.cm = cm
 
@@ -691,8 +689,6 @@ class RunSequenceThread(threading.Thread):
         else:
             print('Not connected to setup')
 
-        self.queue.put("Task finished")
-        self.queue = None
 
 
 class CalibrateThread(threading.Thread):
