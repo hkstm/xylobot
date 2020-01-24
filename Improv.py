@@ -374,6 +374,15 @@ def improvise(note, improvisation_length, timings):
 		improvised_notes.append((generate_note(improvised_notes[i][0]), current_time))
 	return improvised_notes
 
+#appends the entire sequence to the end of the sequence to make it repeat twice to improve the transition probabilities
+def double_sequence(sequence):
+	new_sequence = []
+	for i in range(len(sequence)):
+		new_sequence.append(sequence[i])
+	for i in range(len(sequence)):
+		new_sequence.append((sequence[i][0], sequence[len(sequence)-1][1]+sequence[i][1]))
+	return new_sequence
+
 #calculates the similarity between two sequences after altering the probability by a severity factor to increase the
 #number of rare note pairs ap0earing
 def calculate_similarity(sequence, improvisation_length, severity):
@@ -385,5 +394,6 @@ def calculate_similarity(sequence, improvisation_length, severity):
 
 #called by another class to return an improvised sequence
 def create_music(sequence, improvisation_length):
+	sequence = double_sequence(double_sequence(double_sequence(double_sequence(sequence))))
 	improvised_sequence = improvise(sequence[len(sequence) - 1][0], improvisation_length, generate_timings(sequence))
 	return improvised_sequence
