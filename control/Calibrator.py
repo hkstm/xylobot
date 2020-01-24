@@ -15,7 +15,7 @@ Coefficient = 1
 
 FIRST = True
 stepsize = 0.05
-error = 5
+error = 7
 lastPointV = None
 
 
@@ -208,7 +208,10 @@ def destroyWindows():
 
 def monitor(gui):
     while(1):
-        bcl, bcr = Grid.monitorSides(gui)
+        try:
+            bcl, bcr = Grid.monitorSides(gui)
+        except Exception as e:
+            print("Error: ", e)
 
 
 if __name__ == '__main__':

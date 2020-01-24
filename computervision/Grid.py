@@ -8,6 +8,7 @@ list = []
 gui = None
 boundarycenterleft = None
 boundarycenterright = None
+prec = (None, None)
 
 def Swapped():
     isSwapped = getSides.Swapped()
@@ -24,9 +25,12 @@ def generateList(GUI):
     return list
 
 def getOffset(key, previous_coordinates = (None, None)):
-    global gui, boundarycenterleft, boundarycenterright
+    global gui, boundarycenterleft, boundarycenterright, prec
+    if previous_coordinates == (None, None):
+        previous_coordinates = prec
     boundarycenterleft, boundarycenterright = getSides.getBoundaryMidpoints()
-    mallet = getMallet.run(gui, previous_coordinates, boundarycenterleft, boundarycenterright)
+    mallet, prevc = getMallet.run(gui, previous_coordinates, boundarycenterleft, boundarycenterright)
+    prec = prevc
     try:
         xoffset = mallet[0][0]-key.px
         yoffset = mallet[0][1]-key.py

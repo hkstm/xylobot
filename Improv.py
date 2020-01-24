@@ -363,6 +363,7 @@ def generate_interval(timings):
 			return timings[1][i]
 		if i < len(timings) - 1:
 			probability_counter = probability_counter + timings[1][i + 1]
+	print(timings)
 
 #creates an improvised sequence of specified length based on an input sequence
 def improvise(note, improvisation_length, timings):
