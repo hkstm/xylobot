@@ -192,7 +192,7 @@ class XylobotGUI:
             prevtime = time
         if is_connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('improv', 2, note_list)
+            self.cm.addSong('improv', int(self.delay_entry_text.get()), note_list)
             RunSequenceThread(self, self.cm).start()
 
             # Control.play(note_list)
@@ -426,7 +426,8 @@ class XylobotGUI:
             'level': 'info',
             'window': 'hanning',
             'fftsize': self.fft_entry_text.get(),
-            'topindex': 1
+            'topindex': 1,
+            'loudnessfactor': 0.4
         }
         key_and_times = pitch_track_wrap(SimpleNamespace(**argsdict))
         num_improv_notes = 16
@@ -707,7 +708,7 @@ class CalibrateThread(threading.Thread):
                 self.gui.updateCenterpointsImage()
 
                 ####TODO set correct place in the simulation
-                self.gui.simulation.setMiddleWithPoints(newNotes)
+                self.gui.simu_xylo.setMiddleAndRotationWithPoints(newNotes)
                 ####
 
 
@@ -721,6 +722,7 @@ class CalibrateThread(threading.Thread):
             except Exception as e:
                 print(e)
                 self.gui.update_log(f'Calibration failed: {e}')
+
                 Calibrator.destroyWindows()
         else:
             Test.run(self.gui)
@@ -766,4 +768,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
