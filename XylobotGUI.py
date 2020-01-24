@@ -40,36 +40,54 @@ import PIL.Image
 import PIL.ImageTk
 import cv2
 
+import itertools
+
 screen_factor = 0.9
 
 
 class XylobotGUI:
 
     def init_window(self):
+        self.number = 0
+        self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
+        self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
+
+        self.simu_xylo = SimuXylo(0,self.birds_eye_view,self.side_view)
+
         if connectedtosetup:
-            self.cm = ControlManager()
+            self.cm = ControlManager(self.simu_xylo)
             self.cm.sendToArduino(Position(0, 0, 0))
 
             newNotesCoords = []
-
+            print("LOADING SETUP")
             try:
                 with open('notecoords.txt', 'r') as filehandle:
                     newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
                 newNotes = [tuple(coord.split()) for coord in newNotesCoords]
-                newNotes = [Point(float(x), float(y), float(z)) for (x, y, z) in newNotes]
+                #newNotes = [Point(float(x), float(y), float(z)) for (x, y, z) in newNotes]
+                newNotes = [Point(float(x), float(y), float(z)) for (x,y,z) in newNotes]
+                self.simu_xylo.setMiddleAndRotationWithPoints(newNotes)
+                print(f'newNotes {newNotes}')
+
                 self.cm.setNoteCoordinates(newNotes)
                 print(f'newNotes {newNotes}')
                 print(f'{type(newNotes)}')
             except Exception as e:
                 print(e)
+            print("DONE WITH LOADING")
 
-        self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
-        self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
 
-        self.simu_xylo = SimuXylo(0)
         self.simu_xylo.update_base()
 
-        self.side_view.create_rectangle(self.simu_xylo.get_side_view_rectangle(), fill="blue")
+        keys = self.simu_xylo.getKeys()
+        for key in keys:
+            pts = key.getPoints()
+            self.birds_eye_view.create_polygon(pts, fill=key.getColor(), tags = key.getColor())
+
+        self.side_view.create_rectangle(self.simu_xylo.get_side_view_rectangle(), fill="blue", tags= "svrec")
+
+        #self.side_view.create_rectangle(100,200,300,400, fill="blue")
+
 
         self.birds_eye_view.create_line(self.simu_xylo.get_b_line(),
                                         fill="grey", width=self.simu_xylo.arm_width, joinstyle=ROUND, tags="b_line")
@@ -81,10 +99,15 @@ class XylobotGUI:
         self.side_view.create_line(self.simu_xylo.get_s_mallet(),
                                    fill="grey", width=self.simu_xylo.mallet_width, joinstyle=ROUND, tags="s_mallet")
 
+        self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,0, 0, 0,1)
+
+
+
+
+
     def update_sim(self):
         self.idx_direction = 0
-        self.directions = [-30, -15, 0, 15, 30,
-                           0]  # theses three arrays are sequences of goal self.directions and angles
+        self.directions = [-30, -15, 0, 15, 30, 0]  # theses three arrays are sequences of goal self.directions and angles
         self.lower_angles = [160, 185, 160, 185, 160, 170]
         self.upper_angles = [180, 260, 180, 260, 180, 200]
         self.direction = 0
@@ -94,9 +117,9 @@ class XylobotGUI:
         self.is_simlooping = False
 
         self.update_sim_loop()
-        # self.window.after(self.delay, self.update_sim_loop)
-        # calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
-        # calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
+        self.window.after(self.delay, self.update_sim_loop)
+        #calculate_and_draw("yellow", self.birds_eye_view, self.side_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
+        #calculate("yellow", self.birds_eye_view, self.direction, self.lower_joint_angle, self.upper_joint_angle)
 
     def update_sim_loop(self):
         goal_direction = self.directions[self.idx_direction]
@@ -104,7 +127,7 @@ class XylobotGUI:
         goal_upper_joint_angle = self.upper_angles[self.idx_direction]
         self.simu_xylo.update_joint_angles(self.direction, self.lower_joint_angle, self.upper_joint_angle)
         details = self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,
-                                             goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, seconds=1)
+                                             goal_direction, goal_lower_joint_angle, goal_upper_joint_angle, seconds=20)
         self.direction = details[0]
         self.lower_joint_angle = details[1]
         self.upper_joint_angle = details[2]
@@ -139,7 +162,53 @@ class XylobotGUI:
 
     def set_xylophone_location(self, x, y, z):
         self.simu_xylo.setXyloMidpoint(SimuVector(0, 20, 11), cm=True)
-        self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
+        self.simu_xylo.updateXyloDrawing(self.birds_eye_view,self.side_view)
+
+    def play_btn(self, key, event=None):
+        self.update_log(f'playing: {key}')
+        # #####3#TODO REMOVE THIS TESTER:
+        #
+        # pts = [Point(-13.61, 24.67,12),Point(9.037,21.975,12)]
+        # pts = [Point(-13.61, 24.67,12),Point(9.037,21.975,12)]
+        #
+        # self.simu_xylo.setMiddleAndRotationWithPoints(pts)
+        #
+        #
+        # if(key == "d6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33, -63, 68, 0)
+        # elif(key == "c6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 18.5, -75.9, 46.89, 0)
+        # elif(key == "b6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -26.1, -60.22, 73.53, 0)
+        # elif(key=="f6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 5.99, -65.57, 64, 0)
+        # else:
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,20, 20, 20, 0)
+
+
+
+        #self.simu_xylo.setXyloMidpoint(SimuVector(0,0,11), cm = True)
+        #self.simu_xylo.goodRotate(30)
+        #self.number = self.number + 2
+        #print(self.number)
+
+        #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 0, self.number, 20,0)
+        #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 0, 60, 68,0)
+
+        #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33.1, -63.25, 68,0)
+
+        #self.simu_xylo.fill_canvas(SimuVector(0,self.number,11),cm=True)
+        #self.simu_xylo.setXyloMidpoint(SimuVector(-2.2,23.3,11),cm=True)
+        #self.simu_xylo.setRotation(180)
+        #self.simu_xylo.setXyloMidpoint(SimuVector(0,self.number,11),cm=True)
+        # self.simu_xylo.updateXyloDrawing(self.birds_eye_view, self.side_view)
+        #self.move_Simulation_Robot(20,180,220)
+        ############3
+        if connectedtosetup:
+            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
+            # control.hitkey(key)
+            self.cm.hit(Note(key, 0.8), hittype='triangle 2')
+
 
     def run_sequence_threaded(self):
         if self.is_pitchchecking:
@@ -163,7 +232,7 @@ class XylobotGUI:
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
         self.queue = Queue.Queue()
-        CalibrateThread(self.queue, self).start()
+        CalibrateThread(self.queue, self,self.simu_xylo).start()
         self.window.after(100, self.process_queue)
 
     def process_queue(self):
@@ -255,6 +324,7 @@ class XylobotGUI:
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
+            print(f'key {key}')
             self.cm.addSong('singlehit', 3, [Note(key, 0.8)])
             self.queue = Queue.Queue()
             RunSequenceThread(self.queue, self, self.cm).start()
@@ -302,9 +372,9 @@ class XylobotGUI:
         self.numpyframes = []  # Initialize array to store frames
 
         self.cm.sm.hm.hits = 0
+        self.pitchcheckcounter = 0
 
         self.do_pitchcheck()
-        self.pitchcheckcounter = 0
         # self.stop_pitchcheck()
 
     def do_pitchcheck(self):
@@ -314,10 +384,10 @@ class XylobotGUI:
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            pitchcheck_every = 1000
-            if len(numpydata) > self.chunk:
-                self.pitchcheckcounter += 1
-                if self.pitchcheckcounter % pitchcheck_every == 0:
+            pitchcheck_every = 10000
+            if self.pitchcheckcounter % pitchcheck_every == 0:
+                if len(numpydata) > self.chunk:
+                    self.pitchcheckcounter += 1
                     print('pitch checking')
                     print(f'len numpydata {len(numpydata)}')
 
@@ -331,19 +401,20 @@ class XylobotGUI:
 
                     # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
                     print(pitchtrack_resNS.key_and_times)
-            if self.cm.sm.hm.hits == len(self.notelist) and self.pitchcheckcounter > 0 and len(pitchtrack_resNS.key_and_times) >= len(self.notelist):
-                self.update_log('Stopping pitch check')
-                self.stop_pitchcheck()
-            elif self.cm.sm.hm.hits > len(self.notelist):
-                self.update_log("!!!Song hits larger than length note list")
-                self.stop_pitchcheck()
-            else:
-                if self.pitchcheckcounter % pitchcheck_every == 0:
-                    if pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
-                        self.update_log('Setup might need to be recalibrated')
-                    else:
-                        self.update_log("setup still calibrated")
-                self.window.after(self.delay_audio, self.do_pitchcheck)
+                if self.cm.sm.hm.hits == len(self.notelist) and self.pitchcheckcounter > 0 and len(pitchtrack_resNS.key_and_times) >= len(self.notelist):
+                    self.update_log('Stopping pitch check')
+                    self.stop_pitchcheck()
+                elif self.cm.sm.hm.hits > len(self.notelist):
+                    self.update_log("!!!Song hits larger than length note list")
+                    self.stop_pitchcheck()
+                else:
+                    if len(numpydata) > self.chunk:
+
+                        if pitchtrack_resNS is not None and len(pitchtrack_resNS.key_and_times) > 0 and pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
+                            self.update_log('Setup might need to be recalibrated')
+                        else:
+                            self.update_log("setup still calibrated")
+            self.window.after(self.delay_audio, self.do_pitchcheck)
 
     def stop_pitchcheck(self):
         self.update_log('Trying to stop pitch checking')
@@ -551,7 +622,7 @@ class XylobotGUI:
         self.is_pitchchecking = False
 
         self.update_vid()
-        self.update_sim()
+        #self.update_sim()
         # p1 = multiprocessing.Process(target=self.update_sim)
         # p1.start()
 
@@ -620,7 +691,7 @@ class RunSequenceThread(threading.Thread):
 
 
 class CalibrateThread(threading.Thread):
-    def __init__(self, queue, gui):
+    def __init__(self, queue, gui, simulation):
         threading.Thread.__init__(self)
         self.queue = queue
         self.gui = gui
@@ -644,8 +715,15 @@ class CalibrateThread(threading.Thread):
                     self.gui.update_log(f'{note.x}, {note.y}')
                 self.gui.update_log(f'Calibration successful with:')
                 # control.setNotes(newNotes)
+
                 self.gui.cm.setNoteCoordinates(newNotes)
                 self.gui.updateCenterpointsImage()
+
+                ####TODO set correct place in the simulation
+                self.gui.simulation.setMiddleWithPoints(newNotes)
+                ####
+
+
                 try:
                     Calibrator.monitor(self.gui)
                 except Exception as e:
@@ -703,4 +781,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam

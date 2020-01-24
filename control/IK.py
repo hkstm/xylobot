@@ -1,6 +1,6 @@
 import math
-# from .Position import Position as position
 
+# from .Position import Position as position
 
 class Point:
     def __init__(self, x, y, z):

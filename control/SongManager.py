@@ -111,6 +111,7 @@ class SongManager:
         newnotes = []
         for note in notes:
             newnote = next((x for x in self.notecoords if x.key == note.key), None)
+            print(self.notecoords)
             newnotes.append(Note(note.key, note.delay, newnote.coords))
         song = Song(name, tempo, newnotes)
         if song not in self.songs:

@@ -72,6 +72,7 @@ class SimuKey:
         return SimuVector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, p1.z)
 
     def getColor(self):
+        print(self.color)
         return self.color
 
     def translate(self, x, y):
