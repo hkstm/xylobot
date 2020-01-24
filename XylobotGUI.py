@@ -2,10 +2,10 @@ import librosa
 import queue as Queue
 import threading
 
-connectedtosetup = True
+is_connectedtosetup = True
 is_threadhitting = False
-print(f"Connected to setup: {connectedtosetup}")
-if connectedtosetup:
+print(f"Connected to setup: {is_connectedtosetup}")
+if is_connectedtosetup:
     from control import Calibrator
 
 from Improv import *
@@ -55,7 +55,7 @@ class XylobotGUI:
 
         self.simu_xylo = SimuXylo(0,self.birds_eye_view,self.side_view)
 
-        if connectedtosetup:
+        if is_connectedtosetup:
             self.cm = ControlManager(self.simu_xylo)
             self.cm.sendToArduino(Position(0, 0, 0))
 
@@ -173,7 +173,7 @@ class XylobotGUI:
         # updateXyloDrawing(self.xylo,self.birds_eye_view)
         # self.move_Simulation_Robot(20,180,220)
         ############
-        if connectedtosetup:
+        if is_connectedtosetup:
             # self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
             self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=self.delay_entry_text())
@@ -190,7 +190,7 @@ class XylobotGUI:
             note, time = seqpart
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
-        if connectedtosetup:
+        if is_connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
             self.cm.addSong('improv', 2, note_list)
             RunSequenceThread(self, self.cm).start()
@@ -206,7 +206,7 @@ class XylobotGUI:
             note, time = seqpart
             note_list.append(Note(key=note, delay=(time - prevtime)))
             prevtime = time
-        if connectedtosetup:
+        if is_connectedtosetup:
             # self.start_pitchcheck(notelist=note_list)
             self.cm.addSong('test', self.delay_entry_text.get(), note_list)
             self.cm.play()
@@ -297,7 +297,7 @@ class XylobotGUI:
         if self.is_pitchchecking:
             self.stop_pitchcheck()
         self.update_log(f'playing: {key}')
-        if connectedtosetup:
+        if is_connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
             print(f'key {key}')
@@ -431,7 +431,7 @@ class XylobotGUI:
         key_and_times = pitch_track_wrap(SimpleNamespace(**argsdict))
         num_improv_notes = 16
         sequence = create_music(key_and_times[0], num_improv_notes)
-        if connectedtosetup:
+        if is_connectedtosetup:
             notes = [0] * len(sequence)
             for i in range(len(sequence)):
                 notes[i] = Note(key=sequence[i][0], delay=sequence[i][1])
@@ -663,7 +663,7 @@ class RunSequenceThread(threading.Thread):
         self.cm = cm
 
     def run(self):
-        if connectedtosetup:
+        if is_connectedtosetup:
             self.gui.update_log('Started note hit thread')
             try:
                 try:
@@ -684,8 +684,8 @@ class CalibrateThread(threading.Thread):
         self.gui = gui
 
     def run(self):
-        print("Connected to setup: ", connectedtosetup)
-        if connectedtosetup:
+        print("Connected to setup: ", is_connectedtosetup)
+        if is_connectedtosetup:
             self.gui.update_log('Started calibration')
             try:
                 newNotes = Calibrator.calibrate(self.gui, self.gui.cm)
