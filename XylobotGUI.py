@@ -2,7 +2,7 @@ import librosa
 import queue as Queue
 import threading
 
-connectedtosetup = False
+connectedtosetup = True
 print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
@@ -230,18 +230,8 @@ class XylobotGUI:
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
-        self.queue = Queue.Queue()
-        CalibrateThread(self.queue, self,self.simu_xylo).start()
-        self.window.after(100, self.process_queue)
+        CalibrateThread(self,self.simu_xylo).start()
 
-    def process_queue(self):
-        try:
-            msg = self.queue.get(0)
-            print(msg)
-            # Show result of the task if needed
-            # self.prog_bar.stop()
-        except Queue.Empty:
-            self.window.after(100, self.process_queue)
 
     def start_recordclip(self):
         self.recordclip_btn_isclicked = True
@@ -324,10 +314,8 @@ class XylobotGUI:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
             print(f'key {key}')
-            self.cm.addSong('singlehit', 3, [Note(key, 0.8)])
-            self.queue = Queue.Queue()
-            RunSequenceThread(self.queue, self, self.cm).start()
-            self.window.after(100, self.process_queue)
+            self.cm.addSong('singlehit', int(self.delay_entry_text.get()), [Note(key, 0.8)])
+            RunSequenceThread(self, self.cm).start()
 
     # def play_btn_old(self, key, event=None):
     #     self.update_log(f'playing: {key}')
@@ -386,12 +374,12 @@ class XylobotGUI:
             fft_size = int(self.fft_entry_text.get())
             pitchcheck_every = 1000
             if self.pitchcheckcounter % pitchcheck_every == 0:
-                self.update_log('self.pitchcheckcounter % pitchcheck_every == 0')
+                # self.update_log('self.pitchcheckcounter pitchcheck_every 0')
                 if len(numpydata) > self.chunk:
-                    print('pitch checking')
+                    # print('pitch checking')
                     pitchtrack_resNS = pitch_track_calc(self.fs, numpydata, fft_size, False, False, 1, 'blackman', loudness_factor=0.4, amp_thresh=0)
                     self.pitchtrackcalcs += 1
-                    print(pitchtrack_resNS.key_and_times)
+                    # print(pitchtrack_resNS.key_and_times)
 
             if self.pitchtrackcalcs > 0 and len(pitchtrack_resNS.key_and_times) > 0:
                 self.update_log(pitchtrack_resNS.key_and_times)
@@ -459,7 +447,7 @@ class XylobotGUI:
             for i in range(len(sequence)):
                 notes[i] = Note(key=sequence[i][0], delay=sequence[i][1])
             self.start_pitchcheck(notelist=sequence)
-            self.cm.addSong('improv', 20, notes)
+            self.cm.addSong('improv', int(self.delay_entry_text.get()), notes)
             self.cm.play()
 
     def close_gui(self):
@@ -689,9 +677,8 @@ class RunSequenceThread(threading.Thread):
 
 
 class CalibrateThread(threading.Thread):
-    def __init__(self, queue, gui, simulation):
+    def __init__(self, gui, simulation):
         threading.Thread.__init__(self)
-        self.queue = queue
         self.gui = gui
 
     def run(self):
@@ -736,8 +723,6 @@ class CalibrateThread(threading.Thread):
         else:
             Test.run(self.gui)
 
-        self.queue.put("Task finished")
-        self.queue = None
 
 
 class CamCapture:

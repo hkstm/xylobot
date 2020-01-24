@@ -8,7 +8,7 @@ import time
 
 class HitManager:
 
-    def __init__(self, ser):
+    def __init__(self, ser, simu_xylo):
         self.xyloheight = 12.5
         self.ser = ser
         self.currentPosition = Point(1.1, 23, 13)
@@ -23,6 +23,7 @@ class HitManager:
         self.positions = []
         self.servospeed = 0.05
         self.hits = 0
+        self.simu_xylo = simu_xylo
 
     def hit(self):
         for p in self.positions:
