@@ -369,7 +369,7 @@ class XylobotGUI:
                     # print(pitchtrack_resNS.key_and_times)
             if self.pitchtrackcalcs > 0:
 
-                
+
                 if len(pitchtrack_resNS.key_and_times) > 0:
                     self.update_log(pitchtrack_resNS.key_and_times)
                     if not len(self.notelist > 0):
