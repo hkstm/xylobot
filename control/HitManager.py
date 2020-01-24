@@ -50,7 +50,7 @@ class HitManager:
             print('Same key is to be hit')
             h = self.snh
             note.speed = distance
-            print('Distance ', distance)
+            #print('Distance ', distance)
             self.servospeed = 0.1
         else:
             # self.servospeed = 0.05
@@ -87,7 +87,7 @@ class HitManager:
 
         # print('Points: ')
         for p in h.getPath():
-            print('- Point: ', p)
+            #print('- Point: ', p)
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)

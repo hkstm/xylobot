@@ -432,12 +432,17 @@ class XylobotGUI:
         key_and_times = pitch_track_wrap(SimpleNamespace(**argsdict))
         num_improv_notes = 16
         sequence = create_music(key_and_times[0], num_improv_notes)
+        print("this is the original")
+        print(key_and_times[0])
+        print("this is the sequence")
+        print(sequence)
         if is_connectedtosetup:
             notes = [0] * len(sequence)
             for i in range(len(sequence)):
                 notes[i] = Note(key=sequence[i][0], delay=sequence[i][1])
             self.start_pitchcheck(notelist=sequence)
-            self.cm.addSong('improv', int(self.delay_entry_text.get()), notes)
+            #self.cm.addSong('improv', int(self.delay_entry_text.get()), notes)
+            self.cm.addSong('improv', 120, notes)
             self.cm.play()
 
     def close_gui(self):
