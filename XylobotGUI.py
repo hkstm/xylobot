@@ -48,9 +48,13 @@ class XylobotGUI:
 
     def init_window(self):
         self.number = 0
+        self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
+        self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
+
+        self.simu_xylo = SimuXylo(0,self.birds_eye_view,self.side_view)
 
         if connectedtosetup:
-            self.cm = ControlManager()
+            self.cm = ControlManager(self.simu_xylo)
             self.cm.sendToArduino(Position(0, 0, 0))
 
             newNotesCoords = []
@@ -60,6 +64,7 @@ class XylobotGUI:
                     newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
                 newNotes = [tuple(coord.split()) for coord in newNotesCoords]
                 newNotes = [Point(float(x), float(y), float(z)) for (x,y,z) in newNotes]
+                self.simu_xylo.setMiddleAndRotationWithPoints(newNotes)
                 self.cm.setNoteCoordinates(newNotes)
                 print(f'newNotes {newNotes}')
                 print(f'{type(newNotes)}')
@@ -67,10 +72,7 @@ class XylobotGUI:
                 print(e)
 
 
-        self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
-        self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
 
-        self.simu_xylo = SimuXylo(0)
         self.simu_xylo.update_base()
 
         keys = self.simu_xylo.getKeys()
@@ -160,20 +162,24 @@ class XylobotGUI:
 
     def play_btn(self, key, event=None):
         self.update_log(f'playing: {key}')
-        #####3#TODO REMOVE THIS TESTER:
-
-        if(key == "c7"):
-            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33, -63, 68, 0)
-        elif(key == "c6"):
-            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 18.5, -75.9, 46.89, 0)
-        elif(key == "b6"):
-            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -26.1, -60.22, 73.53, 0)
-        elif(key=="f6"):
-            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 5.99, -65.57, 64, 0)
-
-
-        else:
-            self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,20, 20, 20, 0)
+        # #####3#TODO REMOVE THIS TESTER:
+        #
+        # pts = [Point(-13.61, 24.67,12),Point(9.037,21.975,12)]
+        # pts = [Point(-13.61, 24.67,12),Point(9.037,21.975,12)]
+        #
+        # self.simu_xylo.setMiddleAndRotationWithPoints(pts)
+        #
+        #
+        # if(key == "d6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33, -63, 68, 0)
+        # elif(key == "c6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 18.5, -75.9, 46.89, 0)
+        # elif(key == "b6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -26.1, -60.22, 73.53, 0)
+        # elif(key=="f6"):
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, 5.99, -65.57, 64, 0)
+        # else:
+        #     self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view,20, 20, 20, 0)
 
 
 
@@ -188,22 +194,22 @@ class XylobotGUI:
         #self.simu_xylo.fill_canvas(self.birds_eye_view, self.side_view, -33.1, -63.25, 68,0)
 
         #self.simu_xylo.fill_canvas(SimuVector(0,self.number,11),cm=True)
-        self.simu_xylo.setXyloMidpoint(SimuVector(-2.2,23.3,11),cm=True)
-        self.simu_xylo.setRotation(180)
+        #self.simu_xylo.setXyloMidpoint(SimuVector(-2.2,23.3,11),cm=True)
+        #self.simu_xylo.setRotation(180)
         #self.simu_xylo.setXyloMidpoint(SimuVector(0,self.number,11),cm=True)
-        self.simu_xylo.updateXyloDrawing(self.birds_eye_view, self.side_view)
+        # self.simu_xylo.updateXyloDrawing(self.birds_eye_view, self.side_view)
         #self.move_Simulation_Robot(20,180,220)
         ############3
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), 'uniform')
+            self.cm.hit(Note(key, 0.8), hittype='triangle 2')
 
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
         self.queue = Queue.Queue()
-        CalibrateThread(self.queue, self).start()
+        CalibrateThread(self.queue, self,self.simu_xylo).start()
         self.window.after(100, self.process_queue)
 
     def process_queue(self):
@@ -287,18 +293,18 @@ class XylobotGUI:
         # combobox_event.selection_clear()
         method = self.hitmethods_text.get()
 
-    def play_btn(self, key, event=None):
-        self.update_log(f'playing: {key}')
-        # #TODO REMOVE THIS TESTER:
-        # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
-        # self.xylo.goodRotate(30)
-        # updateXyloDrawing(self.xylo,self.birds_eye_view)
-        # self.move_Simulation_Robot(20,180,220)
-        ############
-        if connectedtosetup:
-            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
-            # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
+    # def play_btn(self, key, event=None):
+    #     self.update_log(f'playing: {key}')
+    #     # #TODO REMOVE THIS TESTER:
+    #     # self.xylo.setXyloMidpoint(SimuVector(0,20,11), cm = True)
+    #     # self.xylo.goodRotate(30)
+    #     # updateXyloDrawing(self.xylo,self.birds_eye_view)
+    #     # self.move_Simulation_Robot(20,180,220)
+    #     ############
+    #     if connectedtosetup:
+    #         self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
+    #         # control.hitkey(key)
+    #         self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
 
     def run_sequence(self):
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
@@ -605,7 +611,7 @@ class XylobotGUI:
 
 
 class CalibrateThread(threading.Thread):
-    def __init__(self, queue, gui):
+    def __init__(self, queue, gui, simulation):
         threading.Thread.__init__(self)
         self.queue = queue
         self.gui = gui
@@ -629,8 +635,15 @@ class CalibrateThread(threading.Thread):
                     self.gui.update_log(f'{note.x}, {note.y}')
                 self.gui.update_log(f'Calibration successful with:')
                 # control.setNotes(newNotes)
+
                 self.gui.cm.setNoteCoordinates(newNotes)
                 self.gui.updateCenterpointsImage()
+
+                ####TODO set correct place in the simulation
+                self.gui.simulation.setMiddleWithPoints(newNotes)
+                ####
+
+
             except Exception as e:
                 print(e)
                 self.gui.update_log(f'Calibration failed: {e}')
@@ -680,4 +693,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam

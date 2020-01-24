@@ -5,12 +5,13 @@ from control.SongManager import SongManager
 
 class ControlManager:
 
-    def __init__(self):
+    def __init__(self, simu_xylo):
         self.ser = self.initArduino(9600, "COM3")
-        self.hm = HitManager(self.ser)
+        self.hm = HitManager(self.ser, simu_xylo)
         self.sm = SongManager(self.hm)
         self.startMarker = 60
         self.endMarker = 62
+        self.simu_xylo = simu_xylo
 
     def play(self):
         self.sm.play()

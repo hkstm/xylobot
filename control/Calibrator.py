@@ -5,7 +5,37 @@ except:
 
 from .Point import Point as Point
 from .Position import Position as Position
+# import IK
+from . import IK as ik
+import computervision.Grid as Grid
 
+import numpy as np
+import math
+Coefficient = 1
+
+FIRST = True
+stepsize = 0.05
+error = 5
+lastPointV = None
+
+
+
+def calibrate(gui, cm):
+    global Coefficient, lastPointV, stepsize
+    discoveredPoints = []
+
+
+
+    #height = Control.getZ()
+    height = 12
+    hitHeight = 14
+    #control.sendToArduino(Position(0,0,0))
+    cm.sendToArduino(Position(0,0,0))
+
+    # prrrr = ik.getAngles((Point(14.35, 20.5, 11)))
+    # control.sendToArduino(Position(prrrr[0],prrrr[1], prrrr[2]))
+    # time.sleep(5)
+    keyList = Grid.generateList(gui)
     #gui.updateCenterpointsImage()
 
     keyList[0].x = 9

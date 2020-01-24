@@ -5,6 +5,7 @@ import tkinter as tk
 import math
 import time
 import itertools
+import math
 
 biv = None
 sv = None
@@ -21,7 +22,12 @@ class SimuXylo:
     def getConversions(self):
         return 0, self.CM_TOPIX_X_OFFSET, self.CM_TOPIX_Y_OFFSET
 
-    def __init__(self, rotation, location=SimuVector(0, 0, 0)):
+    def fill_canvas_lessParam(self, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,seconds):
+        self.fill_canvas(self.biv,self.sv,goal_direction,goal_lower_joint_angle,goal_upper_joint_angle,seconds)
+
+    def __init__(self, rotation, biv, sv, location=SimuVector(0, 0, 0)):
+        self.biv = biv
+        self.sv = sv
         self.DISTANCEBETWEENMIDPOINTS = 20.5 / 7
         self.HEIGHT_DIFF = (11.5 - 8.3) / 7
         self.WIDTH = (15) / 7
@@ -270,6 +276,28 @@ class SimuXylo:
                                                math.radians(self.upper_joint_angle)) +
                                                           (self.arm_width / (2 * self.multiplier)) * math.sin(
                                                math.radians(self.upper_joint_angle - 90))))
+
+    def setMiddleAndRotationWithPoints(self, points):
+        amtPoints = len(points)
+        totx = 0
+        toty = 0
+        totz = 0
+        for point in points:
+            totx += point.x
+            toty += point.y
+            totz += point.z
+
+        avgx = totx/amtPoints
+        avgy = toty/amtPoints
+        avgz = totz/amtPoints
+
+        self.setXyloMidpoint(SimuVector(-avgx, avgy, avgz,), cm = True)
+
+        rotationradians = math.atan2( points[0].y- points[amtPoints-1].y, points[0].x - points[amtPoints-1].x)
+        rotationdegrees = math.degrees(rotationradians)
+
+        self.setRotation(rotationdegrees)
+        print("middle point: x= ",avgx," y= ",avgy," Rotation: ", rotationdegrees)
 
     def fill_canvas(self, birds_eye_view, side_view, goal_direction, goal_lower_joint_angle, goal_upper_joint_angle,
                     seconds):
