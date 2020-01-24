@@ -66,7 +66,7 @@ class Experiments:
 
     def testHitAngles(self):
         for note in self.getNotesFromSequence('01231212321010'):
-           self.cm.hit(note, dynamics='f', hittype='triangle 2', tempo=10)
+           self.cm.hit(note, dynamics='f', hittype='triangle 2', tempo=3)
            time.sleep(note.delay - self.movemargin)
 
         # for note in self.getNotesFromSequence('0121321054321204'):
@@ -75,8 +75,8 @@ class Experiments:
 
 
 
-         # self.cm.addSong('test1', 2, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])
-         # self.cm.play()
+        # self.cm.addSong('test1', 2, [TestComponents.notes[0], TestComponents.notes[3], TestComponents.notes[3], TestComponents.notes[1]])
+        # self.cm.play()
 
         #print('[*] Testing hit types')
         #for type in TestComponents.hittypes:

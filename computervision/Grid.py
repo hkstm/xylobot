@@ -1,10 +1,13 @@
 import computervision.EwanCV.newEllipse as getSides
+import computervision.EwanCV.checkMove as checkMove
 import computervision.getMallet as getMallet
 import computervision.CenterPoint as CP
 list = []
 #list of key centers
 
 gui = None
+boundarycenterleft = None
+boundarycenterright = None
 
 def Swapped():
     isSwapped = getSides.Swapped()
@@ -21,7 +24,7 @@ def generateList(GUI):
     return list
 
 def getOffset(key, previous_coordinates = (None, None)):
-    global gui
+    global gui, boundarycenterleft, boundarycenterright
     boundarycenterleft, boundarycenterright = getSides.getBoundaryMidpoints()
     mallet = getMallet.run(gui, previous_coordinates, boundarycenterleft, boundarycenterright)
     try:
@@ -38,3 +41,17 @@ def destroyWindows():
     getSides.destroyWindows()
     getMallet.destroyWindows()
     print("Windows destroyed")
+
+def monitorSides(gui):
+    global boundarycenterleft, boundarycenterright
+    bcl, bcr = checkMove.run(gui)
+    if bcl is not None:
+        if (abs(int(boundarycenterleft[0]) - int(bcl[0])) > 50) or (abs(int(boundarycenterleft[1]) - int(bcl[1])) > 50):
+            gui.update_log("Xylophone appears to have moved. Please recalibrate")
+    if bcr is not None:
+        if (abs(int(boundarycenterright[0]) - int(bcr[0])) > 50) or (abs(int(boundarycenterright[1]) - int(bcr[1])) > 50):
+            gui.update_log("Xylophone appears to have moved. Please recalibrate")
+    return bcl, bcr
+
+
+

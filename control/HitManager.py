@@ -10,7 +10,7 @@ class HitManager:
 
     def __init__(self, ser, simu_xylo):
         self.number = 25
-        self.xyloheight = 13.5
+        self.xyloheight = 12.5
         self.ser = ser
         self.currentPosition = Point(1.1, 23, 13)
         self.targetPosition = None
@@ -23,26 +23,28 @@ class HitManager:
         self.snh = SameNoteHit(ser, self.xyloheight)
         self.positions = []
         self.servospeed = 0.05
+        self.hits = 0
         self.simu_xylo = simu_xylo
 
     def hit(self):
         for p in self.positions:
-            print('- Position: ', p)
+            # print('- Position: ', p)
             self.sendToArduino(p)
 
             time.sleep(self.servospeed)
+        self.hits += 1
 
     def calculatePath(self, note, tempo=0, malletBounce=0):
-        print('[*] Calculating path...')
-        print('[*] Playing note: ', note)
+        #print('[*] Calculating path...')
+        #print('[*] Playing note: ', note)
         self.positions = []
         self.targetPosition = note.coords
         distance = math.sqrt((self.currentPosition.x - self.targetPosition.x) ** 2 + note.power ** 2)
         note.speed = distance / (3 + tempo)  # approx cm between keys
 
         h = None
-        print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
-        print(f'hittype {note.hittype}')
+        #print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
+        #print(f'hittype {note.hittype}')
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
             print('Same key is to be hit')
             h = self.snh
@@ -64,16 +66,16 @@ class HitManager:
                 h = self.gh
                 malletBounce = -1
 
-        if note.key is 'c6' or note.key is 'c7':
+        if note.key == 'c6' or note.key == 'c7':
             h.setHeight(self.xyloheight + 0.30 + malletBounce)
-        if note.key is 'd6' or note.key is 'b6':
+        if note.key == 'd6' or note.key == 'b6':
             h.setHeight(self.xyloheight + 0.2 + malletBounce)
-        if note.key is 'e6' or note.key is 'a6':
+        if note.key == 'e6' or note.key == 'a6':
             h.setHeight(self.xyloheight + 0.1 + malletBounce)
 
         #self.xyloheight = self.xyloheight + malletBounce
         #h.setHeight(self.xyloheight + malletBounce)
-        print('note speed: ', note.speed)
+        #print('note speed: ', note.speed)
         h.set(self.currentPosition, self.targetPosition, note.speed, note.power)
 
         h.calculatePath()
@@ -82,7 +84,7 @@ class HitManager:
 
         # print('Points: ')
         for p in h.getPath():
-            print('- Point: ', p)
+            # print('- Point: ', p)
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)

@@ -64,7 +64,7 @@ def run(gui):
 
 #Crop image
         if bready:
-            print("bready x: ", int(finalObj[0][0]))
+            # print("bready x: ", int(finalObj[0][0]))
             if int(finalObj[0][0]) > int(width/2):
                 offsetright = int(width/2)
                 offset = 0
@@ -72,7 +72,7 @@ def run(gui):
                 offset = int(finalObj[0][0]) + 370
                 offsetright = 640
         elif b2ready:
-            print("b2ready x: ", int(finalObj2[0][0]))
+            # print("b2ready x: ", int(finalObj2[0][0]))
             if int(finalObj2[0][0]) > int(width/2):
                 offsetright = int(width/2)
                 offset = 0

@@ -13,8 +13,8 @@ class ControlManager:
         self.endMarker = 62
         self.simu_xylo = simu_xylo
 
-    def play(self):
-        self.sm.play()
+    def play(self, dynamics='p', hittype='triangle 2'):
+        self.sm.play(dynamics, hittype)
 
     def addSong(self, name, tempo, notes):
         self.sm.add(name, tempo, notes)

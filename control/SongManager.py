@@ -45,12 +45,10 @@ class SongManager:
         self.notelist = ['c6', 'd6', 'e6', 'f6', 'g6', 'a6', 'b6', 'c7']
         self.hm = hm
         self.note = Note('tmp', delay=0.01)
-        self.song_hits = 0
 
     def play(self, dynamics='p', hittype='triangle 2'):
         for song in self.songs:
             tempo = song.getTempo()
-            self.song_hits = 0
             for note in song.getNotes():
                 malletBounce = 0
                 if dynamics == 'pp':
@@ -72,12 +70,14 @@ class SongManager:
                     note.power = 5
                     malletBounce = 1
                 note.hittype = hittype
-                print('malletBounce: ', malletBounce)
+                #print('malletBounce: ', malletBounce)
                 try:
-                    print('[*] Playing note: ', note)
-                    time.sleep(note.delay)
-                    self.hit(note, tempo)
-                    self.song_hits += 1
+                    #print('[*] Playing note: ', note)
+                    if note.delay - tempo*0.1 < 0:
+                        time.sleep(note.delay)
+                    else:
+                        time.sleep(note.delay - tempo * 0.1)
+                    self.hit(note, tempo, malletBounce=malletBounce)
                 except Warning as w:
                     print(w)
                     pass
@@ -99,9 +99,7 @@ class SongManager:
         newnote = next((x for x in self.notecoords if x.key == note.key), None)
         note.coords = newnote.coords
         self.hm.calculatePath(note, tempo, malletBounce)
-        self.song_hits = 0
         self.hm.hit()
-        self.song_hits += 1
 
     def hitPoint(self, point):
         self.note.coords = point

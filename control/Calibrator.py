@@ -206,5 +206,10 @@ def destroyWindows():
     Coefficient = 1
     print("Windows destroyed")
 
+def monitor(gui):
+    while(1):
+        bcl, bcr = Grid.monitorSides(gui)
+
+
 if __name__ == '__main__':
     print(calibrate())
