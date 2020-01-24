@@ -112,8 +112,8 @@ class HitManager:
     def sendToArduino(self, pos):
         string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'
 
-        if(self.number%4==0):
-            self.simu_xylo.fill_canvas_lessParam(pos.m0,pos.m1,pos.m2,0.0001)
+        # if(self.number%10==0):
+        #     self.simu_xylo.fill_canvas_lessParam(pos.m0,pos.m1,pos.m2,0.0001)
         self.number = self.number+1
         b = string.encode('utf-8')
         self.ser.write(b)

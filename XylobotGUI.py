@@ -59,20 +59,22 @@ class XylobotGUI:
             self.cm.sendToArduino(Position(0, 0, 0))
 
             newNotesCoords = []
-
+            print("LOADING SETUP")
             try:
                 with open('notecoords.txt', 'r') as filehandle:
                     newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
                 newNotes = [tuple(coord.split()) for coord in newNotesCoords]
-                newNotes = [Point(float(x), float(y), float(z)) for (x, y, z) in newNotes]
+                #newNotes = [Point(float(x), float(y), float(z)) for (x, y, z) in newNotes]
                 newNotes = [Point(float(x), float(y), float(z)) for (x,y,z) in newNotes]
                 self.simu_xylo.setMiddleAndRotationWithPoints(newNotes)
+                print(f'newNotes {newNotes}')
+
                 self.cm.setNoteCoordinates(newNotes)
                 print(f'newNotes {newNotes}')
                 print(f'{type(newNotes)}')
             except Exception as e:
                 print(e)
-
+            print("DONE WITH LOADING")
 
 
         self.simu_xylo.update_base()
@@ -322,6 +324,7 @@ class XylobotGUI:
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
             # control.hitkey(key)
+            print(f'key {key}')
             self.cm.addSong('singlehit', 3, [Note(key, 0.8)])
             self.queue = Queue.Queue()
             RunSequenceThread(self.queue, self, self.cm).start()
@@ -369,9 +372,9 @@ class XylobotGUI:
         self.numpyframes = []  # Initialize array to store frames
 
         self.cm.sm.hm.hits = 0
+        self.pitchcheckcounter = 0
 
         self.do_pitchcheck()
-        self.pitchcheckcounter = 0
         # self.stop_pitchcheck()
 
     def do_pitchcheck(self):
@@ -381,10 +384,10 @@ class XylobotGUI:
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            pitchcheck_every = 1000
-            if len(numpydata) > self.chunk:
-                self.pitchcheckcounter += 1
-                if self.pitchcheckcounter % pitchcheck_every == 0:
+            pitchcheck_every = 10000
+            if self.pitchcheckcounter % pitchcheck_every == 0:
+                if len(numpydata) > self.chunk:
+                    self.pitchcheckcounter += 1
                     print('pitch checking')
                     print(f'len numpydata {len(numpydata)}')
 
@@ -398,19 +401,20 @@ class XylobotGUI:
 
                     # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
                     print(pitchtrack_resNS.key_and_times)
-            if self.cm.sm.hm.hits == len(self.notelist) and self.pitchcheckcounter > 0 and len(pitchtrack_resNS.key_and_times) >= len(self.notelist):
-                self.update_log('Stopping pitch check')
-                self.stop_pitchcheck()
-            elif self.cm.sm.hm.hits > len(self.notelist):
-                self.update_log("!!!Song hits larger than length note list")
-                self.stop_pitchcheck()
-            else:
-                if self.pitchcheckcounter % pitchcheck_every == 0:
-                    if pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
-                        self.update_log('Setup might need to be recalibrated')
-                    else:
-                        self.update_log("setup still calibrated")
-                self.window.after(self.delay_audio, self.do_pitchcheck)
+                if self.cm.sm.hm.hits == len(self.notelist) and self.pitchcheckcounter > 0 and len(pitchtrack_resNS.key_and_times) >= len(self.notelist):
+                    self.update_log('Stopping pitch check')
+                    self.stop_pitchcheck()
+                elif self.cm.sm.hm.hits > len(self.notelist):
+                    self.update_log("!!!Song hits larger than length note list")
+                    self.stop_pitchcheck()
+                else:
+                    if len(numpydata) > self.chunk:
+
+                        if pitchtrack_resNS is not None and len(pitchtrack_resNS.key_and_times) > 0 and pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
+                            self.update_log('Setup might need to be recalibrated')
+                        else:
+                            self.update_log("setup still calibrated")
+            self.window.after(self.delay_audio, self.do_pitchcheck)
 
     def stop_pitchcheck(self):
         self.update_log('Trying to stop pitch checking')
