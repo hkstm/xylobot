@@ -22,13 +22,14 @@ class HitManager:
         self.snh = SameNoteHit(ser, self.xyloheight)
         self.positions = []
         self.servospeed = 0.05
+        self.hits = 0
 
     def hit(self):
         for p in self.positions:
             # print('- Position: ', p)
             self.sendToArduino(p)
-
             time.sleep(self.servospeed)
+        self.hits += 1
 
     def calculatePath(self, note, tempo=0, malletBounce=0):
         #print('[*] Calculating path...')

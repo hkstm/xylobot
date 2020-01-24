@@ -11,7 +11,6 @@ from Improv import *
 from simulation.SimuVector import SimuVector
 from simulation.SimuXylo import SimuXylo
 from signalprocessing.SignalTrack import pitch_track_wrap
-from signalprocessing.SignalTrack import pitch_track_wrap_improv
 from signalprocessing.SignalTrack import pitch_track_calc
 from control.ControlManager import ControlManager
 from control.SongManager import Note
@@ -42,6 +41,8 @@ import PIL.ImageTk
 import cv2
 
 screen_factor = 0.9
+
+
 class XylobotGUI:
 
     def init_window(self):
@@ -55,13 +56,12 @@ class XylobotGUI:
                 with open('notecoords.txt', 'r') as filehandle:
                     newNotesCoords = [notecoords.rstrip() for notecoords in filehandle.readlines()]
                 newNotes = [tuple(coord.split()) for coord in newNotesCoords]
-                newNotes = [Point(float(x), float(y), float(z)) for (x,y,z) in newNotes]
+                newNotes = [Point(float(x), float(y), float(z)) for (x, y, z) in newNotes]
                 self.cm.setNoteCoordinates(newNotes)
                 print(f'newNotes {newNotes}')
                 print(f'{type(newNotes)}')
             except Exception as e:
                 print(e)
-
 
         self.birds_eye_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
         self.side_view = Canvas(self.window, width=self.canvaswidth, height=self.canvasheight, background="black")
@@ -142,6 +142,8 @@ class XylobotGUI:
         self.simu_xylo.updateXyloDrawing(self.birds_eye_view)
 
     def run_sequence_threaded(self):
+        if self.is_pitchchecking:
+            self.stop_pitchcheck()
         seq_list = ast.literal_eval(self.sequence_entry_text.get())
         self.update_log(f'Running sequence: {seq_list}')
         note_list = []
@@ -152,12 +154,11 @@ class XylobotGUI:
             prevtime = time
         if connectedtosetup:
             self.start_pitchcheck(notelist=note_list)
-            self.cm.addSong('improv', 3, note_list)
+            self.cm.addSong('improv', 2, note_list)
             self.queue = Queue.Queue()
             RunSequenceThread(self.queue, self, self.cm).start()
             self.window.after(100, self.process_queue)
             # Control.play(note_list)
-
 
     # TODO call right method, calibrator needs to be restructured
     def calibrate(self):
@@ -228,7 +229,8 @@ class XylobotGUI:
             'guiplot': True,
             'level': 'info',
             'window': 'blackman',
-            'fftsize': self.fft_entry_text.get(),
+            # 'fftsize': self.fft_entry_text.get(),
+            'fftsize': 512,
             'topindex': 1,
             'loudnessfactor': 0.4,
         }
@@ -240,13 +242,15 @@ class XylobotGUI:
         self.sequence_entry_text.set(str(key_and_times))
 
         # self.plot_img = PIL.ImageTk.PhotoImage(PIL.Image.open('signalprocessing\data\displayplot.png'))
-        # self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2, image=self.plot_img)
+        # self.plot_canvas.create_image(self.canvaswidfth / 2, self.canvasheight / 2, image=self.plot_img)
 
     def update_hitmethods(self, event=None):
         # combobox_event.selection_clear()
         method = self.hitmethods_text.get()
 
     def play_btn_threaded(self, key, event=None):
+        if self.is_pitchchecking:
+            self.stop_pitchcheck()
         self.update_log(f'playing: {key}')
         if connectedtosetup:
             self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
@@ -269,7 +273,7 @@ class XylobotGUI:
     #         # control.hitkey(key)
     #         self.cm.hit(Note(key, 0.8), dynamics='p', hittype=self.hitmethods_text.get(), tempo=1)
 
-    # def run_sequence(self):
+    # def run_sequence_old(self):
     #     seq_list = ast.literal_eval(self.sequence_entry_text.get())
     #     self.update_log(f'Running sequence: {seq_list}')
     #     note_list = []
@@ -296,34 +300,49 @@ class XylobotGUI:
                                   frames_per_buffer=self.chunk,
                                   input=True)
         self.numpyframes = []  # Initialize array to store frames
-        # self.do_pitchcheck()
-        self.stop_pitchcheck()
+
+        self.cm.sm.hm.hits = 0
+
+        self.do_pitchcheck()
+        self.pitchcheckcounter = 0
+        # self.stop_pitchcheck()
 
     def do_pitchcheck(self):
+        self.update_log('doing pitchcheck')
         if self.is_pitchchecking:
             data = self.stream.read(self.chunk)
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata, fft_size=fft_size, is_plotting=False,
-                                                is_logging=False, topindex=1, window='blackman', amp_thresh=float(
-                    self.ampthresh_entry_text.get()))
-            overlap_fac = 0.5
-            # flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
-            #                                              hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+            pitchcheck_every = 1000
+            if len(numpydata) > self.chunk:
+                self.pitchcheckcounter += 1
+                if self.pitchcheckcounter % pitchcheck_every == 0:
+                    print('pitch checking')
+                    print(f'len numpydata {len(numpydata)}')
 
-            # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
-            print(pitchtrack_resNS.key_and_times)
-            if len(pitchtrack_resNS.key_and_times) > 0:
-                list1 = ['-'.join(str(tup)) for tup in pitchtrack_resNS.key_and_times]
-                print(list1)
-                self.update_log(','.join(list1))
-                self.cm.sm.song_hits
-            if self.cm.sm.song_hits == len(self.notelist):
+                    pitchtrack_resNS = pitch_track_calc(self.fs, numpydata, fft_size, False, False, 1, 'blackman', loudness_factor=0.4, amp_thresh=0)
+                    # pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata, fft_size=fft_size, is_plotting=False,
+                    #                                     is_logging=False, topindex=1, window='blackman', amp_thresh=float(
+                    #         self.ampthresh_entry_text.get()))
+                    overlap_fac = 0.5
+                    # flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
+                    #                                              hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
+
+                    # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
+                    print(pitchtrack_resNS.key_and_times)
+            if self.cm.sm.hm.hits == len(self.notelist) and self.pitchcheckcounter > 0 and len(pitchtrack_resNS.key_and_times) >= len(self.notelist):
+                self.update_log('Stopping pitch check')
                 self.stop_pitchcheck()
-            elif self.cm.sm.song_hits >= len(self.notelist):
+            elif self.cm.sm.hm.hits > len(self.notelist):
                 self.update_log("!!!Song hits larger than length note list")
+                self.stop_pitchcheck()
             else:
+                if self.pitchcheckcounter % pitchcheck_every == 0:
+                    if pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
+                        self.update_log('Setup might need to be recalibrated')
+                    else:
+                        self.update_log("setup still calibrated")
                 self.window.after(self.delay_audio, self.do_pitchcheck)
 
     def stop_pitchcheck(self):
@@ -362,7 +381,7 @@ class XylobotGUI:
             'fftsize': self.fft_entry_text.get(),
             'topindex': 1
         }
-        key_and_times = pitch_track_wrap_improv(SimpleNamespace(**argsdict))
+        key_and_times = pitch_track_wrap(SimpleNamespace(**argsdict))
         num_improv_notes = 16
         sequence = create_music(key_and_times[0], num_improv_notes)
         if connectedtosetup:
@@ -504,7 +523,8 @@ class XylobotGUI:
         #                                                                                    columnspan=2, sticky=NSEW)
         self.run_btn = Button(window, text="Run Sequence", command=self.run_sequence_threaded).grid(row=8, column=8,
                                                                                                     rowspan=2,
-                                                                                                    columnspan=2, sticky=NSEW)
+                                                                                                    columnspan=2,
+                                                                                                    sticky=NSEW)
         self.improvise_btn = Button(window, text="Improvise", command=self.improvise_sequence).grid(row=6, column=4,
                                                                                                     columnspan=2,
                                                                                                     rowspan=1,
@@ -574,6 +594,7 @@ class XylobotGUI:
         self.plot_canvas.create_image(self.canvaswidth / 2, self.canvasheight / 2,
                                       image=self.centerpoints_img)
 
+
 class RunSequenceThread(threading.Thread):
     def __init__(self, queue, gui, cm):
         threading.Thread.__init__(self)
@@ -596,7 +617,6 @@ class RunSequenceThread(threading.Thread):
             print('Not connected to setup')
         self.queue.put("Task finished")
         self.queue = None
-
 
 
 class CalibrateThread(threading.Thread):
@@ -683,4 +703,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
