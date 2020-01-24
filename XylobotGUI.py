@@ -367,8 +367,9 @@ class XylobotGUI:
                     pitchtrack_resNS = pitch_track_calc(self.fs, numpydata, fft_size, False, False, 1, 'blackman', loudness_factor=0.4, amp_thresh=0)
                     self.pitchtrackcalcs += 1
                     # print(pitchtrack_resNS.key_and_times)
-
             if self.pitchtrackcalcs > 0:
+
+                
                 if len(pitchtrack_resNS.key_and_times) > 0:
                     self.update_log(pitchtrack_resNS.key_and_times)
                     if not len(self.notelist > 0):
