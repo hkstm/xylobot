@@ -125,4 +125,3 @@ class HitManager:
 
     def standTall(self):
         self.sendToArduino(Position(0, 0, 0))
-

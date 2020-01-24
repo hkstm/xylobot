@@ -307,6 +307,9 @@ class XylobotGUI:
         method = self.hitmethods_text.get()
 
     def play_btn_threaded(self, key, event=None):
+
+
+
         if self.is_pitchchecking:
             self.stop_pitchcheck()
         self.update_log(f'playing: {key}')
