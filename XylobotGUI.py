@@ -378,7 +378,7 @@ class XylobotGUI:
         # self.stop_pitchcheck()
 
     def do_pitchcheck(self):
-        self.update_log('doing pitchcheck')
+        # self.update_log('doing pitchcheck')
         if self.is_pitchchecking:
             data = self.stream.read(self.chunk)
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
