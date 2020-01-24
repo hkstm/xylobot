@@ -31,7 +31,10 @@ class HitManager:
         for p in self.positions:
             # print('- Position: ', p)
             self.sendToArduino(p)
-            time.sleep(self.servospeeds[i])
+            try:
+                time.sleep(self.servospeeds[i])
+            except Exception:
+                time.sleep(0.1)
             i = i + 1
         self.hits += 1
 
