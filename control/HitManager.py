@@ -9,6 +9,7 @@ import time
 class HitManager:
 
     def __init__(self, ser, simu_xylo):
+        self.number = 1
         self.xyloheight = 12.5
         self.ser = ser
         self.currentPosition = Point(1.1, 23, 13)
@@ -29,6 +30,7 @@ class HitManager:
         for p in self.positions:
             # print('- Position: ', p)
             self.sendToArduino(p)
+
             time.sleep(self.servospeed)
         self.hits += 1
 
@@ -38,20 +40,21 @@ class HitManager:
         self.positions = []
         self.targetPosition = note.coords
         distance = math.sqrt((self.currentPosition.x - self.targetPosition.x) ** 2 + note.power ** 2)
-        note.speed = distance / (3 + (60000 / tempo) / 400)  # approx cm between keys
+        # note.speed = distance / (3 + tempo)  # approx cm between keys
+        note.speed = round(distance / (3 + (60000 / tempo) / 400), 2)
 
         h = None
-        print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
+        #print('target: ', self.targetPosition, ' current: ', self.currentPosition, ' distance: ', distance, ' speed: ', note.speed)
         #print(f'hittype {note.hittype}')
         if math.fabs(self.targetPosition.x - self.currentPosition.x) <= 0.5:
             print('Same key is to be hit')
             h = self.snh
             note.speed = distance
+            print('Distance ', distance)
             self.servospeed = 0.1
         else:
-            #self.servospeed = 0.05
+            # self.servospeed = 0.05
             self.servospeed = round(1 / (distance * tempo) * 25, 2)
-            print('Servospeed: ', self.servospeed)
             if note.hittype.lower() == 'quadratic':
                 h = self.qh
             elif note.hittype.lower() == 'triangle 1':
@@ -84,7 +87,7 @@ class HitManager:
 
         # print('Points: ')
         for p in h.getPath():
-            # print('- Point: ', p)
+            print('- Point: ', p)
             try:
                 p.x = round(p.x, 2)
                 p.y = round(p.y, 2)
@@ -111,8 +114,13 @@ class HitManager:
 
     def sendToArduino(self, pos):
         string = str(pos.m0) + ', ' + str(pos.m1) + ', ' + str(pos.m2) + '\n'
+
+        # if(self.number%10==0):
+        #     self.simu_xylo.fill_canvas_lessParam(pos.m0,pos.m1,pos.m2,0.0001)
+        # self.number = self.number+1
         b = string.encode('utf-8')
         self.ser.write(b)
+
 
     def setCurrent(self, point):
         self.currentPosition = point
