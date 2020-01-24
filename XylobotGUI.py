@@ -2,7 +2,7 @@ import librosa
 import queue as Queue
 import threading
 
-connectedtosetup = True
+connectedtosetup = False
 print(f"Connected to setup: {connectedtosetup}")
 if connectedtosetup:
     from control import Calibrator
@@ -204,10 +204,10 @@ class XylobotGUI:
         # self.simu_xylo.updateXyloDrawing(self.birds_eye_view, self.side_view)
         #self.move_Simulation_Robot(20,180,220)
         ############3
-        if connectedtosetup:
-            self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
-            # control.hitkey(key)
-            self.cm.hit(Note(key, 0.8), hittype='triangle 2')
+        # if connectedtosetup:
+        #     self.start_pitchcheck(notelist=[Note(key=key, delay=0)])
+        #     # control.hitkey(key)
+        #     self.cm.hit(Note(key, 0.8), hittype='triangle 2')
 
 
     def run_sequence_threaded(self):
@@ -373,6 +373,7 @@ class XylobotGUI:
 
         self.cm.sm.hm.hits = 0
         self.pitchcheckcounter = 0
+        self.pitchtrackcalcs = 0
 
         self.do_pitchcheck()
         # self.stop_pitchcheck()
@@ -384,23 +385,25 @@ class XylobotGUI:
             self.numpyframes.append((np.frombuffer(data, dtype=np.int16)))
             numpydata = np.hstack(self.numpyframes)
             fft_size = int(self.fft_entry_text.get())
-            pitchcheck_every = 10000
+            pitchcheck_every = 1000
             if self.pitchcheckcounter % pitchcheck_every == 0:
+                self.update_log('self.pitchcheckcounter % pitchcheck_every == 0')
                 if len(numpydata) > self.chunk:
-                    self.pitchcheckcounter += 1
                     print('pitch checking')
-                    print(f'len numpydata {len(numpydata)}')
-
                     pitchtrack_resNS = pitch_track_calc(self.fs, numpydata, fft_size, False, False, 1, 'blackman', loudness_factor=0.4, amp_thresh=0)
-                    # pitchtrack_resNS = pitch_track_calc(fs=self.fs, data=numpydata, fft_size=fft_size, is_plotting=False,
-                    #                                     is_logging=False, topindex=1, window='blackman', amp_thresh=float(
-                    #         self.ampthresh_entry_text.get()))
-                    overlap_fac = 0.5
-                    # flatness = librosa.feature.spectral_flatness(y=data.astype(float), n_fft=fft_size,
-                    #                                              hop_length=np.int32(np.floor(fft_size * (1 - overlap_fac))))
-
-                    # print(f'key_and_times \t{pitchtrack_resNS.key_and_times} ---')
+                    self.pitchtrackcalcs += 1
                     print(pitchtrack_resNS.key_and_times)
+
+            if self.pitchtrackcalcs > 0 and len(pitchtrack_resNS.key_and_times) > 0:
+
+                self.update_log(pitchtrack_resNS.key_and_times)
+                self.update_log(self.notelist)
+
+                if pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
+                    self.update_log('Setup might need to be recalibrated')
+                else:
+                    self.update_log("setup still calibrated")
+
                 if self.cm.sm.hm.hits == len(self.notelist) and self.pitchcheckcounter > 0 and len(pitchtrack_resNS.key_and_times) >= len(self.notelist):
                     self.update_log('Stopping pitch check')
                     self.stop_pitchcheck()
@@ -408,12 +411,10 @@ class XylobotGUI:
                     self.update_log("!!!Song hits larger than length note list")
                     self.stop_pitchcheck()
                 else:
-                    if len(numpydata) > self.chunk:
+                    pass
+                    # self.update_log('not stopping pitch check')
 
-                        if pitchtrack_resNS is not None and len(pitchtrack_resNS.key_and_times) > 0 and pitchtrack_resNS.key_and_times[len(pitchtrack_resNS.key_and_times) - 1] != self.notelist[len(pitchtrack_resNS.key_and_times) - 1]:
-                            self.update_log('Setup might need to be recalibrated')
-                        else:
-                            self.update_log("setup still calibrated")
+            self.pitchcheckcounter += 1
             self.window.after(self.delay_audio, self.do_pitchcheck)
 
     def stop_pitchcheck(self):
@@ -686,6 +687,7 @@ class RunSequenceThread(threading.Thread):
                 self.gui.update_log(f'Note hit failed: {e}')
         else:
             print('Not connected to setup')
+
         self.queue.put("Task finished")
         self.queue = None
 
@@ -781,4 +783,4 @@ class CamCapture:
 
 
 # Create a window and pass it to the Application object
-XylobotGUI(Tk(), "xylobot GUI", 1, 1)  # 1 is webcam
+XylobotGUI(Tk(), "xylobot GUI", 0, 0)  # 1 is webcam
