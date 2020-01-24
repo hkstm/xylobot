@@ -58,7 +58,7 @@ class SameNoteHit(Hit):
         while self.z <= self.prehit_height:
             i = i + self.speed
             self.z = self.hit_height + i
-            print('------', self.z, ' ', self.prehit_height)
+            #print('------', self.z, ' ', self.prehit_height)
             if math.fabs(self.z - self.prehit_height) < 0.5:
                 self.path.append(Point(self.origin.x, self.origin.y, self.z))
         self.path.append(Point(self.origin.x, self.origin.y, self.hit_height))

@@ -179,6 +179,8 @@ def create_transition_matrix(sequence):
 		column_total = column_totals[i]
 		for j in range(number_of_notes):
 			transition_probabilities[i][j] = (transition_frequencies[j][i] + 1) / (column_total + number_of_notes)
+	print("matrix")
+	print(transition_probabilities)
 
 #generates one note based on the previous note played by consulting the index dictionary and then transition matrix
 def generate_note(previous_note):
@@ -363,16 +365,19 @@ def generate_interval(timings):
 			return timings[1][i]
 		if i < len(timings) - 1:
 			probability_counter = probability_counter + timings[1][i + 1]
-	print(timings)
+	#return[1][0] #in case of recording errors casued by a noisy environment
 
 #creates an improvised sequence of specified length based on an input sequence
 def improvise(note, improvisation_length, timings):
 	improvised_notes = []
 	current_time = generate_interval(timings)
 	improvised_notes.append((generate_note(note), current_time))
+	print(transition_probabilities)
 	for i in range(improvisation_length - 1):
 		current_time = current_time + generate_interval(timings)
 		improvised_notes.append((generate_note(improvised_notes[i][0]), current_time))
+	print("improised notes")
+	print(improvised_notes)
 	return improvised_notes
 
 #appends the entire sequence to the end of the sequence to make it repeat twice to improve the transition probabilities
@@ -385,7 +390,7 @@ def double_sequence(sequence):
 	return new_sequence
 
 #calculates the similarity between two sequences after altering the probability by a severity factor to increase the
-#number of rare note pairs ap0earing
+#number of rare note pairs appearing
 def calculate_similarity(sequence, improvisation_length, severity):
 	create_transition_matrix(sequence)
 	adjust(transition_probabilities, transition_frequencies, severity)
@@ -395,6 +400,7 @@ def calculate_similarity(sequence, improvisation_length, severity):
 
 #called by another class to return an improvised sequence
 def create_music(sequence, improvisation_length):
-	sequence = double_sequence(double_sequence(double_sequence(double_sequence(sequence))))
+	sequence = double_sequence(double_sequence(double_sequence(double_sequence(double_sequence(sequence)))))
+	create_transition_matrix(sequence)
 	improvised_sequence = improvise(sequence[len(sequence) - 1][0], improvisation_length, generate_timings(sequence))
 	return improvised_sequence
