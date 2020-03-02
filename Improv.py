@@ -400,7 +400,7 @@ def calculate_similarity(sequence, improvisation_length, severity):
 
 #called by another class to return an improvised sequence
 def create_music(sequence, improvisation_length):
-	sequence = double_sequence(double_sequence(double_sequence(double_sequence(double_sequence(sequence)))))
+	sequence = double_sequence(double_sequence(double_sequence(double_sequence(double_sequence(double_sequence(double_sequence(sequence)))))))
 	create_transition_matrix(sequence)
 	improvised_sequence = improvise(sequence[len(sequence) - 1][0], improvisation_length, generate_timings(sequence))
 	return improvised_sequence
